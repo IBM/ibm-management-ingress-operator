@@ -1,0 +1,21 @@
+apiVersion: operator.ibm.com/v1alpha1
+kind: ManagementIngress
+metadata:
+  name: example
+spec:
+  managementState: "managed"
+  imageRepo: "quay.io/management-ingress:2.5.0"
+  routeHost: cp-console.apps.ibm.com
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  allowedHostHeader: "127.0.0.1"
+  iamNamespace: default
+  cert:
+    issuer: "ca-issuer"
+  config:
+    disable-access-log: "true"
