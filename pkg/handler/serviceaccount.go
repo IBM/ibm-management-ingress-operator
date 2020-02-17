@@ -48,9 +48,15 @@ func (ingressRequest *IngressRequest) CreateServiceAccount() error {
 		),
 		NewPolicyRule(
 			[]string{""},
-			[]string{"configmaps", "endpoints", "nodes", "pods", "secrets"},
+			[]string{"endpoints", "nodes", "pods", "secrets"},
 			nil,
 			[]string{"list", "watch"},
+		),
+		NewPolicyRule(
+			[]string{""},
+			[]string{"configmaps"},
+			nil,
+			[]string{"get", "list", "update", "watch"},
 		),
 		NewPolicyRule(
 			[]string{""},
