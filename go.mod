@@ -8,6 +8,7 @@ require (
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
 	github.com/openshift/cluster-logging-operator v0.0.0-20191214044220-23b8ba943be0
 	github.com/openshift/elasticsearch-operator v0.0.0-20191205050238-a39c936a841a
+	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20191115003340-16619cd27fa5
 	github.com/operator-framework/operator-sdk v0.13.0
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/pflag v1.0.5
