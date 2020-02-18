@@ -47,6 +47,9 @@ func NewDeployment(name string, namespace string, podSpec core.PodSpec) *apps.De
 					Labels: labels,
 					Annotations: map[string]string{
 						"scheduler.alpha.kubernetes.io/critical-pod": "",
+						"productID":      "cp-0000001",
+						"productName":    "IBM Cloud Platform Common Services",
+						"productVersion": "3.3.0",
 					},
 				},
 				Spec: podSpec,
@@ -97,7 +100,7 @@ func newPodSpec(imageRepo string, resources *core.ResourceRequirements, nodeSele
 	container.Env = []core.EnvVar{
 		{Name: "ENABLE_IMPERSONATION", Value: "false"},
 		{Name: "APISERVER_SECURE_PORT", Value: "6443"},
-		{Name: "CLUSTER_DOMAIN", Value: "mycluster.cp"},
+		{Name: "CLUSTER_DOMAIN", Value: "cluster.local"},
 		{Name: "HOST_HEADERS_CHECK_ENABLED", Value: strconv.FormatBool(len(allowedHostHeader) > 0)},
 		{Name: "ALLOWED_HOST_HEADERS", Value: allowedHostHeader},
 		{Name: "OIDC_ISSUER_URL", Value: oidcURL},
