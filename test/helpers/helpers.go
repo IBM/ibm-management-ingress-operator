@@ -29,8 +29,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	utilwait "k8s.io/apimachinery/pkg/util/wait"
 
-	operator "github.com/IBM/management-ingress-operator/pkg/apis/operator/v1alpha1"
-	"github.com/IBM/management-ingress-operator/test/config"
+	operator "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
+	"github.com/IBM/ibm-management-ingress-operator/test/config"
 )
 
 // CreateTest creates a ManagementIngressOperatorSet instance
@@ -240,7 +240,7 @@ func GetOperators(f *framework.Framework, namespace string) (map[string]operator
 		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: config.CatalogCrName, Namespace: namespace}, moInstance)
 		if err != nil {
 			if errors.IsNotFound(err) {
-				lastReason = fmt.Sprintf("Waiting on ManagementIngressOperator instance to be created [management-ingress-operator]")
+				lastReason = fmt.Sprintf("Waiting on ManagementIngressOperator instance to be created [ibm-management-ingress-operator]")
 				return false, nil
 			}
 			return false, err

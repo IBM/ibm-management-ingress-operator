@@ -23,11 +23,11 @@ TARGET_GOOS=linux
 TARGET_GOARCH=amd64
 
 # The namespce that operator will be deployed in
-NAMESPACE=management-ingress-operator
+NAMESPACE=ibm-management-ingress-operator
 
 # Image URL to use all building/pushing image targets;
 # Use your own docker registry and image name for dev/test by overridding the IMG and REGISTRY environment variable.
-IMG ?= management-ingress-operator
+IMG ?= ibm-management-ingress-operator
 REGISTRY ?= quay.io/opencloudio
 CSV_VERSION ?= 0.1
 
@@ -110,24 +110,24 @@ endif
 ##@ Build
 
 build:
-	@echo "Building management-ingress-operator binary"
+	@echo "Building ibm-management-ingress-operator binary"
 	@CGO_ENABLED=0 go build -o build/_output/bin/$(IMG) ./cmd/manager
 	@strip $(STRIP_FLAGS) build/_output/bin/$(IMG)
 
 build-image: build $(CONFIG_DOCKER_TARGET)
 	$(eval ARCH := $(shell uname -m|sed 's/x86_64/amd64/'))
 	docker build -t $(REGISTRY)/$(IMG)-$(ARCH):$(VERSION) -f build/Dockerfile .
-	@\rm -f build/_output/bin/management-ingress-operator
+	@\rm -f build/_output/bin/ibm-management-ingress-operator
 	@if [ $(BUILD_LOCALLY) -ne 1 ] && [ "$(ARCH)" = "amd64" ]; then docker push $(REGISTRY)/$(IMG)-$(ARCH):$(VERSION); fi
 
 # runs on amd64 machine
 build-image-ppc64le: $(CONFIG_DOCKER_TARGET)
 ifeq ($(LOCAL_OS),Linux)
 ifeq ($(LOCAL_ARCH),x86_64)
-	GOOS=linux GOARCH=ppc64le CGO_ENABLED=0 go build -o build/_output/bin/management-ingress-operator-ppc64le ./cmd/manager
+	GOOS=linux GOARCH=ppc64le CGO_ENABLED=0 go build -o build/_output/bin/ibm-management-ingress-operator-ppc64le ./cmd/manager
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset
 	docker build -t $(REGISTRY)/$(IMG)-ppc64le:$(VERSION) -f build/Dockerfile.ppc64le .
-	@\rm -f build/_output/bin/management-ingress-operator-ppc64le
+	@\rm -f build/_output/bin/ibm-management-ingress-operator-ppc64le
 	@if [ $(BUILD_LOCALLY) -ne 1 ]; then docker push $(REGISTRY)/$(IMG)-ppc64le:$(VERSION); fi
 endif
 endif
@@ -136,10 +136,10 @@ endif
 build-image-s390x: $(CONFIG_DOCKER_TARGET)
 ifeq ($(LOCAL_OS),Linux)
 ifeq ($(LOCAL_ARCH),x86_64)
-	GOOS=linux GOARCH=s390x CGO_ENABLED=0 go build -o build/_output/bin/management-ingress-operator-s390x ./cmd/manager
+	GOOS=linux GOARCH=s390x CGO_ENABLED=0 go build -o build/_output/bin/ibm-management-ingress-operator-s390x ./cmd/manager
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset
 	docker build -t $(REGISTRY)/$(IMG)-s390x:$(VERSION) -f build/Dockerfile.s390x .
-	@\rm -f build/_output/bin/management-ingress-operator-s390x
+	@\rm -f build/_output/bin/ibm-management-ingress-operator-s390x
 	@if [ $(BUILD_LOCALLY) -ne 1 ]; then docker push $(REGISTRY)/$(IMG)-s390x:$(VERSION); fi
 endif
 endif

@@ -6,7 +6,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 
-	csv1alpha1 "github.com/IBM/management-ingress-operator/pkg/apis/cs/v1alpha1"
+	csv1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/cs/v1alpha1"
 )
 
 func Reconcile(requestIngress *csv1alpha1.ManagementIngress, requestClient client.Client, recorder record.EventRecorder) (err error) {

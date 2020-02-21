@@ -2,7 +2,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Management Ingress Operator](#management-ingress-operator)
+- [Management Ingress Operator](#ibm-management-ingress-operator)
     - [Overview](#overview)
     - [Prerequisites](#prerequisites)
     - [Getting Started](#getting-started)
@@ -37,8 +37,8 @@ This is the operator to deploy management ingress of IBM Cloud Pak foundation..
 Checkout this Management Ingress Operator repository
 
 ```bash
-# git clone https://github.com/IBM/management-ingress-operator.git
-# cd management-ingress-operator
+# git clone https://github.com/IBM/ibm-management-ingress-operator.git
+# cd ibm-management-ingress-operator
 ```
 
 ### Building the operator
@@ -57,15 +57,15 @@ Run `make install` to install the operator. Check that the operator is running i
 Following the expected result.
 
 ```bash
-# kubectl get all -n management-ingress-operator
+# kubectl get all -n ibm-management-ingress-operator
 NAME                                           READY   STATUS    RESTARTS   AGE
-pod/management-ingress-operator-786d699956-z7k4n   1/1     Running   0          21s
+pod/ibm-management-ingress-operator-786d699956-z7k4n   1/1     Running   0          21s
 
 NAME                                      READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/management-ingress-operator   1/1     1            1           22s
+deployment.apps/ibm-management-ingress-operator   1/1     1            1           22s
 
 NAME                                                 DESIRED   CURRENT   READY   AGE
-replicaset.apps/management-ingress-operator-786d699956   1         1         1       22s
+replicaset.apps/ibm-management-ingress-operator-786d699956   1         1         1       22s
 ```
 
 ### Uninstalling
@@ -77,7 +77,7 @@ To uninstall all that was performed in the above step run `make uninstall`.
 Use the following command to check the operator logs.
 
 ```bash
-# kubectl logs deployment.apps/management-ingress-operator -n management-ingress-operator
+# kubectl logs deployment.apps/ibm-management-ingress-operator -n ibm-management-ingress-operator
 ```
 
 ### Running Tests

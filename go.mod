@@ -1,4 +1,4 @@
-module github.com/IBM/management-ingress-operator
+module github.com/IBM/ibm-management-ingress-operator
 
 go 1.13
 

@@ -11,16 +11,16 @@
 
 1. Ensure **operator-sdk** is installed and login to your OpenShift cluster as an admin user.
 
-1. If the namespace **management-ingress-operator** exists, delete it. Do this to make sure the namespace is clean.
+1. If the namespace **ibm-management-ingress-operator** exists, delete it. Do this to make sure the namespace is clean.
 
     ```bash
-    oc delete namespace management-ingress-operator
+    oc delete namespace ibm-management-ingress-operator
     ```
 
-1. Create the namespace **management-ingress-operator**.
+1. Create the namespace **ibm-management-ingress-operator**.
 
     ```bash
-    oc create namespace management-ingress-operator
+    oc create namespace ibm-management-ingress-operator
     ```
 
 1. Run the test using `make test-e2e`  command locally.

@@ -2,11 +2,11 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
-- [Install the management ingress operator](#install-the-management-ingress-operator)
-    - [Install the management ingress operator On OCP 4.x](#install-the-management-ingress-operator-on-ocp-4x)
+- [Install the management ingress operator](#install-the-ibm-management-ingress-operator)
+    - [Install the management ingress operator On OCP 4.x](#install-the-ibm-management-ingress-operator-on-ocp-4x)
         - [1. Create OperatorSource](#1-create-operatorsource)
-        - [2. Create a Namespace `management-ingress-operator`](#2-create-a-namespace-management-ingress-operator)
-        - [3. Install meta Operator](#3-install-management-ingress-operator)
+        - [2. Create a Namespace `ibm-management-ingress-operator`](#2-create-a-namespace-ibm-management-ingress-operator)
+        - [3. Install meta Operator](#3-install-ibm-management-ingress-operator)
         - [4. Check the installed operators](#4-check-the-installed-operators)
     - [Post-installation](#post-installation)
 
@@ -35,13 +35,13 @@ spec:
   type: appregistry
 ```
 
-### 2. Create a Namespace `management-ingress-operator`
+### 2. Create a Namespace `ibm-management-ingress-operator`
 
-Open the `OperatorHub` page in OCP console left menu, then `Create Project`, e.g., create a project named `management-ingress-operator`.
+Open the `OperatorHub` page in OCP console left menu, then `Create Project`, e.g., create a project named `ibm-management-ingress-operator`.
 
 ### 3. Install meta Operator
 
-Open `OperatorHub` and search `management-ingress-operator` to find the operator, and install it.
+Open `OperatorHub` and search `ibm-management-ingress-operator` to find the operator, and install it.
 
 ### 4. Check the installed operators
 

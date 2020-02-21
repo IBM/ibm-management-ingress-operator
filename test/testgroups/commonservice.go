@@ -23,9 +23,9 @@ import (
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
 
-	"github.com/IBM/management-ingress-operator/test/config"
-	"github.com/IBM/management-ingress-operator/test/helpers"
-	"github.com/IBM/management-ingress-operator/test/testsuits"
+	"github.com/IBM/ibm-management-ingress-operator/test/config"
+	"github.com/IBM/ibm-management-ingress-operator/test/helpers"
+	"github.com/IBM/ibm-management-ingress-operator/test/testsuits"
 )
 
 // MetaOperator is the test group for testing Meta Operator

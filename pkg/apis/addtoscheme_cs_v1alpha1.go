@@ -7,7 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/scheme"
 
-	"github.com/IBM/management-ingress-operator/pkg/apis/cs/v1alpha1"
+	"github.com/IBM/ibm-management-ingress-operator/pkg/apis/cs/v1alpha1"
 )
 
 var (

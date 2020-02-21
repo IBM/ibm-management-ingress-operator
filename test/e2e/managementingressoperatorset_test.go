@@ -20,9 +20,9 @@ import (
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 
-	apis "github.com/IBM/management-ingress-operator/pkg/apis"
-	operator "github.com/IBM/management-ingress-operator/pkg/apis/operator/v1alpha1"
-	"github.com/IBM/management-ingress-operator/test/testgroups"
+	apis "github.com/IBM/ibm-management-ingress-operator/pkg/apis"
+	operator "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
+	"github.com/IBM/ibm-management-ingress-operator/test/testgroups"
 )
 
 func TestManagementIngressOperatorSet(t *testing.T) {
@@ -32,7 +32,7 @@ func TestManagementIngressOperatorSet(t *testing.T) {
 		t.Fatalf("failed to add custom resource scheme to framework: %v", err)
 	}
 	// run subtests
-	t.Run("management-ingress-operator", func(t *testing.T) {
+	t.Run("ibm-management-ingress-operator", func(t *testing.T) {
 		t.Run("Operator", testgroups.ManagementIngressOperator)
 	})
 }

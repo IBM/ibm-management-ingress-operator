@@ -1,0 +1,200 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "operator.ibm.com/v1alpha1",
+          "kind": "ManagementIngress",
+          "metadata": {
+            "name": "example"
+          },
+          "spec": {
+            "allowedHostHeader": "127.0.0.1",
+            "cert": {
+              "issuer": "ca-issuer"
+            },
+            "config": {
+              "disable-access-log": "true"
+            },
+            "iamNamespace": "default",
+            "imageRepo": "quay.io/management-ingress:2.5.0",
+            "managementState": "managed",
+            "resources": {
+              "limits": {
+                "cpu": "500m",
+                "memory": "512Mi"
+              },
+              "requests": {
+                "cpu": "200m",
+                "memory": "256Mi"
+              }
+            },
+            "routeHost": "cp-console.apps.ibm.com"
+          }
+        }
+      ]
+    capabilities: Basic Install
+  name: ibm-management-ingress-operator.v0.0.1
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: ManagementIngress is the Schema for the managementingress API
+      group: operator.ibm.com
+      kind: ManagementIngress
+      name: managementingresses.operator.ibm.com
+      version: v1alpha1
+      displayName: IBM Management Ingress Operator
+      resources:
+      - kind: Deployment
+        name: ibm-management-ingress-operator
+        version: v1
+      - kind: Service
+        name: ibm-management-ingress-operator
+        version: v1
+      - kind: Configmap
+        name: ibm-management-ingress-operator
+        version: v1
+      specDescriptors:
+      - description: Image of IBM Management Ingress
+        displayName: Image
+        path: spec.imageRepo
+      - description: OCP route host of IBM Management Ingress
+        displayName: Route Host
+        path: spec.routeHost
+      - description: Namespace which IBM IAM service was deployed
+        displayName: IAM Namespace
+        path: spec.iamNamespace
+      - description: Certificate Issuer used to sign the certificate of IBM Management Ingress
+        displayName: Certificate Issuer
+        path: spec.cert.issuer
+    required:
+    - description: Certificate is the Schema for the certmanager certificate API
+      kind: Certificate
+      name: certificate.certmanager.k8s.io
+      version: v1alpha1
+      displayName: IBM Health Services ClusterServiceStatus
+  description: IBM Management Ingress Operator
+  displayName: Management Ingress Operator
+  install:
+    spec:
+      deployments:
+      - name: ibm-management-ingress-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              name: ibm-management-ingress-operator
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                name: ibm-management-ingress-operator
+            spec:
+              containers:
+              - command:
+                - ibm-management-ingress-operator
+                env:
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  value: ibm-management-ingress-operator
+                image: REPLACE_IMAGE
+                imagePullPolicy: Always
+                name: ibm-management-ingress-operator
+                resources: {}
+              serviceAccountName: ibm-management-ingress-operator
+      permissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - services/finalizers
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - apps
+          resourceNames:
+          - ibm-management-ingress-operator
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          verbs:
+          - get
+        - apiGroups:
+          - apps
+          resources:
+          - replicasets
+          - deployments
+          verbs:
+          - get
+        - apiGroups:
+          - operator.ibm.com
+          resources:
+          - ManagementIngress
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        serviceAccountName: ibm-management-ingress-operator
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  maturity: alpha
+  provider:
+    name: IBM
+  replaces: ibm-management-ingress-operator.v0.0.0
+  version: 0.0.1

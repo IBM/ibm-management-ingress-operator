@@ -22,7 +22,7 @@ import (
 	olmclient "github.com/operator-framework/operator-lifecycle-manager/pkg/api/client/clientset/versioned"
 	"github.com/operator-framework/operator-sdk/pkg/test"
 
-	"github.com/IBM/management-ingress-operator/test/helpers"
+	"github.com/IBM/ibm-management-ingress-operator/test/helpers"
 )
 
 // ManagementIngressOperatorSetCreate is for testing the create of the ManagementIngressOperatorSet
