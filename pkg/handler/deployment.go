@@ -13,7 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog"
 
-	"github.com/IBM/management-ingress-operator/pkg/utils"
+	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 const (

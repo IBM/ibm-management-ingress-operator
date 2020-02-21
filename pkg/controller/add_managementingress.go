@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/IBM/management-ingress-operator/pkg/controller/managementingress"
+	"github.com/IBM/ibm-management-ingress-operator/pkg/controller/managementingress"
 )
 
 func init() {

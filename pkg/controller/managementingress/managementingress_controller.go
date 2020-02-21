@@ -14,8 +14,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
-	csv1alpha1 "github.com/IBM/management-ingress-operator/pkg/apis/cs/v1alpha1"
-	k8shandler "github.com/IBM/management-ingress-operator/pkg/handler"
+	csv1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/cs/v1alpha1"
+	k8shandler "github.com/IBM/ibm-management-ingress-operator/pkg/handler"
 )
 
 const (

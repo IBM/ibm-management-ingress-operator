@@ -24,9 +24,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
-	"github.com/IBM/management-ingress-operator/pkg/apis"
-	"github.com/IBM/management-ingress-operator/pkg/controller"
-	"github.com/IBM/management-ingress-operator/version"
+	"github.com/IBM/ibm-management-ingress-operator/pkg/apis"
+	"github.com/IBM/ibm-management-ingress-operator/pkg/controller"
+	"github.com/IBM/ibm-management-ingress-operator/version"
 )
 
 // Change below variables to serve metrics on different host or port.
@@ -71,7 +71,7 @@ func main() {
 
 	ctx := context.TODO()
 	// Become the leader before proceeding
-	err = leader.Become(ctx, "management-ingress-operator-lock")
+	err = leader.Become(ctx, "ibm-management-ingress-operator-lock")
 	if err != nil {
 		klog.Errorf("Failure becoming leader: %v", err)
 		os.Exit(1)

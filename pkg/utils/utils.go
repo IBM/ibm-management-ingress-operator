@@ -9,7 +9,7 @@ import (
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	csv1alpha1 "github.com/IBM/management-ingress-operator/pkg/apis/cs/v1alpha1"
+	csv1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/cs/v1alpha1"
 )
 
 // GetAnnotation returns the value of an annoation for a given key and true if the key was found

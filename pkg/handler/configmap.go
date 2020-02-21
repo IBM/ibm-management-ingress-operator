@@ -12,7 +12,7 @@ import (
 	"k8s.io/klog"
 	"k8s.io/kubernetes/pkg/apis/apps"
 
-	"github.com/IBM/management-ingress-operator/pkg/utils"
+	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 //NewConfigMap stubs an instance of Configmap
