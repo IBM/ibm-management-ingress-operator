@@ -72,11 +72,11 @@ spec:
         displayName: Certificate Issuer
         path: spec.cert.issuer
     required:
-    - description: Certificate is the Schema for the certmanager certificate API
-      kind: Certificate
-      name: certificate.certmanager.k8s.io
+    - description: CertManager is the Schema for the certmanagers API
+      kind: CertManager
+      name: certmanagers.operator.ibm.com
       version: v1alpha1
-      displayName: IBM Health Services ClusterServiceStatus
+      displayName: CertManager
   description: IBM Management Ingress Operator
   displayName: Management Ingress Operator
   install:
@@ -108,7 +108,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: ibm-management-ingress-operator
-                image: REPLACE_IMAGE
+                image: quay.io/opencloudio/ibm-management-ingress-operator:latest
                 imagePullPolicy: Always
                 name: ibm-management-ingress-operator
                 resources: {}
@@ -173,7 +173,55 @@ spec:
         - apiGroups:
           - operator.ibm.com
           resources:
-          - ManagementIngress
+          - managementingresses
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - route.openshift.io
+          resources:
+          - routes
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - certmanager.k8s.io
+          resources:
+          - certificates
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - security.openshift.io
+          resources:
+          - securitycontextconstraints
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
           verbs:
           - create
           - delete
