@@ -56,7 +56,7 @@ func (ingressRequest *IngressRequest) CreateServiceAccount() error {
 			[]string{""},
 			[]string{"configmaps"},
 			nil,
-			[]string{"get", "list", "update", "watch"},
+			[]string{"create", "get", "list", "update", "watch"},
 		),
 		NewPolicyRule(
 			[]string{""},
@@ -75,6 +75,12 @@ func (ingressRequest *IngressRequest) CreateServiceAccount() error {
 			[]string{"ingresses/status"},
 			nil,
 			[]string{"update"},
+		),
+		NewPolicyRule(
+			[]string{"security.openshift.io"},
+			[]string{"securitycontextconstraints"},
+			[]string{SCCName},
+			[]string{"use"},
 		),
 	)
 

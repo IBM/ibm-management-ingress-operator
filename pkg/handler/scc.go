@@ -58,8 +58,8 @@ func NewSecurityContextConstraint(serviceaccount, name, namespace string) *scc.S
 
 func (ingressRequest *IngressRequest) CreateSecurityContextConstraint() error {
 	scc := NewSecurityContextConstraint(
-		SCCName,
 		ServiceAccountName,
+		SCCName,
 		ingressRequest.managementIngress.Namespace,
 	)
 
