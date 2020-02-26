@@ -18,7 +18,6 @@ metadata:
             "config": {
               "disable-access-log": "true"
             },
-            "iamNamespace": "default",
             "imageRepo": "quay.io/management-ingress:2.5.0",
             "managementState": "managed",
             "resources": {
@@ -65,9 +64,6 @@ spec:
       - description: OCP route host of IBM Management Ingress
         displayName: Route Host
         path: spec.routeHost
-      - description: Namespace which IBM IAM service was deployed
-        displayName: IAM Namespace
-        path: spec.iamNamespace
       - description: Certificate Issuer used to sign the certificate of IBM Management Ingress
         displayName: Certificate Issuer
         path: spec.cert.issuer

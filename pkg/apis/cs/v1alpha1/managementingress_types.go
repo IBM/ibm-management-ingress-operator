@@ -13,10 +13,10 @@ type ManagementIngressSpec struct {
 	NodeSelector      map[string]string        `json:"nodeSelector,omitempty"`
 	Tolerations       []v1.Toleration          `json:"tolerations,omitempty"`
 	AllowedHostHeader string                   `json:"allowedHostHeader,omitempty"`
-	IAMNamespace      string                   `json:"iamNamespace"`
 	Cert              *Cert                    `json:"cert"`
 	RouteHost         string                   `json:"routeHost"`
 	Config            map[string]string        `json:"config,omitempty"`
+	FIPSEnabled       bool                     `json:"fipsEnabled,omitempty"`
 }
 
 type Cert struct {

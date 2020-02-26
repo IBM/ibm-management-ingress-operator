@@ -14,7 +14,6 @@ spec:
       cpu: 500m
       memory: 512Mi
   allowedHostHeader: "127.0.0.1"
-  iamNamespace: default
   cert:
     issuer: "ca-issuer"
   config:

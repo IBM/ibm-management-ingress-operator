@@ -6,13 +6,12 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
 	"k8s.io/kubernetes/pkg/apis/apps"
-
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 //NewConfigMap stubs an instance of Configmap
@@ -33,69 +32,96 @@ func NewConfigMap(name string, namespace string, data map[string]string) *core.C
 	}
 }
 
-func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
-	configmap := NewConfigMap(
-		AppName,
-		ingressRequest.managementIngress.Namespace,
-		ingressRequest.managementIngress.Spec.Config,
-	)
+func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool) error {
+	utils.AddOwnerRefToObject(cm, utils.AsOwner(ingr.managementIngress))
 
-	utils.AddOwnerRefToObject(configmap, utils.AsOwner(ingressRequest.managementIngress))
-
-	klog.Infof("Creating Configmap for %q.", ingressRequest.managementIngress.Name)
-	err := ingressRequest.Create(configmap)
+	klog.Infof("Creating Configmap for %q.", ingr.managementIngress.Name)
+	err := ingr.Create(cm)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
-			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedConfigmap", "Failure creating configmap %q: %v", AppName, err)
+			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failure creating configmap %q: %v", AppName, err)
 			return fmt.Errorf("Failure creating configmap: %v", err)
 		}
 
 		current := &core.ConfigMap{}
 
 		// Update config
-		if err = ingressRequest.Get(AppName, current); err != nil {
-			return fmt.Errorf("Failure getting %q configmap for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
+		if err = ingr.Get(AppName, current); err != nil {
+			return fmt.Errorf("Failure getting %q configmap for %q: %v", AppName, ingr.managementIngress.Name, err)
 		}
 
-		if reflect.DeepEqual(configmap.Data, current.Data) {
+		// no data change, just return
+		if reflect.DeepEqual(cm.Data, current.Data) {
 			return nil
 		}
 
-		json, _ := json.Marshal(configmap)
+		json, _ := json.Marshal(cm)
 		klog.Infof("Configmap was changed to: %s. Try to update the configmap", json)
-		current.Data = configmap.Data
+		current.Data = cm.Data
 
-		if err = ingressRequest.Update(current); err != nil {
-			return fmt.Errorf("Failure updating %v configmap for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
+		// Apply the latest change to configmap
+		if err = ingr.Update(current); err != nil {
+			return fmt.Errorf("Failure updating %v configmap for %q: %v", AppName, ingr.managementIngress.Name, err)
 		}
 
 		// Restart Deployment because config is updated.
-		ds := &apps.Deployment{}
-		if err = ingressRequest.Get(AppName, ds); err != nil {
-			if !errors.IsNotFound(err) {
-				ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedConfigmap", "Failure getting Deployment: %v", err)
-				klog.Errorf("Failure getting %q Deployment for %q after config change: %v ", AppName, ingressRequest.managementIngress.Name, err)
+		if ingressConfig {
+			ds := &apps.Deployment{}
+			if err = ingr.Get(AppName, ds); err != nil {
+				if !errors.IsNotFound(err) {
+					ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failure getting Deployment: %v", err)
+					klog.Errorf("Failure getting %q Deployment for %q after config change: %v ", AppName, ingr.managementIngress.Name, err)
+				}
+				return nil
 			}
-			return nil
-		}
 
-		annotations := ds.Spec.Template.ObjectMeta.Annotations
-		// Update annotation to force restart of ds pods
-		annotations = utils.AppendAnnotations(
-			annotations,
-			map[string]string{
-				ConfigUpdateAnnotationKey: time.Now().Format(time.RFC850),
-			},
-		)
+			annotations := ds.Spec.Template.ObjectMeta.Annotations
+			// Update annotation to force restart of ds pods
+			annotations = utils.AppendAnnotations(
+				annotations,
+				map[string]string{
+					ConfigUpdateAnnotationKey: time.Now().Format(time.RFC850),
+				},
+			)
 
-		klog.Infof("Restart management ingress Deployment after config change.")
-		ds.Spec.Template.ObjectMeta.Annotations = annotations
-		if err := ingressRequest.Update(ds); err != nil {
-			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedConfigmap", "Failure updating damonset to make it restarted: %v", err)
-			klog.Errorf("Failure updating %q Deployment for %q after config change: %v ", AppName, ingressRequest.managementIngress.Name, err)
+			klog.Infof("Restart management ingress Deployment after config change.")
+			ds.Spec.Template.ObjectMeta.Annotations = annotations
+			if err := ingr.Update(ds); err != nil {
+				ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failure updating damonset to make it restarted: %v", err)
+				klog.Errorf("Failure updating %q Deployment for %q after config change: %v ", AppName, ingr.managementIngress.Name, err)
+			}
 		}
 	} else {
-		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedConfigmap", "Successfully created or updated configmap %q", AppName)
+		ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created or updated configmap %q", AppName)
+	}
+
+	return nil
+}
+
+func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
+
+	// Create management ingress config
+	config := NewConfigMap(
+		AppName,
+		ingressRequest.managementIngress.Namespace,
+		ingressRequest.managementIngress.Spec.Config,
+	)
+
+	if err := syncConfigmap(ingressRequest, config, true); err != nil {
+		return fmt.Errorf("Failure creating or updating management ingress config for %q: %v", ingressRequest.managementIngress.Name, err)
+	}
+
+	// Create bindinfo
+	bindInfo := NewConfigMap(
+		BindInfoConfigMap,
+		ingressRequest.managementIngress.Namespace,
+		map[string]string{
+			"MANAGEMENT_INGRESS_ROUTE_HOST": ingressRequest.managementIngress.Spec.RouteHost,
+		},
+	)
+
+	if err := syncConfigmap(ingressRequest, bindInfo, false); err != nil {
+		return fmt.Errorf("Failure creating bind info for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
 	return nil
