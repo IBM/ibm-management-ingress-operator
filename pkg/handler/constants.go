@@ -12,4 +12,5 @@ const (
 	csPriorityClassName       string = "cs-priority-class"
 	ConfigUpdateAnnotationKey string = "management-ingress.operator.k8s.io/config-updated"
 	SCCName                   string = "management-ingress-scc"
+	BindInfoConfigMap         string = "management-ingress-info"
 )

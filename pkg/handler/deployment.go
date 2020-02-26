@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -12,8 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog"
-
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 const (
@@ -58,7 +57,7 @@ func NewDeployment(name string, namespace string, podSpec core.PodSpec) *apps.De
 	}
 }
 
-func newPodSpec(imageRepo string, resources *core.ResourceRequirements, nodeSelector map[string]string, tolerations []core.Toleration, allowedHostHeader string, wlpClientID string, oidcURL string) core.PodSpec {
+func newPodSpec(imageRepo string, resources *core.ResourceRequirements, nodeSelector map[string]string, tolerations []core.Toleration, allowedHostHeader string, wlpClientID string, oidcURL string, fipsEnabled bool) core.PodSpec {
 	if resources == nil {
 		resources = &core.ResourceRequirements{
 			Limits: core.ResourceList{core.ResourceMemory: defaultMemory},
@@ -107,7 +106,7 @@ func newPodSpec(imageRepo string, resources *core.ResourceRequirements, nodeSele
 		{Name: "WLP_CLIENT_ID", Value: wlpClientID},
 		{Name: "POD_NAME", ValueFrom: &core.EnvVarSource{FieldRef: &core.ObjectFieldSelector{APIVersion: "v1", FieldPath: "metadata.name"}}},
 		{Name: "POD_NAMESPACE", ValueFrom: &core.EnvVarSource{FieldRef: &core.ObjectFieldSelector{APIVersion: "v1", FieldPath: "metadata.namespace"}}},
-		{Name: "FIPS_ENABLED", Value: "false"},
+		{Name: "FIPS_ENABLED", Value: strconv.FormatBool(fipsEnabled)},
 	}
 
 	container.SecurityContext = &core.SecurityContext{
@@ -191,12 +190,12 @@ func newPodSpec(imageRepo string, resources *core.ResourceRequirements, nodeSele
 func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 
 	authConfigmap := &core.ConfigMap{}
-	if err := ingressRequest.GetWithNamespace(ingressRequest.managementIngress.Spec.IAMNamespace, "platform-auth-idp", authConfigmap); err != nil {
+	if err := ingressRequest.GetWithNamespace(ingressRequest.managementIngress.Namespace, "platform-auth-idp", authConfigmap); err != nil {
 		return fmt.Errorf("Failure getting configmap platform-auth-idp for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
 	oidcCredentialSecret := &core.Secret{}
-	if err := ingressRequest.GetWithNamespace(ingressRequest.managementIngress.Spec.IAMNamespace, "platform-oidc-credentials", oidcCredentialSecret); err != nil {
+	if err := ingressRequest.GetWithNamespace(ingressRequest.managementIngress.Namespace, "platform-oidc-credentials", oidcCredentialSecret); err != nil {
 		return fmt.Errorf("Failure getting secret platform-oidc-credentials for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 	oidcURL := authConfigmap.Data["OIDC_ISSUER_URL"]
@@ -210,6 +209,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 		ingressRequest.managementIngress.Spec.AllowedHostHeader,
 		oauthClientID,
 		oidcURL,
+		ingressRequest.managementIngress.Spec.FIPSEnabled,
 	)
 
 	ds := NewDeployment(

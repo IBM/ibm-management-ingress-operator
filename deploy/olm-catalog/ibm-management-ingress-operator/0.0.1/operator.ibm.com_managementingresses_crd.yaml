@@ -44,8 +44,8 @@ spec:
               additionalProperties:
                 type: string
               type: object
-            iamNamespace:
-              type: string
+            fipsEnabled:
+              type: boolean
             imageRepo:
               type: string
             managementState:
@@ -115,7 +115,6 @@ spec:
               type: array
           required:
           - cert
-          - iamNamespace
           - imageRepo
           - managementState
           - routeHost
