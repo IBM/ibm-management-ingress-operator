@@ -13,12 +13,12 @@ metadata:
           "spec": {
             "allowedHostHeader": "127.0.0.1",
             "cert": {
-              "issuer": "ca-issuer"
+              "issuer": "cs-ca-issuer"
             },
             "config": {
               "disable-access-log": "true"
             },
-            "imageRepo": "quay.io/management-ingress:2.5.0",
+            "imageRepo": "ibmcom/icp-management-ingress:2.4.0",
             "managementState": "managed",
             "resources": {
               "limits": {
@@ -253,6 +253,7 @@ spec:
           - securitycontextconstraints
           verbs:
           - create
+          - list
         - apiGroups:
           - security.openshift.io
           resourceNames:

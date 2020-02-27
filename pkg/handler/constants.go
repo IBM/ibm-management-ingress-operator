@@ -13,4 +13,6 @@ const (
 	ConfigUpdateAnnotationKey string = "management-ingress.operator.k8s.io/config-updated"
 	SCCName                   string = "management-ingress-scc"
 	BindInfoConfigMap         string = "management-ingress-info"
+	PlatformAuthConfigmap     string = "platform-auth-idp"
+	PlatformAuthSecret        string = "platform-oidc-credentials"
 )
