@@ -4,8 +4,8 @@ metadata:
   name: example
 spec:
   managementState: "managed"
-  imageRepo: "quay.io/management-ingress:2.5.0"
-  routeHost: cp-console.apps.ibm.com
+  imageRepo: "ibmcom/icp-management-ingress:2.4.0"
+  routeHost: "cp-console.apps.ibm.com"
   resources:
     requests:
       cpu: 200m
@@ -15,6 +15,6 @@ spec:
       memory: 512Mi
   allowedHostHeader: "127.0.0.1"
   cert:
-    issuer: "ca-issuer"
+    issuer: "cs-ca-issuer"
   config:
     disable-access-log: "true"

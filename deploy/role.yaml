@@ -60,13 +60,6 @@ rules:
   - get
   - create
 - apiGroups:
-  - apps
-  resources:
-  - replicasets
-  - deployments
-  verbs:
-  - get
-- apiGroups:
   - operator.ibm.com
   resources:
   - managementingresses
@@ -84,12 +77,6 @@ rules:
   - routes
   verbs:
   - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
 - apiGroups:
   - route.openshift.io
   resources:
@@ -110,12 +97,6 @@ rules:
   - certificates
   verbs:
   - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
 - apiGroups:
   - monitoring.coreos.com
   resources:

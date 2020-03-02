@@ -9,4 +9,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: ibm-management-ingress-operator
-  namespace: ibm-common-services
+  namespace: REPLACE_NAMESPACE

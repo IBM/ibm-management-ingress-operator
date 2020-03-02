@@ -57,7 +57,7 @@ func NewDeployment(name string, namespace string, podSpec core.PodSpec) *apps.De
 	}
 }
 
-func newPodSpec(imageRepo string, resources *core.ResourceRequirements, nodeSelector map[string]string, tolerations []core.Toleration, allowedHostHeader string, wlpClientID string, oidcURL string, fipsEnabled bool) core.PodSpec {
+func newPodSpec(imageRepo string, resources *core.ResourceRequirements, nodeSelector map[string]string, tolerations []core.Toleration, allowedHostHeader string, fipsEnabled bool) core.PodSpec {
 	if resources == nil {
 		resources = &core.ResourceRequirements{
 			Limits: core.ResourceList{core.ResourceMemory: defaultMemory},
@@ -102,8 +102,16 @@ func newPodSpec(imageRepo string, resources *core.ResourceRequirements, nodeSele
 		{Name: "CLUSTER_DOMAIN", Value: "cluster.local"},
 		{Name: "HOST_HEADERS_CHECK_ENABLED", Value: strconv.FormatBool(len(allowedHostHeader) > 0)},
 		{Name: "ALLOWED_HOST_HEADERS", Value: allowedHostHeader},
-		{Name: "OIDC_ISSUER_URL", Value: oidcURL},
-		{Name: "WLP_CLIENT_ID", Value: wlpClientID},
+		{Name: "OIDC_ISSUER_URL", ValueFrom: &core.EnvVarSource{
+			ConfigMapKeyRef: &core.ConfigMapKeySelector{
+				Key: "OIDC_ISSUER_URL",
+				LocalObjectReference: core.LocalObjectReference{
+					Name: PlatformAuthConfigmap}}}},
+		{Name: "WLP_CLIENT_ID", ValueFrom: &core.EnvVarSource{
+			SecretKeyRef: &core.SecretKeySelector{
+				Key: "WLP_CLIENT_ID",
+				LocalObjectReference: core.LocalObjectReference{
+					Name: PlatformAuthSecret}}}},
 		{Name: "POD_NAME", ValueFrom: &core.EnvVarSource{FieldRef: &core.ObjectFieldSelector{APIVersion: "v1", FieldPath: "metadata.name"}}},
 		{Name: "POD_NAMESPACE", ValueFrom: &core.EnvVarSource{FieldRef: &core.ObjectFieldSelector{APIVersion: "v1", FieldPath: "metadata.namespace"}}},
 		{Name: "FIPS_ENABLED", Value: strconv.FormatBool(fipsEnabled)},
@@ -189,26 +197,12 @@ func newPodSpec(imageRepo string, resources *core.ResourceRequirements, nodeSele
 
 func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 
-	authConfigmap := &core.ConfigMap{}
-	if err := ingressRequest.GetWithNamespace(ingressRequest.managementIngress.Namespace, "platform-auth-idp", authConfigmap); err != nil {
-		return fmt.Errorf("Failure getting configmap platform-auth-idp for %q: %v", ingressRequest.managementIngress.Name, err)
-	}
-
-	oidcCredentialSecret := &core.Secret{}
-	if err := ingressRequest.GetWithNamespace(ingressRequest.managementIngress.Namespace, "platform-oidc-credentials", oidcCredentialSecret); err != nil {
-		return fmt.Errorf("Failure getting secret platform-oidc-credentials for %q: %v", ingressRequest.managementIngress.Name, err)
-	}
-	oidcURL := authConfigmap.Data["OIDC_ISSUER_URL"]
-	oauthClientID := string(oidcCredentialSecret.Data["WLP_CLIENT_ID"])
-
 	podSpec := newPodSpec(
 		ingressRequest.managementIngress.Spec.ImageRepo,
 		ingressRequest.managementIngress.Spec.Resources,
 		ingressRequest.managementIngress.Spec.NodeSelector,
 		ingressRequest.managementIngress.Spec.Tolerations,
 		ingressRequest.managementIngress.Spec.AllowedHostHeader,
-		oauthClientID,
-		oidcURL,
 		ingressRequest.managementIngress.Spec.FIPSEnabled,
 	)
 

@@ -16,6 +16,7 @@ rules:
   - securitycontextconstraints
   verbs:
   - create
+  - list
 - apiGroups:
   - security.openshift.io
   resources:
