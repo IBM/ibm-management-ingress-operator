@@ -114,11 +114,14 @@ build:
 	@CGO_ENABLED=0 go build -o build/_output/bin/$(IMG) ./cmd/manager
 	@strip $(STRIP_FLAGS) build/_output/bin/$(IMG)
 
-build-image: build $(CONFIG_DOCKER_TARGET)
+build-image-amd64: build $(CONFIG_DOCKER_TARGET)
 	$(eval ARCH := $(shell uname -m|sed 's/x86_64/amd64/'))
 	docker build -t $(REGISTRY)/$(IMG)-$(ARCH):$(VERSION) -f build/Dockerfile .
 	@\rm -f build/_output/bin/ibm-management-ingress-operator
 	@if [ $(BUILD_LOCALLY) -ne 1 ] && [ "$(ARCH)" = "amd64" ]; then docker push $(REGISTRY)/$(IMG)-$(ARCH):$(VERSION); fi
+
+push-image-amd64: build-image-amd64
+	@docker push $(REGISTRY)/$(IMG)-amd64:$(VERSION)
 
 # runs on amd64 machine
 build-image-ppc64le: $(CONFIG_DOCKER_TARGET)
@@ -132,6 +135,13 @@ ifeq ($(LOCAL_ARCH),x86_64)
 endif
 endif
 
+push-image-ppc64le: build-image-ppc64le
+ifeq ($(LOCAL_OS),Linux)
+ifeq ($(LOCAL_ARCH),x86_64)
+	@docker push $(REGISTRY)/$(IMG)-ppc64le:$(VERSION)
+endif
+endif
+
 # runs on amd64 machine
 build-image-s390x: $(CONFIG_DOCKER_TARGET)
 ifeq ($(LOCAL_OS),Linux)
@@ -141,6 +151,13 @@ ifeq ($(LOCAL_ARCH),x86_64)
 	docker build -t $(REGISTRY)/$(IMG)-s390x:$(VERSION) -f build/Dockerfile.s390x .
 	@\rm -f build/_output/bin/ibm-management-ingress-operator-s390x
 	@if [ $(BUILD_LOCALLY) -ne 1 ]; then docker push $(REGISTRY)/$(IMG)-s390x:$(VERSION); fi
+endif
+endif
+
+push-image-s390x: build-image-s390x
+ifeq ($(LOCAL_OS),Linux)
+ifeq ($(LOCAL_ARCH),x86_64)
+	@docker push $(REGISTRY)/$(IMG)-s390x:$(VERSION)
 endif
 endif
 
@@ -162,7 +179,12 @@ scorecard: ## Run scorecard test
 
 ##@ Release
 
-images: build-image build-image-ppc64le build-image-s390x
+build-images: build-image-amd64 build-image-ppc64le build-image-s390x
+
+push-images: push-image-amd64 push-image-ppc64le push-image-s390x
+
+# multiarch-image section
+multiarch-image:
 ifeq ($(LOCAL_OS),Linux)
 ifeq ($(LOCAL_ARCH),x86_64)
 	@curl -L -o /tmp/manifest-tool https://github.com/estesp/manifest-tool/releases/download/v1.0.0/manifest-tool-linux-amd64

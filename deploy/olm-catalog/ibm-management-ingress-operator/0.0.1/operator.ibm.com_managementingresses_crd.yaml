@@ -35,7 +35,25 @@ spec:
               type: string
             cert:
               properties:
+                dnsNames:
+                  items:
+                    type: string
+                  type: array
+                ipAddresses:
+                  items:
+                    type: string
+                  type: array
                 issuer:
+                  properties:
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - kind
+                  - name
+                  type: object
+                repository:
                   type: string
               required:
               - issuer
@@ -46,8 +64,16 @@ spec:
               type: object
             fipsEnabled:
               type: boolean
-            imageRepo:
-              type: string
+            image:
+              properties:
+                repository:
+                  type: string
+                tag:
+                  type: string
+              required:
+              - repository
+              - tag
+              type: object
             managementState:
               type: string
             nodeSelector:
@@ -115,14 +141,36 @@ spec:
               type: array
           required:
           - cert
-          - imageRepo
+          - image
           - managementState
           - routeHost
           type: object
         status:
           description: ManagementIngressStatus defines the observed state of ManagementIngress
           properties:
-            condition: {}
+            condition:
+              additionalProperties:
+                items:
+                  properties:
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      description: ClusterConditionType is a valid value for ClusterCondition.Type
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - status
+                  - type
+                  type: object
+                type: array
+              type: object
             podstate:
               additionalProperties:
                 items:

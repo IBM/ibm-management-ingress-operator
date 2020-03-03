@@ -4,7 +4,9 @@ metadata:
   name: example
 spec:
   managementState: "managed"
-  imageRepo: "ibmcom/icp-management-ingress:2.4.0"
+  image:
+    repository: "ibmcom/icp-management-ingress:2.4.0"
+    tag: 2.4.0
   routeHost: "cp-console.apps.ibm.com"
   resources:
     requests:
@@ -15,6 +17,8 @@ spec:
       memory: 512Mi
   allowedHostHeader: "127.0.0.1"
   cert:
-    issuer: "cs-ca-issuer"
+    issuer:
+      name: "cs-ca-clusterissuer"
+      kind: "ClusterIssuer"
   config:
     disable-access-log: "true"

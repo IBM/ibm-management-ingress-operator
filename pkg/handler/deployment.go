@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
@@ -57,7 +58,7 @@ func NewDeployment(name string, namespace string, podSpec core.PodSpec) *apps.De
 	}
 }
 
-func newPodSpec(imageRepo string, resources *core.ResourceRequirements, nodeSelector map[string]string, tolerations []core.Toleration, allowedHostHeader string, fipsEnabled bool) core.PodSpec {
+func newPodSpec(img string, resources *core.ResourceRequirements, nodeSelector map[string]string, tolerations []core.Toleration, allowedHostHeader string, fipsEnabled bool) core.PodSpec {
 	if resources == nil {
 		resources = &core.ResourceRequirements{
 			Limits: core.ResourceList{core.ResourceMemory: defaultMemory},
@@ -70,7 +71,7 @@ func newPodSpec(imageRepo string, resources *core.ResourceRequirements, nodeSele
 
 	container := core.Container{
 		Name:            AppName,
-		Image:           imageRepo,
+		Image:           img,
 		ImagePullPolicy: core.PullIfNotPresent,
 		Resources:       *resources,
 	}
@@ -197,12 +198,24 @@ func newPodSpec(imageRepo string, resources *core.ResourceRequirements, nodeSele
 
 func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 
+	image := strings.Join([]string{ingressRequest.managementIngress.Spec.Image.Repository, ingressRequest.managementIngress.Spec.Image.Tag}, ":")
+	hostHeader := strings.Join([]string{
+		ingressRequest.managementIngress.Spec.AllowedHostHeader,
+		ingressRequest.managementIngress.Spec.RouteHost,
+		ServiceName,
+		IAMTokenService,
+		strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace}, "."),
+		strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace, "svc"}, "."),
+		strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace}, "."),
+		strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace, "svc"}, "."),
+	}, " ")
+
 	podSpec := newPodSpec(
-		ingressRequest.managementIngress.Spec.ImageRepo,
+		image,
 		ingressRequest.managementIngress.Spec.Resources,
 		ingressRequest.managementIngress.Spec.NodeSelector,
 		ingressRequest.managementIngress.Spec.Tolerations,
-		ingressRequest.managementIngress.Spec.AllowedHostHeader,
+		hostHeader,
 		ingressRequest.managementIngress.Spec.FIPSEnabled,
 	)
 

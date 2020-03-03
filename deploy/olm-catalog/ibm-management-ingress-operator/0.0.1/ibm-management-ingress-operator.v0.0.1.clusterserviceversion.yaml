@@ -13,12 +13,18 @@ metadata:
           "spec": {
             "allowedHostHeader": "127.0.0.1",
             "cert": {
-              "issuer": "cs-ca-issuer"
+              "issuer": {
+                "name": "cs-ca-issuer",
+                "kind": "ClusterIssuer"
+              }
             },
             "config": {
               "disable-access-log": "true"
             },
-            "imageRepo": "ibmcom/icp-management-ingress:2.4.0",
+            "image": {
+              "repository": "ibmcom/icp-management-ingress",
+              "tag": "2.4.0"
+              },
             "managementState": "managed",
             "resources": {
               "limits": {

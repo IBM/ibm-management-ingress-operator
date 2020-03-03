@@ -8,7 +8,7 @@ import (
 // ManagementIngressSpec defines the desired state of ManagementIngress
 type ManagementIngressSpec struct {
 	ManagementState   ManagementState          `json:"managementState"`
-	ImageRepo         string                   `json:"imageRepo"`
+	Image             OperandImage             `json:"image"`
 	Resources         *v1.ResourceRequirements `json:"resources,omitempty"`
 	NodeSelector      map[string]string        `json:"nodeSelector,omitempty"`
 	Tolerations       []v1.Toleration          `json:"tolerations,omitempty"`
@@ -19,13 +19,35 @@ type ManagementIngressSpec struct {
 	FIPSEnabled       bool                     `json:"fipsEnabled,omitempty"`
 }
 
-type Cert struct {
-	Issuer string `json:"issuer"`
+type OperandImage struct {
+	Repository string `json:"repository"`
+	Tag        string `json:"tag"`
 }
+
+type Cert struct {
+	Issuer      CertIssuer `json:"issuer"`
+	CommonName  string     `json:"repository,omitempty"`
+	DNSNames    []string   `json:"dnsNames,omitempty"`
+	IPAddresses []string   `json:"ipAddresses,omitempty"`
+}
+
+type CertIssuer struct {
+	Name string     `json:"name"`
+	Kind IssuerKind `json:"kind"`
+}
+
+type IssuerKind string
+
+const (
+	ClusterIssuer IssuerKind = "ClusterIssuer"
+	Issuer        IssuerKind = "Issuer"
+)
+
+type ConditionList []Condition
 
 // ManagementIngressStatus defines the observed state of ManagementIngress
 type ManagementIngressStatus struct {
-	Conditions map[string][]Condition `json:"condition,omitempty"`
+	Conditions map[string]ConditionList `json:"condition,omitempty"`
 	PodState   PodStateMap            `json:"podstate"`
 }
 
