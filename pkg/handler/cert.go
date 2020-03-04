@@ -5,20 +5,17 @@ import (
 	"strings"
 	"time"
 
+	ingv1alph1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/cs/v1alpha1"
+	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
-
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 //NewCertificate stubs an instance of Certificate
-func NewCertificate(name string, namespace string, certIssuer string, secret string, service string) *certmanager.Certificate {
-	dns1 := service
-	dns2 := strings.Join([]string{dns1, namespace}, ".")
-	dns3 := strings.Join([]string{dns2, "svc"}, ".")
+func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer *ingv1alph1.CertIssuer) *certmanager.Certificate {
 
 	return &certmanager.Certificate{
 		TypeMeta: metav1.TypeMeta{
@@ -38,26 +35,35 @@ func NewCertificate(name string, namespace string, certIssuer string, secret str
 			RenewBefore: &metav1.Duration{Duration: 24 * time.Hour},
 			SecretName:  secret,
 			IssuerRef: certmanager.ObjectReference{
-				Kind: "ClusterIssuer",
-				Name: certIssuer,
+				Kind: string(issuer.Kind),
+				Name: issuer.Name,
 			},
-			DNSNames: []string{
-				dns1,
-				dns2,
-				dns3,
-			},
+			DNSNames:    hosts,
+			IPAddresses: ips,
 		},
 	}
 }
 
+func getDefaultDNSNames(service, namespace string) []string {
+	dns1 := service
+	dns2 := strings.Join([]string{dns1, namespace}, ".")
+	dns3 := strings.Join([]string{dns2, "svc"}, ".")
+
+	return []string{dns1, dns2, dns3}
+}
+
 func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 	// Create certificate for management ingress
+	defaultDNS := getDefaultDNSNames(ServiceName, ingressRequest.managementIngress.ObjectMeta.Namespace)
+	DNS := ingressRequest.managementIngress.Spec.Cert.DNSNames
+
 	cert := NewCertificate(
 		CertName,
 		ingressRequest.managementIngress.ObjectMeta.Namespace,
-		ingressRequest.managementIngress.Spec.Cert.Issuer,
 		TLSSecretName,
-		ServiceName,
+		append(defaultDNS, DNS...),
+		ingressRequest.managementIngress.Spec.Cert.IPAddresses,
+		&ingressRequest.managementIngress.Spec.Cert.Issuer,
 	)
 
 	if err := ingressRequest.CreateCert(cert); err != nil {
@@ -65,32 +71,14 @@ func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 	}
 
 	// Create TLS certificate for management ingress route
-	routeCert := &certmanager.Certificate{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Certificate",
-			APIVersion: "certmanager.k8s.io/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      RouteCert,
-			Namespace: ingressRequest.managementIngress.ObjectMeta.Namespace,
-			Labels: map[string]string{
-				"component": AppName,
-			},
-		},
-		Spec: certmanager.CertificateSpec{
-			CommonName:  AppName,
-			Duration:    &metav1.Duration{Duration: 8760 * time.Hour},
-			RenewBefore: &metav1.Duration{Duration: 24 * time.Hour},
-			SecretName:  RouteSecret,
-			IssuerRef: certmanager.ObjectReference{
-				Kind: "ClusterIssuer",
-				Name: ingressRequest.managementIngress.Spec.Cert.Issuer,
-			},
-			DNSNames: []string{
-				ingressRequest.managementIngress.Spec.RouteHost,
-			},
-		},
-	}
+	routeCert := NewCertificate(
+		RouteCert,
+		ingressRequest.managementIngress.ObjectMeta.Namespace,
+		RouteSecret,
+		[]string{ingressRequest.managementIngress.Spec.RouteHost},
+		[]string{},
+		&ingressRequest.managementIngress.Spec.Cert.Issuer,
+	)
 
 	if err := ingressRequest.CreateCert(routeCert); err != nil {
 		return err

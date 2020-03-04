@@ -155,9 +155,9 @@ func (in *ManagementIngressStatus) DeepCopyInto(out *ManagementIngressStatus) {
 	*out = *in
 	if in.Conditions != nil {
 		in, out := &in.Conditions, &out.Conditions
-		*out = make(map[string][]Condition, len(*in))
+		*out = make(map[string]ConditionList, len(*in))
 		for key, val := range *in {
-			var outVal []Condition
+			var outVal ConditionList
 			if val == nil {
 				(*out)[key] = nil
 			} else {
