@@ -7,7 +7,7 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 
-	handler "github.com/IBM/ibm-management-ingress-operator/pkg/handler"
+	handler "github.com/IBM/ibm-management-ingress-operator/pkg/controller/managementingress/handler"
 )
 
 func TestAreMapsSameWhenBothAreEmpty(t *testing.T) {

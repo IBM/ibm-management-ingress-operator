@@ -3,6 +3,7 @@ package handler
 const (
 	AppName                   string = "management-ingress"
 	ServiceName               string = "icp-management-ingress"
+	ConfigName                string = "management-ingress-config"
 	IAMTokenService           string = "iam-token-service"
 	ServiceAccountName        string = "management-ingress"
 	CertName                  string = "management-ingress-cert"

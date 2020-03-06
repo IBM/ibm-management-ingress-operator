@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
+	operatorv1 "github.com/openshift/api/operator/v1"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -58,7 +59,7 @@ func NewDeployment(name string, namespace string, podSpec core.PodSpec) *apps.De
 	}
 }
 
-func newPodSpec(img string, resources *core.ResourceRequirements, nodeSelector map[string]string, tolerations []core.Toleration, allowedHostHeader string, fipsEnabled bool) core.PodSpec {
+func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements, nodeSelector map[string]string, tolerations []core.Toleration, allowedHostHeader string, fipsEnabled bool) core.PodSpec {
 	if resources == nil {
 		resources = &core.ResourceRequirements{
 			Limits: core.ResourceList{core.ResourceMemory: defaultMemory},
@@ -100,7 +101,7 @@ func newPodSpec(img string, resources *core.ResourceRequirements, nodeSelector m
 	container.Env = []core.EnvVar{
 		{Name: "ENABLE_IMPERSONATION", Value: "false"},
 		{Name: "APISERVER_SECURE_PORT", Value: "6443"},
-		{Name: "CLUSTER_DOMAIN", Value: "cluster.local"},
+		{Name: "CLUSTER_DOMAIN", Value: clusterDomain},
 		{Name: "HOST_HEADERS_CHECK_ENABLED", Value: strconv.FormatBool(len(allowedHostHeader) > 0)},
 		{Name: "ALLOWED_HOST_HEADERS", Value: allowedHostHeader},
 		{Name: "OIDC_ISSUER_URL", ValueFrom: &core.EnvVarSource{
@@ -196,12 +197,39 @@ func newPodSpec(img string, resources *core.ResourceRequirements, nodeSelector m
 	return podSpec
 }
 
+func getClusterDomain(ingressRequest *IngressRequest) (string, error) {
+	klog.Infof("Getting cluster domain from DNS config.")
+
+	dns := &operatorv1.DNS{}
+	if err := ingressRequest.Get("default", "", dns); err != nil {
+		return "", err
+	}
+
+	if dns != nil {
+		clusterDomain := dns.Status.ClusterDomain
+		if len(clusterDomain) > 0 {
+			return clusterDomain, nil
+		}
+	}
+
+	return "", fmt.Errorf("The Cluster Domain from DNS operator config is empty. Check DNS: %v", dns)
+}
+
 func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 
-	image := strings.Join([]string{ingressRequest.managementIngress.Spec.Image.Repository, ingressRequest.managementIngress.Spec.Image.Tag}, ":")
+	klog.Infof("Creating or Updating Deployment: %s for %q.", AppName, ingressRequest.managementIngress.Name)
+	imageRepo := strings.Join([]string{
+		ingressRequest.managementIngress.Spec.ImageRegistry,
+		ingressRequest.managementIngress.Spec.Image.Repository,
+	}, "/")
+	image := strings.Join([]string{
+		imageRepo,
+		ingressRequest.managementIngress.Spec.Image.Tag,
+	}, ":")
+
 	hostHeader := strings.Join([]string{
 		ingressRequest.managementIngress.Spec.AllowedHostHeader,
-		ingressRequest.managementIngress.Spec.RouteHost,
+		ingressRequest.managementIngress.Status.Host,
 		ServiceName,
 		IAMTokenService,
 		strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace}, "."),
@@ -210,8 +238,14 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 		strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace, "svc"}, "."),
 	}, " ")
 
+	clusterDomain, err := getClusterDomain(ingressRequest)
+	if err != nil {
+		return fmt.Errorf("Failure getting cluster domain: %v", err)
+	}
+
 	podSpec := newPodSpec(
 		image,
+		clusterDomain,
 		ingressRequest.managementIngress.Spec.Resources,
 		ingressRequest.managementIngress.Spec.NodeSelector,
 		ingressRequest.managementIngress.Spec.Tolerations,
@@ -226,8 +260,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 
 	utils.AddOwnerRefToObject(ds, utils.AsOwner(ingressRequest.managementIngress))
 
-	klog.Infof("Creating or Updating Deployment: %s for %q.", AppName, ingressRequest.managementIngress.Name)
-	err := ingressRequest.Create(ds)
+	err = ingressRequest.Create(ds)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
 			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedDeployment", "Failure creating deployment %q: %v", AppName, err)
@@ -235,7 +268,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 		}
 
 		current := &apps.Deployment{}
-		if err = ingressRequest.Get(AppName, current); err != nil {
+		if err = ingressRequest.Get(AppName, ingressRequest.managementIngress.ObjectMeta.Namespace, current); err != nil {
 			return fmt.Errorf("Failure getting %q Deployment for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
 		}
 
@@ -318,7 +351,7 @@ func (ingressRequest *IngressRequest) RemoveDaemonset(name string) error {
 func (ingressRequest *IngressRequest) waitForDeploymentReady(ds *apps.Deployment) error {
 
 	err := wait.Poll(5*time.Second, 2*time.Second, func() (done bool, err error) {
-		err = ingressRequest.Get(ds.Name, ds)
+		err = ingressRequest.Get(ds.Name, ingressRequest.managementIngress.ObjectMeta.Namespace, ds)
 		if err != nil {
 			if errors.IsNotFound(err) {
 				return false, fmt.Errorf("Failed to get Fluentd deployment: %v", err)

@@ -3,13 +3,13 @@ package handler
 import (
 	"fmt"
 
+	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
+	operatorv1 "github.com/openshift/api/operator/v1"
 	route "github.com/openshift/api/route/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
-
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 //NewRoute stubs an instance of a Route
@@ -45,8 +45,6 @@ func NewRoute(name, namespace, serviceName, routeHost string, cert, key, caCert,
 }
 
 func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
-	klog.Infof("Creating route for %q.", ingressRequest.managementIngress.ObjectMeta.Name)
-
 	// Get TLS secret for OCP route
 	err, secret := ingressRequest.GetSecret(RouteSecret)
 	if err != nil {
@@ -67,7 +65,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 		RouteName,
 		ingressRequest.managementIngress.ObjectMeta.Namespace,
 		ServiceName,
-		ingressRequest.managementIngress.Spec.RouteHost,
+		ingressRequest.managementIngress.Status.Host,
 		cert,
 		key,
 		caCert,
@@ -77,7 +75,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	// Create route resource
 	utils.AddOwnerRefToObject(route, utils.AsOwner(ingressRequest.managementIngress))
 
-	klog.Infof("Trying to create route %q for %q.", route.ObjectMeta.Name, ingressRequest.managementIngress.ObjectMeta.Name)
+	klog.Infof("Creating route: %s for %q.", route.ObjectMeta.Name, ingressRequest.managementIngress.ObjectMeta.Name)
 	err = ingressRequest.Create(route)
 	if err != nil && !errors.IsAlreadyExists(err) {
 		return fmt.Errorf("Failure constructing route for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
@@ -92,7 +90,7 @@ func (ingressRequest *IngressRequest) GetRouteURL(name string) (string, error) {
 
 	foundRoute := &route.Route{}
 
-	if err := ingressRequest.Get(name, foundRoute); err != nil {
+	if err := ingressRequest.Get(name, ingressRequest.managementIngress.ObjectMeta.Namespace, foundRoute); err != nil {
 		if !errors.IsNotFound(err) {
 			return "", err
 		}
@@ -123,4 +121,23 @@ func (ingressRequest *IngressRequest) RemoveRoute(name string) error {
 	}
 
 	return nil
+}
+
+// GetRouteAppDomain ... auto detect route application domain of OCP cluster.
+func (ingressRequest *IngressRequest) GetRouteAppDomain() (string, error) {
+	klog.Infof("Getting route application domain name from ingress controller config.")
+
+	ing := &operatorv1.IngressController{}
+	if err := ingressRequest.Get("default", "openshift-ingress-operator", ing); err != nil {
+		return "", err
+	}
+
+	if ing != nil {
+		appDomain := ing.Status.Domain
+		if len(appDomain) > 0 {
+			return appDomain, nil
+		}
+	}
+
+	return "", fmt.Errorf("The router Domain from config of Ingress Controller Operator is empty. See more info: %v", ing)
 }

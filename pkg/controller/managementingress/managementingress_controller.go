@@ -13,9 +13,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	csv1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/cs/v1alpha1"
-	k8shandler "github.com/IBM/ibm-management-ingress-operator/pkg/handler"
+	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
+	k8shandler "github.com/IBM/ibm-management-ingress-operator/pkg/controller/managementingress/handler"
 )
 
 const (
@@ -46,7 +45,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource ManagementIngress
-	err = c.Watch(&source.Kind{Type: &csv1alpha1.ManagementIngress{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &v1alpha1.ManagementIngress{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
@@ -72,7 +71,7 @@ func (r *ReconcileManagementIngress) Reconcile(request reconcile.Request) (recon
 	klog.Info("Reconciling ManagementIngress")
 
 	// Fetch the ManagementIngress instance
-	instance := &csv1alpha1.ManagementIngress{}
+	instance := &v1alpha1.ManagementIngress{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -82,7 +81,7 @@ func (r *ReconcileManagementIngress) Reconcile(request reconcile.Request) (recon
 		return reconcile.Result{}, err
 	}
 
-	if instance.Spec.ManagementState == csv1alpha1.ManagementStateUnmanaged {
+	if instance.Spec.ManagementState == v1alpha1.ManagementStateUnmanaged {
 		return reconcile.Result{}, nil
 	}
 

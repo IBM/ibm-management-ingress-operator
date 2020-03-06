@@ -35,19 +35,19 @@ func NewConfigMap(name string, namespace string, data map[string]string) *core.C
 func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool) error {
 	utils.AddOwnerRefToObject(cm, utils.AsOwner(ingr.managementIngress))
 
-	klog.Infof("Creating Configmap for %q.", ingr.managementIngress.Name)
+	klog.Infof("Creating Configmap: %s for %q.", cm.ObjectMeta.Name, ingr.managementIngress.Name)
 	err := ingr.Create(cm)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
-			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failure creating configmap %q: %v", AppName, err)
+			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failure creating configmap %q: %v", cm.ObjectMeta.Name, err)
 			return fmt.Errorf("Failure creating configmap: %v", err)
 		}
 
 		current := &core.ConfigMap{}
 
 		// Update config
-		if err = ingr.Get(AppName, current); err != nil {
-			return fmt.Errorf("Failure getting %q configmap for %q: %v", AppName, ingr.managementIngress.Name, err)
+		if err = ingr.Get(cm.ObjectMeta.Name, ingr.managementIngress.ObjectMeta.Namespace, current); err != nil {
+			return fmt.Errorf("Failure getting Configmap: %q  for %q: %v", cm.ObjectMeta.Name, ingr.managementIngress.Name, err)
 		}
 
 		// no data change, just return
@@ -61,16 +61,16 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 
 		// Apply the latest change to configmap
 		if err = ingr.Update(current); err != nil {
-			return fmt.Errorf("Failure updating %v configmap for %q: %v", AppName, ingr.managementIngress.Name, err)
+			return fmt.Errorf("Failure updating Configmap: %v for %q: %v", cm.ObjectMeta.Name, ingr.managementIngress.Name, err)
 		}
 
 		// Restart Deployment because config is updated.
 		if ingressConfig {
 			ds := &apps.Deployment{}
-			if err = ingr.Get(AppName, ds); err != nil {
+			if err = ingr.Get(AppName, ingr.managementIngress.ObjectMeta.Namespace, ds); err != nil {
 				if !errors.IsNotFound(err) {
 					ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failure getting Deployment: %v", err)
-					klog.Errorf("Failure getting %q Deployment for %q after config change: %v ", AppName, ingr.managementIngress.Name, err)
+					klog.Errorf("Failure getting Deployment: %q for %q after config change: %v ", AppName, ingr.managementIngress.Name, err)
 				}
 				return nil
 			}
@@ -88,7 +88,7 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 			ds.Spec.Template.ObjectMeta.Annotations = annotations
 			if err := ingr.Update(ds); err != nil {
 				ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failure updating damonset to make it restarted: %v", err)
-				klog.Errorf("Failure updating %q Deployment for %q after config change: %v ", AppName, ingr.managementIngress.Name, err)
+				klog.Errorf("Failure updating Deployment: %q for %q after config change: %v ", AppName, ingr.managementIngress.Name, err)
 			}
 		}
 	} else {
@@ -102,13 +102,13 @@ func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
 
 	// Create management ingress config
 	config := NewConfigMap(
-		AppName,
+		ConfigName,
 		ingressRequest.managementIngress.Namespace,
 		ingressRequest.managementIngress.Spec.Config,
 	)
 
 	if err := syncConfigmap(ingressRequest, config, true); err != nil {
-		return fmt.Errorf("Failure creating or updating management ingress config for %q: %v", ingressRequest.managementIngress.Name, err)
+		return fmt.Errorf("Failure creating or updating management ingress config for %q: %v", ConfigName, err)
 	}
 
 	// Create bindinfo
@@ -116,7 +116,8 @@ func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
 		BindInfoConfigMap,
 		ingressRequest.managementIngress.Namespace,
 		map[string]string{
-			"MANAGEMENT_INGRESS_ROUTE_HOST": ingressRequest.managementIngress.Spec.RouteHost,
+			"MANAGEMENT_INGRESS_ROUTE_HOST":   ingressRequest.managementIngress.Status.Host,
+			"MANAGEMENT_INGRESS_SERVICE_NAME": ServiceName,
 		},
 	)
 

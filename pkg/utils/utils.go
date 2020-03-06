@@ -9,7 +9,7 @@ import (
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	csv1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/cs/v1alpha1"
+	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 )
 
 // GetAnnotation returns the value of an annoation for a given key and true if the key was found
@@ -22,9 +22,9 @@ func GetAnnotation(key string, meta metav1.ObjectMeta) (string, bool) {
 	return "", false
 }
 
-func AsOwner(o *csv1alpha1.ManagementIngress) metav1.OwnerReference {
+func AsOwner(o *v1alpha1.ManagementIngress) metav1.OwnerReference {
 	return metav1.OwnerReference{
-		APIVersion: csv1alpha1.SchemeGroupVersion.String(),
+		APIVersion: v1alpha1.SchemeGroupVersion.String(),
 		Kind:       "ManagementIngress",
 		Name:       o.Name,
 		UID:        o.UID,

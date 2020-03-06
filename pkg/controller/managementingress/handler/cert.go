@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	ingv1alph1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/cs/v1alpha1"
+	v1alph1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
 	core "k8s.io/api/core/v1"
@@ -15,7 +15,7 @@ import (
 )
 
 //NewCertificate stubs an instance of Certificate
-func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer *ingv1alph1.CertIssuer) *certmanager.Certificate {
+func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer *v1alph1.CertIssuer) *certmanager.Certificate {
 
 	return &certmanager.Certificate{
 		TypeMeta: metav1.TypeMeta{
@@ -75,7 +75,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 		RouteCert,
 		ingressRequest.managementIngress.ObjectMeta.Namespace,
 		RouteSecret,
-		[]string{ingressRequest.managementIngress.Spec.RouteHost},
+		[]string{ingressRequest.managementIngress.Status.Host},
 		[]string{},
 		&ingressRequest.managementIngress.Spec.Cert.Issuer,
 	)
@@ -112,7 +112,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 func (ingressRequest *IngressRequest) CreateCert(cert *certmanager.Certificate) error {
 	utils.AddOwnerRefToObject(cert, utils.AsOwner(ingressRequest.managementIngress))
 
-	klog.Infof("Creating Certificate: %s for %q.", CertName, ingressRequest.managementIngress.ObjectMeta.Name)
+	klog.Infof("Creating Certificate: %s for %q.", cert.ObjectMeta.Name, ingressRequest.managementIngress.ObjectMeta.Name)
 	err := ingressRequest.Create(cert)
 	if err != nil && !errors.IsAlreadyExists(err) {
 		return fmt.Errorf("Failure constructing certificate for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)

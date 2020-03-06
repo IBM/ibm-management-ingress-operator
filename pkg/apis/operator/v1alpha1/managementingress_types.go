@@ -5,9 +5,28 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// ManagementIngress is the Schema for the managementingresses API
+// +kubebuilder:subresource:status
+// +kubebuilder:resource:path=managementingresses,scope=Namespaced
+type ManagementIngress struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   ManagementIngressSpec   `json:"spec,omitempty"`
+	Status ManagementIngressStatus `json:"status,omitempty"`
+}
+
+// ManagementIngressList contains a list of ManagementIngress
+type ManagementIngressList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	Items           []ManagementIngress `json:"items"`
+}
+
 // ManagementIngressSpec defines the desired state of ManagementIngress
 type ManagementIngressSpec struct {
 	ManagementState   ManagementState          `json:"managementState"`
+	ImageRegistry     string                   `json:"imageRegistry"`
 	Image             OperandImage             `json:"image"`
 	Resources         *v1.ResourceRequirements `json:"resources,omitempty"`
 	NodeSelector      map[string]string        `json:"nodeSelector,omitempty"`
@@ -48,28 +67,23 @@ type ConditionList []Condition
 // ManagementIngressStatus defines the observed state of ManagementIngress
 type ManagementIngressStatus struct {
 	Conditions map[string]ConditionList `json:"condition,omitempty"`
-	PodState   PodStateMap            `json:"podstate"`
+	PodState   PodStateMap              `json:"podstate"`
+	Host       string                   `json:"host"`
+	State      OperandState             `json:"operandState"`
 }
 
-// ManagementIngress is the Schema for the managementingresses API
-// +kubebuilder:subresource:status
-// +kubebuilder:resource:path=managementingresses,scope=Namespaced
-type ManagementIngress struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-
-	Spec   ManagementIngressSpec   `json:"spec,omitempty"`
-	Status ManagementIngressStatus `json:"status,omitempty"`
+type OperandState struct {
+	Status  StatusType `json:"status"`
+	Message string     `json:"message"`
 }
 
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+type StatusType string
 
-// ManagementIngressList contains a list of ManagementIngress
-type ManagementIngressList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []ManagementIngress `json:"items"`
-}
+const (
+	StatusFailed     StatusType = "Failed"
+	StatusSuccessful StatusType = "Successful"
+	StatusDeploying  StatusType = "Deploying"
+)
 
 type ManagementState string
 
@@ -83,24 +97,32 @@ const (
 
 type PodStateMap map[PodStateType][]string
 
-type PodStateType string
-
 type Condition struct {
-	Type               ConditionType      `json:"type"`
-	Status             v1.ConditionStatus `json:"status"`
-	LastTransitionTime metav1.Time        `json:"lastTransitionTime"`
-	Reason             string             `json:"reason,omitempty" protobuf:"bytes,5,opt,name=reason"`
-	Message            string             `json:"message,omitempty" protobuf:"bytes,6,opt,name=message"`
+	Type               ConditionType   `json:"type"`
+	Status             ConditionStatus `json:"status"`
+	LastTransitionTime metav1.Time     `json:"lastTransitionTime"`
+	Reason             string          `json:"reason,omitempty" protobuf:"bytes,5,opt,name=reason"`
+	Message            string          `json:"message,omitempty" protobuf:"bytes,6,opt,name=message"`
 }
 
-// ClusterConditionType is a valid value for ClusterCondition.Type
+type ConditionStatus string
+
+const (
+	ConditionTrue    ConditionStatus = "True"
+	ConditionFalse   ConditionStatus = "False"
+	ConditionUnknown ConditionStatus = "Unknown"
+)
+
 type ConditionType string
 
 const (
-	ContainerWaiting    ConditionType = "ContainerWaiting"
-	ContainerTerminated ConditionType = "ContainerTerminated"
-	Unschedulable       ConditionType = "Unschedulable"
+	ResourceCreating         ConditionType = "ResourceCreating"
+	WaitingResource          ConditionType = "WaitingResource"
+	ResourceFailedOnCreation ConditionType = "ResourceFailedOnCreation"
+	DiscoveringClusterInfo   ConditionType = "DiscoveringClusterInfo"
 )
+
+type PodStateType string
 
 const (
 	PodStateTypeReady    PodStateType = "ready"

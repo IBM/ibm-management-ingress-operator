@@ -1,13 +1,14 @@
 apiVersion: operator.ibm.com/v1alpha1
 kind: ManagementIngress
 metadata:
-  name: example
+  name: default
 spec:
   managementState: "managed"
+  imageRegistry: quay.io/opencloudio
   image:
-    repository: "ibmcom/icp-management-ingress:2.4.0"
-    tag: 2.4.0
-  routeHost: "cp-console.apps.ibm.com"
+    repository: "icp-management-ingress"
+    tag: 2.5.1
+  routeHost: ""
   resources:
     requests:
       cpu: 200m
@@ -15,7 +16,7 @@ spec:
     limits:
       cpu: 500m
       memory: 512Mi
-  allowedHostHeader: "127.0.0.1"
+  allowedHostHeader: ""
   cert:
     issuer:
       name: "cs-ca-clusterissuer"
