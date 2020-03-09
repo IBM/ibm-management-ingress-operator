@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -12,18 +13,16 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
-
-	csv1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/cs/v1alpha1"
 )
 
 type IngressRequest struct {
 	client            client.Client
-	managementIngress *csv1alpha1.ManagementIngress
+	managementIngress *v1alpha1.ManagementIngress
 	recorder          record.EventRecorder
 }
 
 func (ingressRequest *IngressRequest) isManaged() bool {
-	return ingressRequest.managementIngress.Spec.ManagementState == csv1alpha1.ManagementStateManaged
+	return ingressRequest.managementIngress.Spec.ManagementState == v1alpha1.ManagementStateManaged
 }
 
 func (ingressRequest *IngressRequest) Create(object runtime.Object) (err error) {
@@ -51,15 +50,8 @@ func (ingressRequest *IngressRequest) UpdateStatus(object runtime.Object) (err e
 	return err
 }
 
-func (ingressRequest *IngressRequest) Get(objectName string, object runtime.Object) error {
-	namespace := types.NamespacedName{Name: objectName, Namespace: ingressRequest.managementIngress.ObjectMeta.Namespace}
-	klog.V(4).Infof("Getting namespace: %v, object: %v", namespace, object)
-
-	return ingressRequest.client.Get(context.TODO(), namespace, object)
-}
-
-func (ingressRequest *IngressRequest) GetWithNamespace(ns, objectName string, object runtime.Object) error {
-	namespace := types.NamespacedName{Name: objectName, Namespace: ns}
+func (ingressRequest *IngressRequest) Get(objectName, objectNamespace string, object runtime.Object) error {
+	namespace := types.NamespacedName{Name: objectName, Namespace: objectNamespace}
 	klog.V(4).Infof("Getting namespace: %v, object: %v", namespace, object)
 
 	return ingressRequest.client.Get(context.TODO(), namespace, object)
@@ -80,7 +72,7 @@ func (ingressRequest *IngressRequest) GetSecret(name string) (error, *core.Secre
 	secret := &core.Secret{}
 
 	err := wait.Poll(3*time.Second, 2*time.Second, func() (done bool, err error) {
-		err = ingressRequest.Get(name, secret)
+		err = ingressRequest.Get(name, ingressRequest.managementIngress.ObjectMeta.Namespace, secret)
 		if err != nil {
 			return false, err
 		}

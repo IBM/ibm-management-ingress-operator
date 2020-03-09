@@ -2,18 +2,44 @@ package handler
 
 import (
 	"fmt"
+	"strings"
 
+	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 	"k8s.io/client-go/tools/record"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
-
-	csv1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/cs/v1alpha1"
 )
 
-func Reconcile(requestIngress *csv1alpha1.ManagementIngress, requestClient client.Client, recorder record.EventRecorder) (err error) {
+func Reconcile(requestIngress *v1alpha1.ManagementIngress, requestClient client.Client, recorder record.EventRecorder) (err error) {
 	ingressRequest := IngressRequest{
 		client:            requestClient,
 		managementIngress: requestIngress,
 		recorder:          recorder,
+	}
+
+	// First time in reconcile set route host in status.
+	if len(requestIngress.Status.Host) <= 0 {
+		// Get route host
+		status := &v1alpha1.ManagementIngressStatus{}
+		host, err := getRouteHost(&ingressRequest)
+		if err != nil {
+			return err
+		} else {
+			status = &v1alpha1.ManagementIngressStatus{
+				Conditions: map[string]v1alpha1.ConditionList{},
+				PodState:   v1alpha1.PodStateMap{},
+				Host:       host,
+				State: v1alpha1.OperandState{
+					Message: "Get router host for management ingress.",
+					Status:  v1alpha1.StatusDeploying,
+				},
+			}
+		}
+
+		// Update CR status
+		requestIngress.Status = *status
+		if err := ingressRequest.UpdateStatus(requestIngress); err != nil {
+			return err
+		}
 	}
 
 	// Reconcile cert
@@ -52,4 +78,19 @@ func Reconcile(requestIngress *csv1alpha1.ManagementIngress, requestClient clien
 	}
 
 	return nil
+}
+
+func getRouteHost(ing *IngressRequest) (string, error) {
+
+	if specifiedRouteHost := ing.managementIngress.Spec.RouteHost; len(specifiedRouteHost) > 0 {
+		return specifiedRouteHost, nil
+	}
+
+	// User did not specify route host. Get the default one.
+	appDomain, err := ing.GetRouteAppDomain()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Join([]string{RouteName, appDomain}, "."), nil
 }

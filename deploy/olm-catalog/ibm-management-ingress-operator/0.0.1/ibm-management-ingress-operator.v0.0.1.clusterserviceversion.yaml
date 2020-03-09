@@ -8,22 +8,23 @@ metadata:
           "apiVersion": "operator.ibm.com/v1alpha1",
           "kind": "ManagementIngress",
           "metadata": {
-            "name": "example"
+            "name": "default"
           },
           "spec": {
-            "allowedHostHeader": "127.0.0.1",
+            "allowedHostHeader": "",
             "cert": {
               "issuer": {
-                "name": "cs-ca-issuer",
+                "name": "cs-ca-clusterissuer",
                 "kind": "ClusterIssuer"
               }
             },
             "config": {
               "disable-access-log": "true"
             },
+            "imageRegistry": "quay.io/opencloudio",
             "image": {
-              "repository": "ibmcom/icp-management-ingress",
-              "tag": "2.4.0"
+              "repository": "icp-management-ingress",
+              "tag": "2.5.1"
               },
             "managementState": "managed",
             "resources": {
@@ -36,7 +37,39 @@ metadata:
                 "memory": "256Mi"
               }
             },
-            "routeHost": "cp-console.apps.ibm.com"
+            "routeHost": ""
+          }
+        },
+        {
+          "apiVersion": "operator.ibm.com/v1alpha1",
+          "kind": "OperandRequest",
+          "metadata": {
+              "finalizers": [
+                "finalizer.request.ibm.com"
+              ],
+              "name": "management-ingress"
+          },
+          "spec": {
+              "operators": [
+                {
+                    "name": "ibm-cert-manager-operator",
+                    "namespace": "ibm-common-services",
+                    "channel": "alpha",
+                    "packageName": "ibm-cert-manager-operator",
+                    "sourceName": "opencloud-operators",
+                    "sourceNamespace": "openshift-marketplace",
+                    "description": "Operator for managing deployment of cert-manager service."
+                },
+                {
+                    "name": "ibm-iam-operator",
+                    "namespace": "ibm-common-services",
+                    "channel": "alpha",
+                    "packageName": "ibm-iam-operator",
+                    "sourceName": "opencloud-operators",
+                    "sourceNamespace": "openshift-marketplace",
+                    "description": "Operator for managing deployment of iam service."
+                }
+              ]
           }
         }
       ]
@@ -73,12 +106,6 @@ spec:
       - description: Certificate Issuer used to sign the certificate of IBM Management Ingress
         displayName: Certificate Issuer
         path: spec.cert.issuer
-    required:
-    - description: CertManager is the Schema for the certmanagers API
-      kind: CertManager
-      name: certmanagers.operator.ibm.com
-      version: v1alpha1
-      displayName: CertManager
   description: IBM Management Ingress Operator
   displayName: Management Ingress Operator
   install:
@@ -101,9 +128,7 @@ spec:
                 - ibm-management-ingress-operator
                 env:
                 - name: WATCH_NAMESPACE
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.annotations['olm.targetNamespaces']
+                  value: ""
                 - name: POD_NAME
                   valueFrom:
                     fieldRef:
@@ -115,135 +140,6 @@ spec:
                 name: ibm-management-ingress-operator
                 resources: {}
               serviceAccountName: ibm-management-ingress-operator
-      permissions:
-      - rules:
-        - apiGroups:
-          - ""
-          resources:
-          - pods
-          - services
-          - services/finalizers
-          - endpoints
-          - persistentvolumeclaims
-          - events
-          - configmaps
-          - secrets
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - apps
-          resources:
-          - deployments
-          - daemonsets
-          - replicasets
-          - statefulsets
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - apps
-          resourceNames:
-          - ibm-management-ingress-operator
-          resources:
-          - deployments/finalizers
-          verbs:
-          - update
-        - apiGroups:
-          - ""
-          resources:
-          - pods
-          verbs:
-          - get
-        - apiGroups:
-          - ""
-          resources:
-          - serviceaccounts
-          verbs:
-          - get
-          - create
-        - apiGroups:
-          - apps
-          resources:
-          - replicasets
-          - deployments
-          verbs:
-          - get
-        - apiGroups:
-          - operator.ibm.com
-          resources:
-          - managementingresses
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - route.openshift.io
-          resources:
-          - routes
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - ""
-          - route.openshift.io
-          resources:
-          - routes/custom-host
-          verbs:
-          - create
-        - apiGroups:
-          - ""
-          - route.openshift.io
-          resources:
-          - routes/status
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - certmanager.k8s.io
-          resources:
-          - certificates
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - monitoring.coreos.com
-          resources:
-          - servicemonitors
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        serviceAccountName: ibm-management-ingress-operator
       clusterPermissions:
       - rules:
         - apiGroups:
@@ -330,7 +226,143 @@ spec:
           resources:
             - ingresses/status
           verbs:
-            - update        
+            - update
+        - apiGroups:
+            - "operator.openshift.io"
+          resources:
+            - dnses
+            - ingresscontrollers
+          verbs:
+            - get
+            - list
+            - watch
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - services/finalizers
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - apps
+          resourceNames:
+          - ibm-management-ingress-operator
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          verbs:
+          - get
+        - apiGroups:
+          - ""
+          resources:
+          - serviceaccounts
+          verbs:
+          - get
+          - create
+        - apiGroups:
+          - apps
+          resources:
+          - replicasets
+          - deployments
+          verbs:
+          - get
+        - apiGroups:
+          - operator.ibm.com
+          resources:
+          - managementingresses
+          - managementingresses/status
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - route.openshift.io
+          resources:
+          - routes
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - ""
+          - route.openshift.io
+          resources:
+          - routes/custom-host
+          verbs:
+          - create
+        - apiGroups:
+          - ""
+          - route.openshift.io
+          resources:
+          - routes/status
+          verbs:
+          - get
+          - list
+          - watch
+        - apiGroups:
+          - certmanager.k8s.io
+          resources:
+          - certificates
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch              
         serviceAccountName: ibm-management-ingress-operator
     strategy: deployment
   installModes:
@@ -342,6 +374,17 @@ spec:
     type: MultiNamespace
   - supported: true
     type: AllNamespaces
+  keywords:
+  - IBM
+  - Cloud
+  labels:
+    name: ibm-management-ingress-operator
+  links:
+  - name: IBM Management Ingress Operator
+    url: https://github.com/IBM/ibm-management-ingress-operator
+  maintainers:
+  - email: supports@ibm.com
+    name: IBM Support
   maturity: alpha
   provider:
     name: IBM

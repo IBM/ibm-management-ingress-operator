@@ -74,6 +74,8 @@ spec:
               - repository
               - tag
               type: object
+            imageRegistry:
+              type: string
             managementState:
               type: string
             nodeSelector:
@@ -142,6 +144,7 @@ spec:
           required:
           - cert
           - image
+          - imageRegistry
           - managementState
           - routeHost
           type: object
@@ -162,7 +165,6 @@ spec:
                     status:
                       type: string
                     type:
-                      description: ClusterConditionType is a valid value for ClusterCondition.Type
                       type: string
                   required:
                   - lastTransitionTime
@@ -171,6 +173,18 @@ spec:
                   type: object
                 type: array
               type: object
+            host:
+              type: string
+            operandState:
+              properties:
+                message:
+                  type: string
+                status:
+                  type: string
+              required:
+              - message
+              - status
+              type: object
             podstate:
               additionalProperties:
                 items:
@@ -178,6 +192,8 @@ spec:
                 type: array
               type: object
           required:
+          - host
+          - operandState
           - podstate
           type: object
       type: object
