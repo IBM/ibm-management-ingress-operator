@@ -24,19 +24,29 @@ const (
 
 //NewDeployment stubs an instance of a deployment
 func NewDeployment(name string, namespace string, podSpec core.PodSpec) *apps.Deployment {
-	labels := map[string]string{
-		"component": AppName,
-		"app":       AppName,
+
+	labels := GetCommonLabels()
+	commAnnotations := GetCommonAnnotations()
+	podAnnotations := map[string]string{
+		"scheduler.alpha.kubernetes.io/critical-pod": "",
+		"clusterhealth.ibm.com/dependencies":         "cert-manager, auth-idp",
 	}
+
+	// Merget common annotations with pod specific annotations.
+	for k, v := range commAnnotations {
+		podAnnotations[k] = v
+	}
+
 	return &apps.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Deployment",
 			APIVersion: apps.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-			Labels:    labels,
+			Name:        name,
+			Namespace:   namespace,
+			Labels:      labels,
+			Annotations: commAnnotations,
 		},
 		Spec: apps.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
@@ -44,14 +54,9 @@ func NewDeployment(name string, namespace string, podSpec core.PodSpec) *apps.De
 			},
 			Template: core.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:   name,
-					Labels: labels,
-					Annotations: map[string]string{
-						"scheduler.alpha.kubernetes.io/critical-pod": "",
-						"productID":      "cp-0000001",
-						"productName":    "IBM Cloud Platform Common Services",
-						"productVersion": "3.3.0",
-					},
+					Name:        name,
+					Labels:      labels,
+					Annotations: podAnnotations,
 				},
 				Spec: podSpec,
 			},

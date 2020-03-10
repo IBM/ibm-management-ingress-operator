@@ -16,6 +16,9 @@ import (
 
 //NewConfigMap stubs an instance of Configmap
 func NewConfigMap(name string, namespace string, data map[string]string) *core.ConfigMap {
+
+	labels := GetCommonLabels()
+
 	return &core.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ConfigMap",
@@ -24,9 +27,7 @@ func NewConfigMap(name string, namespace string, data map[string]string) *core.C
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
-			Labels: map[string]string{
-				"component": AppName,
-			},
+			Labels:    labels,
 		},
 		Data: data,
 	}

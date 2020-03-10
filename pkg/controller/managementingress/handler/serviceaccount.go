@@ -3,16 +3,18 @@ package handler
 import (
 	"fmt"
 
+	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
-
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 func NewServiceAccount(name string, namespace string) *core.ServiceAccount {
+
+	labels := GetCommonLabels()
+
 	return &core.ServiceAccount{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ServiceAccount",
@@ -21,6 +23,7 @@ func NewServiceAccount(name string, namespace string) *core.ServiceAccount {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
+			Labels:    labels,
 		},
 	}
 }

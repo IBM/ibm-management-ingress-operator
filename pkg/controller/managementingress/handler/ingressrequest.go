@@ -94,3 +94,22 @@ func (ingressRequest *IngressRequest) Delete(object runtime.Object) (err error) 
 
 	return err
 }
+
+func GetCommonLabels() map[string]string {
+	return map[string]string{
+		"app":                          AppName,
+		"app.kubernetes.io/component":  AppName,
+		"app.kubernetes.io/name":       AppName,
+		"app.kubernetes.io/instance":   ServiceName,
+		"app.kubernetes.io/managed-by": "",
+	}
+}
+
+func GetCommonAnnotations() map[string]string {
+	return map[string]string{
+		"productName":    ProductName,
+		"productID":      ProductID,
+		"productVersion": ProductVersion,
+		"productMetric":  ProductMetric,
+	}
+}

@@ -17,6 +17,8 @@ import (
 //NewCertificate stubs an instance of Certificate
 func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer *v1alph1.CertIssuer) *certmanager.Certificate {
 
+	labels := GetCommonLabels()
+
 	return &certmanager.Certificate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Certificate",
@@ -25,9 +27,7 @@ func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer 
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
-			Labels: map[string]string{
-				"component": AppName,
-			},
+			Labels:    labels,
 		},
 		Spec: certmanager.CertificateSpec{
 			CommonName:  AppName,

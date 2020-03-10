@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	scc "github.com/openshift/api/security/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
-
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 //NewSecurityContextConstraint stubs an instance of a SecurityContextConstraint
@@ -19,16 +18,16 @@ func NewSecurityContextConstraint(serviceaccount, name, namespace string) *scc.S
 	privilegeEscalation := false
 	var priority int32 = 10
 
+	labels := GetCommonLabels()
+
 	return &scc.SecurityContextConstraints{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "SecurityContextConstraint",
 			APIVersion: scc.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-			Labels: map[string]string{
-				"component": AppName,
-			},
+			Name:   name,
+			Labels: labels,
 		},
 		Priority:                        &priority,
 		AllowPrivilegedContainer:        false,
