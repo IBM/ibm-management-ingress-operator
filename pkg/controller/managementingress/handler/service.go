@@ -3,17 +3,19 @@ package handler
 import (
 	"fmt"
 
+	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/klog"
-
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 //NewService stubs an instance of a Service
 func NewService(name string, namespace string, servicePorts []core.ServicePort) *core.Service {
+
+	labels := GetCommonLabels()
+
 	return &core.Service{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Service",
@@ -22,9 +24,7 @@ func NewService(name string, namespace string, servicePorts []core.ServicePort) 
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
-			Labels: map[string]string{
-				"component": AppName,
-			},
+			Labels:    labels,
 		},
 		Spec: core.ServiceSpec{
 			Selector: map[string]string{

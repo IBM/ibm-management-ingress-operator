@@ -14,6 +14,9 @@ import (
 
 //NewRoute stubs an instance of a Route
 func NewRoute(name, namespace, serviceName, routeHost string, cert, key, caCert, destinationCAcert []byte) *route.Route {
+
+	labels := GetCommonLabels()
+
 	return &route.Route{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Route",
@@ -22,9 +25,7 @@ func NewRoute(name, namespace, serviceName, routeHost string, cert, key, caCert,
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
-			Labels: map[string]string{
-				"component": AppName,
-			},
+			Labels:    labels,
 		},
 		Spec: route.RouteSpec{
 			Host: routeHost,
