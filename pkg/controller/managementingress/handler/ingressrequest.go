@@ -98,6 +98,7 @@ func (ingressRequest *IngressRequest) Delete(object runtime.Object) (err error) 
 func GetCommonLabels() map[string]string {
 	return map[string]string{
 		"app":                          AppName,
+		"component":                    AppName,
 		"app.kubernetes.io/component":  AppName,
 		"app.kubernetes.io/name":       AppName,
 		"app.kubernetes.io/instance":   ServiceName,
