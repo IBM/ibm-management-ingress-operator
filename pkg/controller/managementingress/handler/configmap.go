@@ -44,8 +44,12 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 			return fmt.Errorf("Failure creating configmap: %v", err)
 		}
 
-		current := &core.ConfigMap{}
+		if !ingressConfig {
+			return nil
+		}
 
+		klog.Infof("Trying to update Configmap: %s for %q as it already existed.", cm.ObjectMeta.Name, ingr.managementIngress.Name)
+		current := &core.ConfigMap{}
 		// Update config
 		if err = ingr.Get(cm.ObjectMeta.Name, ingr.managementIngress.ObjectMeta.Namespace, current); err != nil {
 			return fmt.Errorf("Failure getting Configmap: %q  for %q: %v", cm.ObjectMeta.Name, ingr.managementIngress.Name, err)
@@ -53,11 +57,12 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 
 		// no data change, just return
 		if reflect.DeepEqual(cm.Data, current.Data) {
+			klog.Infof("No change found from the configmap: %s.", cm.ObjectMeta.Name)
 			return nil
 		}
 
 		json, _ := json.Marshal(cm)
-		klog.Infof("Configmap was changed to: %s. Try to update the configmap", json)
+		klog.Infof("Found change from Configmap %s. Trying to update it.", json)
 		current.Data = cm.Data
 
 		// Apply the latest change to configmap
@@ -85,7 +90,7 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 				},
 			)
 
-			klog.Infof("Restart management ingress Deployment after config change.")
+			klog.Infof("Restarting management ingress Deployment after config change.")
 			ds.Spec.Template.ObjectMeta.Annotations = annotations
 			if err := ingr.Update(ds); err != nil {
 				ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failure updating damonset to make it restarted: %v", err)

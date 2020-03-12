@@ -88,6 +88,7 @@ func (r *ReconcileManagementIngress) Reconcile(request reconcile.Request) (recon
 	err = k8shandler.Reconcile(instance, r.client, r.recorder)
 	if err != nil {
 		klog.Errorf("Failure reconciling ManagementIngress: %v", err)
+		return reconcile.Result{}, err
 	} else {
 		klog.Infof("Reconciling ManagementIngress was successful")
 	}
