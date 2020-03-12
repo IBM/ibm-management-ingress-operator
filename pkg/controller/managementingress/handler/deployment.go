@@ -222,7 +222,7 @@ func getClusterDomain(ingressRequest *IngressRequest) (string, error) {
 
 func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 
-	klog.Infof("Creating or Updating Deployment: %s for %q.", AppName, ingressRequest.managementIngress.Name)
+	klog.Infof("Creating Deployment: %s for %q.", AppName, ingressRequest.managementIngress.Name)
 	imageRepo := strings.Join([]string{
 		ingressRequest.managementIngress.Spec.ImageRegistry,
 		ingressRequest.managementIngress.Spec.Image.Repository,
@@ -272,6 +272,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 			return fmt.Errorf("Failure creating Deployment: %v", err)
 		}
 
+		klog.Infof("Trying to update Deployment: %s for %q as it already existed.", AppName, ingressRequest.managementIngress.Name)
 		current := &apps.Deployment{}
 		if err = ingressRequest.Get(AppName, ingressRequest.managementIngress.ObjectMeta.Namespace, current); err != nil {
 			return fmt.Errorf("Failure getting %q Deployment for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
@@ -279,10 +280,11 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 
 		desired, different := utils.IsDeploymentDifferent(current, ds)
 		if !different {
+			klog.Infof("No change found from the deployment: %s.", AppName)
 			return nil
 		}
 
-		klog.Infof("There is change from Deployment %s. Try to update it.", podSpec)
+		klog.Infof("Found change from Deployment %s. Trying to update it.", podSpec)
 		err = ingressRequest.Update(desired)
 		if err != nil {
 			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedDeployment", "Failure updating deployment %q: %v", AppName, err)

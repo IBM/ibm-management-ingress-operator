@@ -26,28 +26,20 @@ func (ingressRequest *IngressRequest) isManaged() bool {
 }
 
 func (ingressRequest *IngressRequest) Create(object runtime.Object) (err error) {
-	if err = ingressRequest.client.Create(context.TODO(), object); err != nil {
-		klog.Errorf("Error creating %v: %v", object.GetObjectKind(), err)
-	}
-	return err
+	klog.V(4).Infof("Creating object: %v", object)
+	return ingressRequest.client.Create(context.TODO(), object)
 }
 
 //Update the runtime Object or return error
 func (ingressRequest *IngressRequest) Update(object runtime.Object) (err error) {
-	if err = ingressRequest.client.Update(context.TODO(), object); err != nil {
-		klog.Errorf("Error updating %v: %v", object.GetObjectKind(), err)
-	}
-	return err
+	klog.V(4).Infof("Updating object: %v", object)
+	return ingressRequest.client.Update(context.TODO(), object)
 }
 
 //Update the runtime Object status or return error
 func (ingressRequest *IngressRequest) UpdateStatus(object runtime.Object) (err error) {
-	if err = ingressRequest.client.Status().Update(context.TODO(), object); err != nil {
-		// making this debug because we should be throwing the returned error if we are never
-		// able to update the status
-		klog.V(4).Infof("Error updating status: %v", err)
-	}
-	return err
+	klog.V(4).Infof("Updating object status: %v", object)
+	return ingressRequest.client.Status().Update(context.TODO(), object)
 }
 
 func (ingressRequest *IngressRequest) Get(objectName, objectNamespace string, object runtime.Object) error {
