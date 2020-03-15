@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"reflect"
 
 	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
@@ -29,13 +27,6 @@ func AsOwner(o *v1alpha1.ManagementIngress) metav1.OwnerReference {
 		UID:        o.UID,
 		Controller: GetBool(true),
 	}
-}
-
-//CalculateMD5Hash returns a MD5 hash of the give text
-func CalculateMD5Hash(text string) string {
-	hasher := md5.New()
-	hasher.Write([]byte(text))
-	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 func AreMapsSame(lhs, rhs map[string]string) bool {
