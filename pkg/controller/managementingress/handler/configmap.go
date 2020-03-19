@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
+	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
-	"k8s.io/kubernetes/pkg/apis/apps"
 )
 
 //NewConfigMap stubs an instance of Configmap
