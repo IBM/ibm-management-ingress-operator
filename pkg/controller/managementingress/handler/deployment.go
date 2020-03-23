@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	httpsPort = int32(8443)
+	httpsPort = int32(443)
 	httpPort  = int32(8080)
 )
 
@@ -67,9 +67,12 @@ func NewDeployment(name string, namespace string, podSpec core.PodSpec) *apps.De
 func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements, nodeSelector map[string]string, tolerations []core.Toleration, allowedHostHeader string, fipsEnabled bool) core.PodSpec {
 	if resources == nil {
 		resources = &core.ResourceRequirements{
-			Limits: core.ResourceList{core.ResourceMemory: defaultMemory},
+			Limits: core.ResourceList{
+				core.ResourceMemory: defaultMemoryLimit,
+				core.ResourceCPU:    defaultCpuLimit,
+			},
 			Requests: core.ResourceList{
-				core.ResourceMemory: defaultMemory,
+				core.ResourceMemory: defaultMemoryRequest,
 				core.ResourceCPU:    defaultCpuRequest,
 			},
 		}
@@ -100,7 +103,7 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		"--default-ssl-certificate=$(POD_NAMESPACE)/icp-management-ingress-tls-secret",
 		"--configmap=$(POD_NAMESPACE)/management-ingress",
 		"--http-port=8080",
-		"--https-port=8443",
+		"--https-port=443",
 	}
 
 	container.Env = []core.EnvVar{
