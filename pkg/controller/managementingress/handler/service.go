@@ -44,7 +44,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateService() error {
 				Port: 443,
 				TargetPort: intstr.IntOrString{
 					Type:   intstr.Int,
-					IntVal: 8443,
+					IntVal: 443,
 				},
 			},
 		})
