@@ -54,7 +54,7 @@ metadata:
                 {
                     "name": "ibm-cert-manager-operator",
                     "namespace": "ibm-common-services",
-                    "channel": "alpha",
+                    "channel": "stable-v1",
                     "packageName": "ibm-cert-manager-operator",
                     "sourceName": "opencloud-operators",
                     "sourceNamespace": "openshift-marketplace",
@@ -63,7 +63,7 @@ metadata:
                 {
                     "name": "ibm-iam-operator",
                     "namespace": "ibm-common-services",
-                    "channel": "alpha",
+                    "channel": "stable-v1",
                     "packageName": "ibm-iam-operator",
                     "sourceName": "opencloud-operators",
                     "sourceNamespace": "openshift-marketplace",
@@ -74,7 +74,7 @@ metadata:
         }
       ]
     capabilities: Basic Install
-  name: ibm-management-ingress-operator.v0.0.1
+  name: ibm-management-ingress-operator.v1.1.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -122,10 +122,24 @@ spec:
             metadata:
               labels:
                 name: ibm-management-ingress-operator
+                app.kubernetes.io/managed-by: ""
+                app.kubernetes.io/name: "ibm-management-ingress-operator"
+              annotations:
+                productName: "IBM Cloud Platform Common Services"
+                productID: "068a62892a1e4db39641342e592daa25"
+                productVersion: "3.3.0"
+                productMetric: "FREE"
             spec:
               containers:
               - command:
                 - ibm-management-ingress-operator
+                resources:
+                  limits:
+                    cpu: 50m
+                    memory: 128Mi
+                  requests:
+                    cpu: 20m
+                    memory: 64Mi
                 env:
                 - name: WATCH_NAMESPACE
                   value: ""
@@ -135,7 +149,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: ibm-management-ingress-operator
-                image: quay.io/opencloudio/ibm-management-ingress-operator:latest
+                image: quay.io/opencloudio/ibm-management-ingress-operator:1.1.0
                 imagePullPolicy: Always
                 name: ibm-management-ingress-operator
                 resources: {}
@@ -318,8 +332,8 @@ spec:
   maintainers:
   - email: supports@ibm.com
     name: IBM Support
-  maturity: alpha
+  maturity: stable
   provider:
     name: IBM
-  replaces: ibm-management-ingress-operator.v0.0.0
-  version: 0.0.1
+  replaces: ibm-management-ingress-operator.v1.0.0
+  version: 1.1.0

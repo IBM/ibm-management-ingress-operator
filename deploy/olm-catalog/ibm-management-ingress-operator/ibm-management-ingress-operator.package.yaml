@@ -1,5 +1,5 @@
 channels:
-- currentCSV: ibm-management-ingress-operator.v0.0.1
-  name: alpha
-defaultChannel: alpha
+- currentCSV: ibm-management-ingress-operator.v1.1.0
+  name: stable-v1
+defaultChannel: stable-v1
 packageName: ibm-management-ingress-operator-app
