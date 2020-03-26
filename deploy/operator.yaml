@@ -11,14 +11,28 @@ spec:
     metadata:
       labels:
         name: ibm-management-ingress-operator
+        app.kubernetes.io/managed-by: ""
+        app.kubernetes.io/name: "ibm-management-ingress-operator"
+      annotations:
+        productName: "IBM Cloud Platform Common Services"
+        productID: "068a62892a1e4db39641342e592daa25"
+        productVersion: "3.3.0"
+        productMetric: "FREE"
     spec:
       serviceAccountName: ibm-management-ingress-operator
       containers:
         - name: ibm-management-ingress-operator
-          image: quay.io/opencloudio/ibm-management-ingress-operator:latest
+          image: quay.io/opencloudio/ibm-management-ingress-operator:1.1.0
           command:
           - ibm-management-ingress-operator
           imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 50m
+              memory: 128Mi
+            requests:
+              cpu: 20m
+              memory: 64Mi
           env:
             - name: WATCH_NAMESPACE
               value: ""
