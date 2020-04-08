@@ -161,6 +161,22 @@ ifeq ($(LOCAL_ARCH),x86_64)
 endif
 endif
 
+build-image: build
+	@echo "Building the $(IMAGE_NAME) docker image for $(LOCAL_OS)..."
+	@docker build -t $(IMAGE_REPO)/$(IMAGE_NAME)-$(LOCAL_OS):$(VERSION) -f build/Dockerfile-$(LOCAL_OS) .
+
+push-image: $(CONFIG_DOCKER_TARGET) build-image
+	@echo "Pushing the $(IMAGE_NAME) docker image for $(LOCAL_OS)..."
+	@docker push $(IMAGE_REPO)/$(IMAGE_NAME)-$(LOCAL_OS):$(VERSION)
+
+############################################################
+# multiarch-image section
+# ############################################################
+
+
+multiarch-image: $(CONFIG_DOCKER_TARGET)
+	@common/scripts/multiarch_image.sh $(IMAGE_REPO) $(IMAGE_NAME) $(VERSION)
+
 ##@ Test
 
 test: ## Run unit test
@@ -184,15 +200,15 @@ build-images: build-image-amd64 build-image-ppc64le build-image-s390x
 push-images: push-image-amd64 push-image-ppc64le push-image-s390x
 
 # multiarch-image section
-multiarch-image:
-ifeq ($(LOCAL_OS),Linux)
-ifeq ($(LOCAL_ARCH),x86_64)
-	@curl -L -o /tmp/manifest-tool https://github.com/estesp/manifest-tool/releases/download/v1.0.0/manifest-tool-linux-amd64
-	@chmod +x /tmp/manifest-tool
-	/tmp/manifest-tool push from-args --platforms linux/amd64,linux/ppc64le,linux/s390x --template $(REGISTRY)/$(IMG)-ARCH:$(VERSION) --target $(REGISTRY)/$(IMG) --ignore-missing
-	/tmp/manifest-tool push from-args --platforms linux/amd64,linux/ppc64le,linux/s390x --template $(REGISTRY)/$(IMG)-ARCH:$(VERSION) --target $(REGISTRY)/$(IMG):$(VERSION) --ignore-missing
-endif
-endif
+#multiarch-image:
+#ifeq ($(LOCAL_OS),Linux)
+#ifeq ($(LOCAL_ARCH),x86_64)
+#	@curl -L -o /tmp/manifest-tool https://github.com/estesp/manifest-tool/releases/download/v1.0.0/manifest-tool-linux-amd64
+#	@chmod +x /tmp/manifest-tool
+#	/tmp/manifest-tool push from-args --platforms linux/amd64,linux/ppc64le,linux/s390x --template $(REGISTRY)/$(IMG)-ARCH:$(VERSION) --target $(REGISTRY)/$(IMG) --ignore-missing
+#	/tmp/manifest-tool push from-args --platforms linux/amd64,linux/ppc64le,linux/s390x --template $(REGISTRY)/$(IMG)-ARCH:$(VERSION) --target $(REGISTRY)/$(IMG):$(VERSION) --ignore-missing
+#endif
+#endif
 
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
