@@ -115,6 +115,7 @@ build:
 	@strip $(STRIP_FLAGS) build/_output/bin/$(IMG)
 
 build-image-amd64: build $(CONFIG_DOCKER_TARGET)
+	@echo "Building ibm-management-ingress-operator amd64 image"
 	$(eval ARCH := $(shell uname -m|sed 's/x86_64/amd64/'))
 	docker build -t $(REGISTRY)/$(IMG)-$(ARCH):$(VERSION) -f build/Dockerfile .
 	@\rm -f build/_output/bin/ibm-management-ingress-operator
@@ -127,6 +128,7 @@ push-image-amd64: build-image-amd64
 build-image-ppc64le: $(CONFIG_DOCKER_TARGET)
 ifeq ($(LOCAL_OS),Linux)
 ifeq ($(LOCAL_ARCH),x86_64)
+	@echo "Building ibm-management-ingress-operator ppc64le image"
 	GOOS=linux GOARCH=ppc64le CGO_ENABLED=0 go build -o build/_output/bin/ibm-management-ingress-operator-ppc64le ./cmd/manager
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset
 	docker build -t $(REGISTRY)/$(IMG)-ppc64le:$(VERSION) -f build/Dockerfile.ppc64le .
@@ -146,6 +148,7 @@ endif
 build-image-s390x: $(CONFIG_DOCKER_TARGET)
 ifeq ($(LOCAL_OS),Linux)
 ifeq ($(LOCAL_ARCH),x86_64)
+	@echo "Building ibm-management-ingress-operator s390x image"
 	GOOS=linux GOARCH=s390x CGO_ENABLED=0 go build -o build/_output/bin/ibm-management-ingress-operator-s390x ./cmd/manager
 	docker run --rm --privileged multiarch/qemu-user-static:register --reset
 	docker build -t $(REGISTRY)/$(IMG)-s390x:$(VERSION) -f build/Dockerfile.s390x .
@@ -184,15 +187,8 @@ build-images: build-image-amd64 build-image-ppc64le build-image-s390x
 push-images: push-image-amd64 push-image-ppc64le push-image-s390x
 
 # multiarch-image section
-multiarch-image:
-ifeq ($(LOCAL_OS),Linux)
-ifeq ($(LOCAL_ARCH),x86_64)
-	@curl -L -o /tmp/manifest-tool https://github.com/estesp/manifest-tool/releases/download/v1.0.0/manifest-tool-linux-amd64
-	@chmod +x /tmp/manifest-tool
-	/tmp/manifest-tool push from-args --platforms linux/amd64,linux/ppc64le,linux/s390x --template $(REGISTRY)/$(IMG)-ARCH:$(VERSION) --target $(REGISTRY)/$(IMG) --ignore-missing
-	/tmp/manifest-tool push from-args --platforms linux/amd64,linux/ppc64le,linux/s390x --template $(REGISTRY)/$(IMG)-ARCH:$(VERSION) --target $(REGISTRY)/$(IMG):$(VERSION) --ignore-missing
-endif
-endif
+multiarch-image: $(CONFIG_DOCKER_TARGET)
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(IMAGE_REPO) $(IMAGE_NAME) $(VERSION)
 
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
