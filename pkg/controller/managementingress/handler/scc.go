@@ -31,7 +31,7 @@ import (
 func NewSecurityContextConstraint(serviceaccount, name, namespace string) *scc.SecurityContextConstraints {
 	user := strings.Join([]string{"system:serviceaccount", name, namespace}, ":")
 	privilegeEscalation := false
-	var priority int32 = 10
+	var priority int32 = 1
 
 	labels := GetCommonLabels()
 
