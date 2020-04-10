@@ -4,6 +4,10 @@ metadata:
   finalizers:
   - finalizer.request.ibm.com
   name: management-ingress
+  labels:
+    app.kubernetes.io/name: ibm-management-ingress-operator
+    app.kubernetes.io/instance: ibm-management-ingress-operator
+    app.kubernetes.io/managed-by: ibm-management-ingress-operator
 spec:
   operators:
   - name: ibm-cert-manager-operator

@@ -186,6 +186,8 @@ build-images: build-image-amd64 build-image-ppc64le build-image-s390x
 
 push-images: push-image-amd64 push-image-ppc64le push-image-s390x
 
+build-push-image: build-images
+
 # multiarch-image section
 multiarch-image: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(IMAGE_REPO) $(IMAGE_NAME) $(VERSION)
@@ -206,4 +208,4 @@ help: ## Display this help
 		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-.PHONY: all build run check install uninstall code-dev test test-e2e coverage images csv clean help
+.PHONY: all build run check install uninstall code-dev test test-e2e coverage images csv clean help multiarch-image
