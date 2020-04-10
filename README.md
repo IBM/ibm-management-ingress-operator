@@ -5,6 +5,8 @@
 - [Management Ingress Operator](#ibm-management-ingress-operator)
     - [Overview](#overview)
     - [Prerequisites](#prerequisites)
+        - [PodSecurityPolicy Requirements](#podsecuritypolicy-requirements)
+        - [PodSecurityPolicy Requirements](#securitycontextconstraints-requirements)
     - [Getting Started](#getting-started)
         - [Cloning the repository](#cloning-the-repository)
         - [Building the operator](#building-the-operator)
@@ -29,6 +31,12 @@ This is the operator to deploy management ingress of IBM Cloud Pak foundation..
 - [kubectl][kubectl_tool] v1.13.0+
 - [operator-sdk][operator_install]
 - Access to a Kubernetes v1.13.0+ cluster
+
+### PodSecurityPolicy Requirements
+
+### SecurityContextConstraints Requirements
+
+The management service supports running under the OpenShift Container Platform default restricted security context constraints.
 
 ## Getting Started
 

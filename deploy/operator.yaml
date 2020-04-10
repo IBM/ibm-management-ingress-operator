@@ -2,6 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ibm-management-ingress-operator
+  labels:
+    app.kubernetes.io/name: ibm-management-ingress-operator
+    app.kubernetes.io/instance: ibm-management-ingress-operator
+    app.kubernetes.io/managed-by: ibm-management-ingress-operator
 spec:
   replicas: 1
   selector:
@@ -26,6 +30,10 @@ spec:
           command:
           - ibm-management-ingress-operator
           imagePullPolicy: Always
+          securityContext:
+            capabilities:
+              drop:
+              - ALL
           resources:
             limits:
               cpu: 50m
@@ -33,6 +41,16 @@ spec:
             requests:
               cpu: 20m
               memory: 64Mi
+          readinessProbe:
+            exec:
+              command: ["echo health check passed!"]
+            initialDelaySeconds: 3
+            periodSeconds: 1
+          livenessProbe:
+            exec:
+              command: ["echo health check passed!"]
+            initialDelaySeconds: 10
+            periodSeconds: 30
           env:
             - name: WATCH_NAMESPACE
               value: ""

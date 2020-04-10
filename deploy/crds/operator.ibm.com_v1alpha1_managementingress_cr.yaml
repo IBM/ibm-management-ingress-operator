@@ -2,6 +2,10 @@ apiVersion: operator.ibm.com/v1alpha1
 kind: ManagementIngress
 metadata:
   name: default
+  labels:
+    app.kubernetes.io/name: ibm-management-ingress-operator
+    app.kubernetes.io/instance: ibm-management-ingress-operator
+    app.kubernetes.io/managed-by: ibm-management-ingress-operator
 spec:
   managementState: "managed"
   imageRegistry: quay.io/opencloudio
