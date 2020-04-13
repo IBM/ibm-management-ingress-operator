@@ -44,12 +44,16 @@ spec:
               memory: 64Mi
           readinessProbe:
             exec:
-              command: ["echo health check passed!"]
-            initialDelaySeconds: 3
+              command:
+              - echo
+              - "Health check passed!"
+            initialDelaySeconds: 5
             periodSeconds: 1
           livenessProbe:
             exec:
-              command: ["echo health check passed!"]
+              command:
+              - echo
+              - "Health check passed!"
             initialDelaySeconds: 10
             periodSeconds: 30
           env:
