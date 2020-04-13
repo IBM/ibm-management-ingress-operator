@@ -1,0 +1,14 @@
+scorecard:
+  bundle: deploy/olm-catalog/ibm-management-ingress-operator
+  # Setting a global scorecard option
+  output: json
+  plugins:
+    # `basic` tests configured to test 1 CR
+    - basic:
+        cr-manifest:
+          - "deploy/crds/operator.ibm.com_v1alpha1_managementingress_cr.yaml"
+    # `olm` tests configured to test 1 CR
+    - olm:
+        cr-manifest:
+          - "deploy/crds/operator.ibm.com_v1alpha1_managementingress_cr.yaml"
+        csv-path: "deploy/olm-catalog/ibm-management-ingress-operator/1.1.0/ibm-management-ingress-operator.v1.1.0.clusterserviceversion.yaml"
