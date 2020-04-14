@@ -50,6 +50,9 @@ COPY deploy/crds ${DEPLOY_DIR}
 COPY build/bin /usr/local/bin
 RUN  /usr/local/bin/user_setup
 
+COPY build/health_check.sh .
+RUN chmod 777 ./health_check.sh
+
 # copy licenses
 RUN mkdir /licenses
 COPY LICENSE /licenses
