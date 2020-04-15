@@ -39,6 +39,29 @@ metadata:
             },
             "routeHost": ""
           }
+        },
+        {
+          "apiVersion": "operator.ibm.com/v1alpha1",
+          "kind": "OperandRequest",
+          "metadata": {
+              "finalizers": [
+                "finalizer.request.ibm.com"
+              ],
+              "name": "management-ingress"
+          },
+          "spec": {
+            "requests": [
+              {
+                "operands": [
+                  {
+                    "name": "ibm-iam-operator",
+                    "name": "ibm-cert-manager-operator"
+                  }
+                ],
+                "registry": "common-service"
+              }
+            ]
+          }
         }
       ]
     capabilities: Basic Install
