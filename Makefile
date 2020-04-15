@@ -31,6 +31,9 @@ IMG ?= ibm-management-ingress-operator
 REGISTRY ?= quay.io/opencloudio
 CSV_VERSION ?= 1.1.0
 
+IMAGE_REPO ?= quay.io/opencloudio
+IMAGE_NAME ?= ibm-management-ingress-operator
+
 QUAY_USERNAME ?=
 QUAY_PASSWORD ?=
 
@@ -38,9 +41,9 @@ MARKDOWN_LINT_WHITELIST=https://quay.io/cnr
 
 TESTARGS_DEFAULT := "-v"
 export TESTARGS ?= $(TESTARGS_DEFAULT)
-VERSION ?= $(shell git describe --exact-match 2> /dev/null || \
+#VERSION ?= $(shell git describe --exact-match 2> /dev/null || \
                  git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)
-
+VERSION ?= $(shell date +v%Y%m%d)-$(shell git describe --match=$(git rev-parse --short=8 HEAD) --tags --always --dirty)
 LOCAL_OS := $(shell uname)
 LOCAL_ARCH := $(shell uname -m)
 ifeq ($(LOCAL_OS),Linux)
