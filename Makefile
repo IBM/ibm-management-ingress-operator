@@ -29,7 +29,7 @@ NAMESPACE=ibm-management-ingress-operator
 # Use your own docker registry and image name for dev/test by overridding the IMG and REGISTRY environment variable.
 IMG ?= ibm-management-ingress-operator
 REGISTRY ?= quay.io/opencloudio
-CSV_VERSION ?= 0.1
+CSV_VERSION ?= 1.1.0
 
 QUAY_USERNAME ?=
 QUAY_PASSWORD ?=
@@ -186,11 +186,13 @@ build-images: build-image-amd64 build-image-ppc64le build-image-s390x
 
 push-images: push-image-amd64 push-image-ppc64le push-image-s390x
 
-build-push-image: build-images
+build-push-image: build-images push-images multiarch-image
 
 # multiarch-image section
 multiarch-image: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(IMAGE_REPO) $(IMAGE_NAME) $(VERSION)
+
+images: build-push-image
 
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
