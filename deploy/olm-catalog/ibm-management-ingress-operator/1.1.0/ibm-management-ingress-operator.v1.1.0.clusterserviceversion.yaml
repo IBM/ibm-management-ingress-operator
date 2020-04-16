@@ -66,12 +66,12 @@ metadata:
     capabilities: Basic Install
     categories: Developer Tools
     certified: "false"
-    containerImage: quay.io/opencloudio/ibm-management-ingress-operator:1.1.0
+    containerImage: quay.io/opencloudio/ibm-management-ingress-operator:1.2.0
     createdAt: "2020-01-14T10:16:16Z"
     description: Operator for managing deployment of management-ingress service.
     repository: https://github.com/IBM/ibm-management-ingress-operator.git
     support: IBM
-  name: ibm-management-ingress-operator.v1.1.0
+  name: ibm-management-ingress-operator.v1.2.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -202,7 +202,7 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: ibm-management-ingress-operator
-                image: quay.io/opencloudio/ibm-management-ingress-operator:1.1.0
+                image: quay.io/opencloudio/ibm-management-ingress-operator:1.2.0
                 imagePullPolicy: Always
                 name: ibm-management-ingress-operator
                 resources: {}
@@ -388,4 +388,4 @@ spec:
   maturity: stable
   provider:
     name: IBM
-  version: 1.1.0
+  version: 1.2.0
