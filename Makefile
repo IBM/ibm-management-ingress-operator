@@ -29,7 +29,7 @@ NAMESPACE=ibm-management-ingress-operator
 # Use your own docker registry and image name for dev/test by overridding the IMG and REGISTRY environment variable.
 IMG ?= ibm-management-ingress-operator
 REGISTRY ?= quay.io/opencloudio
-CSV_VERSION ?= 1.1.0
+CSV_VERSION ?= 1.2.0
 
 IMAGE_REPO ?= quay.io/opencloudio
 IMAGE_NAME ?= ibm-management-ingress-operator
@@ -44,6 +44,7 @@ export TESTARGS ?= $(TESTARGS_DEFAULT)
 #VERSION ?= $(shell git describe --exact-match 2> /dev/null || \
                  git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)
 VERSION ?= $(shell git describe --match=$(git rev-parse --short=8 HEAD) --tags --always --dirty)
+VERSION = 1.2.0
 LOCAL_OS := $(shell uname)
 LOCAL_ARCH := $(shell uname -m)
 ifeq ($(LOCAL_OS),Linux)
