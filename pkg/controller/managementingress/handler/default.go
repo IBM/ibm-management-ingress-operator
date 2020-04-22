@@ -20,9 +20,9 @@ import (
 )
 
 var (
-	defaultMemoryRequest resource.Quantity = resource.MustParse("150Mi")
+	defaultMemoryRequest resource.Quantity = resource.MustParse("300Mi")
 	defaultCpuRequest    resource.Quantity = resource.MustParse("50m")
 
-	defaultMemoryLimit resource.Quantity = resource.MustParse("256Mi")
+	defaultMemoryLimit resource.Quantity = resource.MustParse("512Mi")
 	defaultCpuLimit    resource.Quantity = resource.MustParse("200m")
 )
