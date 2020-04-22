@@ -30,11 +30,11 @@ metadata:
             "resources": {
               "limits": {
                 "cpu": "200m",
-                "memory": "256Mi"
+                "memory": "512Mi"
               },
               "requests": {
                 "cpu": "50m",
-                "memory": "150Mi"
+                "memory": "300Mi"
               }
             },
             "routeHost": ""
