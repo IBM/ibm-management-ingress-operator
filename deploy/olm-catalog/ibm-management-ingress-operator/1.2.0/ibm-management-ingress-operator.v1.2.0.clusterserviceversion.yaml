@@ -388,4 +388,5 @@ spec:
   maturity: stable
   provider:
     name: IBM
+  replaces: ibm-management-ingress-operator.v1.1.0
   version: 1.2.0
