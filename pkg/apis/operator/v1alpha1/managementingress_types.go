@@ -49,6 +49,7 @@ type ManagementIngressSpec struct {
 	AllowedHostHeader string                   `json:"allowedHostHeader,omitempty"`
 	Cert              *Cert                    `json:"cert"`
 	RouteHost         string                   `json:"routeHost"`
+	RouterCert        string 		   `json:"RouterCert"`
 	Config            map[string]string        `json:"config,omitempty"`
 	FIPSEnabled       bool                     `json:"fipsEnabled,omitempty"`
 }

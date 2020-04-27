@@ -84,19 +84,22 @@ func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 	if err := ingressRequest.CreateCert(cert); err != nil {
 		return err
 	}
-
+	
 	// Create TLS certificate for management ingress route
-	routeCert := NewCertificate(
-		RouteCert,
-		ingressRequest.managementIngress.ObjectMeta.Namespace,
-		RouteSecret,
-		[]string{ingressRequest.managementIngress.Status.Host},
-		[]string{},
-		&ingressRequest.managementIngress.Spec.Cert.Issuer,
-	)
+        routerCert := ingressRequest.managementIngress.Spec.RouterCert
+	if len(routerCert) == 0 {
+		routeCert := NewCertificate(
+			RouteCert,
+			ingressRequest.managementIngress.ObjectMeta.Namespace,
+			RouteSecret,
+			[]string{ingressRequest.managementIngress.Status.Host},
+			[]string{},
+			&ingressRequest.managementIngress.Spec.Cert.Issuer,
+		)
 
-	if err := ingressRequest.CreateCert(routeCert); err != nil {
-		return err
+		if err := ingressRequest.CreateCert(routeCert); err != nil {
+			return err
+		}
 	}
 
 	// Delete the secret to make sure the TLS cert will be freshed by cert manager. Of course all related pods which
