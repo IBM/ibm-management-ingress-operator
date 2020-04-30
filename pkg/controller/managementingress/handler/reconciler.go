@@ -19,12 +19,12 @@ import (
 	"fmt"
 	"strings"
 
-	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
+	v1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1"
 	"k8s.io/client-go/tools/record"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func Reconcile(requestIngress *v1alpha1.ManagementIngress, requestClient client.Client, recorder record.EventRecorder) (err error) {
+func Reconcile(requestIngress *v1.ManagementIngress, requestClient client.Client, recorder record.EventRecorder) (err error) {
 	ingressRequest := IngressRequest{
 		client:            requestClient,
 		managementIngress: requestIngress,
@@ -34,18 +34,18 @@ func Reconcile(requestIngress *v1alpha1.ManagementIngress, requestClient client.
 	// First time in reconcile set route host in status.
 	if len(requestIngress.Status.Host) <= 0 {
 		// Get route host
-		status := &v1alpha1.ManagementIngressStatus{}
+		status := &v1.ManagementIngressStatus{}
 		host, err := getRouteHost(&ingressRequest)
 		if err != nil {
 			return err
 		} else {
-			status = &v1alpha1.ManagementIngressStatus{
-				Conditions: map[string]v1alpha1.ConditionList{},
-				PodState:   v1alpha1.PodStateMap{},
+			status = &v1.ManagementIngressStatus{
+				Conditions: map[string]v1.ConditionList{},
+				PodState:   v1.PodStateMap{},
 				Host:       host,
-				State: v1alpha1.OperandState{
+				State: v1.OperandState{
 					Message: "Get router host for management ingress.",
-					Status:  v1alpha1.StatusDeploying,
+					Status:  v1.StatusDeploying,
 				},
 			}
 		}

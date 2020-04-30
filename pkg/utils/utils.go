@@ -18,7 +18,7 @@ package utils
 import (
 	"reflect"
 
-	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
+	v1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -34,9 +34,9 @@ func GetAnnotation(key string, meta metav1.ObjectMeta) (string, bool) {
 	return "", false
 }
 
-func AsOwner(o *v1alpha1.ManagementIngress) metav1.OwnerReference {
+func AsOwner(o *v1.ManagementIngress) metav1.OwnerReference {
 	return metav1.OwnerReference{
-		APIVersion: v1alpha1.SchemeGroupVersion.String(),
+		APIVersion: v1.SchemeGroupVersion.String(),
 		Kind:       "ManagementIngress",
 		Name:       o.Name,
 		UID:        o.UID,

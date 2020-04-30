@@ -19,7 +19,7 @@ import (
 	"context"
 	"time"
 
-	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
+	v1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -32,12 +32,12 @@ import (
 
 type IngressRequest struct {
 	client            client.Client
-	managementIngress *v1alpha1.ManagementIngress
+	managementIngress *v1.ManagementIngress
 	recorder          record.EventRecorder
 }
 
 func (ingressRequest *IngressRequest) isManaged() bool {
-	return ingressRequest.managementIngress.Spec.ManagementState == v1alpha1.ManagementStateManaged
+	return ingressRequest.managementIngress.Spec.ManagementState == v1.ManagementStateManaged
 }
 
 func (ingressRequest *IngressRequest) Create(object runtime.Object) (err error) {

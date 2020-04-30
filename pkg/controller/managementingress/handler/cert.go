@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	v1alph1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
+	v1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1"
 	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
 	core "k8s.io/api/core/v1"
@@ -30,7 +30,7 @@ import (
 )
 
 //NewCertificate stubs an instance of Certificate
-func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer *v1alph1.CertIssuer) *certmanager.Certificate {
+func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer *v1.CertIssuer) *certmanager.Certificate {
 
 	labels := GetCommonLabels()
 

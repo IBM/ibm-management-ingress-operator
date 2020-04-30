@@ -5,7 +5,7 @@ metadata:
     alm-examples: |-
       [
         {
-          "apiVersion": "operator.ibm.com/v1alpha1",
+          "apiVersion": "operator.ibm.com/v1",
           "kind": "ManagementIngress",
           "metadata": {
             "name": "default"
@@ -41,7 +41,7 @@ metadata:
           }
         },
         {
-          "apiVersion": "operator.ibm.com/v1alpha1",
+          "apiVersion": "operator.ibm.com/v1",
           "kind": "OperandRequest",
           "metadata": {
               "name": "management-ingress"
@@ -85,8 +85,8 @@ spec:
       - description: ManagementIngressStatus defines the observed state of ManagementIngress
         displayName: ManagementIngress Status
         path: ManagementIngressStatus
-      version: v1alpha1
-      displayName: IBM Management Ingress Operator
+      version: v1
+      displayName: IBM Management Ingress Operator v1
       resources:
       - kind: Deployment
         name: ibm-management-ingress-operator
@@ -105,7 +105,7 @@ spec:
         version: v1
       - kind: managementingresses
         name: ibm-management-ingress-operator
-        version: v1alpha1
+        version: v1
       statusDescriptors:
       - description: condition used to sign the certificate of IBM Management Ingress
         displayName: Condition
