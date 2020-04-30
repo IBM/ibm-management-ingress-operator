@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"testing"
 
-	olmv1alpha1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1alpha1"
+	olmv1 "github.com/operator-framework/operator-lifecycle-manager/pkg/api/apis/operators/v1"
 	olmclient "github.com/operator-framework/operator-lifecycle-manager/pkg/api/client/clientset/versioned"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -29,7 +29,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	utilwait "k8s.io/apimachinery/pkg/util/wait"
 
-	operator "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
+	operator "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1"
 	"github.com/IBM/ibm-management-ingress-operator/test/config"
 )
 
@@ -260,7 +260,7 @@ func GetOperators(f *framework.Framework, namespace string) (map[string]operator
 // WaitForSubCsvReady waits for the subscription and csv create success
 func WaitForSubCsvReady(olmClient *olmclient.Clientset, opt metav1.ObjectMeta) error {
 	lastReason := ""
-	sub := &olmv1alpha1.Subscription{}
+	sub := &olmv1.Subscription{}
 	fmt.Println("Waiting for Subscription created [" + opt.Name + "]")
 	waitErr := utilwait.PollImmediate(config.WaitForRetry, config.APITimeout, func() (done bool, err error) {
 		foundSub, err := olmClient.OperatorsV1alpha1().Subscriptions(opt.Namespace).Get(opt.Name, metav1.GetOptions{})
