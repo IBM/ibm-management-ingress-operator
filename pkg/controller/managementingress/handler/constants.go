@@ -40,4 +40,34 @@ const (
 	ProductID      string = "068a62892a1e4db39641342e592daa25"
 	ProductVersion string = "3.3.0"
 	ProductMetric  string = "FREE"
+
+	// ClusterConfigName ... ibmcloud-cluster-info
+	ClusterConfigName string = "ibmcloud-cluster-info"
+	ClusterAddr       string = "cluster_address"
+	ClusterCADomain   string = "cluster_ca_domain"
+	RouteBaseDomain   string = "openshift_router_base_domain"
+	ClusterEP         string = "cluster_endpoint"
+
+	RouteHTTPPort      string = "cluster_router_http_port"
+	RouteHTTPPortValue string = "80"
+	RouteHTTPPortEnv   string = "ROUTE_HTTP_PORT"
+
+	RouteHTTPSPort      string = "cluster_router_https_port"
+	RouteHTTPSPortValue string = "443"
+	RouteHTTPSPortEnv   string = "ROUTE_HTTPS_PORT"
+
+	ClusterName      string = "cluster_name"
+	ClusterNameValue string = "mycluster"
+	ClusterNameEnv   string = "CLUSTER_NAME"
+
+	ProxyAddr string = "proxy_address"
+	ProxyName string = "cp-proxy"
+
+	CSVersion      string = "version"
+	CSVersionValue string = "3.4.0"
+	CSVersionEnv   string = "VERSION"
+
+	PODNAMESPACE string = "POD_NAMESPACE"
+
+	ClusterSecretName string = "ibmcloud-cluster-ca-cert"
 )
