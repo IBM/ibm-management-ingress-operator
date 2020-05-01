@@ -18,6 +18,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"reflect"
 	"time"
 
@@ -144,6 +145,54 @@ func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
 
 	if err := syncConfigmap(ingressRequest, bindInfo, false); err != nil {
 		return fmt.Errorf("Failure creating bind info for %q: %v", ingressRequest.managementIngress.Name, err)
+	}
+
+	// create configmap ibmcloud-cluster-info
+	baseDomain, err := ingressRequest.GetRouteAppDomain()
+	if err != nil {
+		return fmt.Errorf("Failure getting route base domain %q: %v", ingressRequest.managementIngress.Name, err)
+	}
+
+	ver := os.Getenv(CSVersionEnv)
+	if ver == "" {
+		ver = CSVersionValue
+	}
+	cname := os.Getenv(ClusterNameEnv)
+	if cname == "" {
+		cname = ClusterNameValue
+	}
+
+	rhttpPort := os.Getenv(RouteHTTPPortEnv)
+	if rhttpPort == "" {
+		rhttpPort = RouteHTTPPortValue
+	}
+
+	rhttpsPort := os.Getenv(RouteHTTPSPortEnv)
+	if rhttpsPort == "" {
+		rhttpsPort = RouteHTTPSPortValue
+	}
+
+	ns := os.Getenv(PODNAMESPACE)
+	ep := "https://" + ServiceName + "." + ns + ".svc:443"
+
+	clustercfg := NewConfigMap(
+		ClusterConfigName,
+		ingressRequest.managementIngress.Namespace,
+		map[string]string{
+			ClusterAddr:     RouteName + "." + baseDomain,
+			ClusterCADomain: RouteName + "." + baseDomain,
+			ClusterEP:       ep,
+			ClusterName:     cname,
+			RouteHTTPPort:   rhttpPort,
+			RouteHTTPSPort:  rhttpsPort,
+			RouteBaseDomain: baseDomain,
+			ProxyAddr:       ProxyName + "." + baseDomain,
+			CSVersion:       ver,
+		},
+	)
+
+	if err := syncConfigmap(ingressRequest, clustercfg, false); err != nil {
+		return fmt.Errorf("Failure creating or updating cluster config for %q: %v", clustercfg, err)
 	}
 
 	return nil
