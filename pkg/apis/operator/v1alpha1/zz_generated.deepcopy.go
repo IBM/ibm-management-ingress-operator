@@ -325,4 +325,3 @@ func (in *ManagementIngressList) DeepCopyObject() runtime.Object {
 	}
 	return nil
 }
-

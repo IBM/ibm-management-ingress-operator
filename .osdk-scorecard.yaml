@@ -6,9 +6,9 @@ scorecard:
     # `basic` tests configured to test 1 CR
     - basic:
         cr-manifest:
-          - "deploy/crds/operator.ibm.com_v1_managementingress_cr.yaml"
+          - "deploy/crds/operator.ibm.com_v1alpha1_managementingress_cr.yaml"
     # `olm` tests configured to test 1 CR
     - olm:
         cr-manifest:
-          - "deploy/crds/operator.ibm.com_v1_managementingress_cr.yaml"
+          - "deploy/crds/operator.ibm.com_v1alpha1_managementingress_cr.yaml"
         csv-path: "deploy/olm-catalog/ibm-management-ingress-operator/1.1.0/ibm-management-ingress-operator.v1.1.0.clusterserviceversion.yaml"
