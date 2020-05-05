@@ -21,7 +21,7 @@ import (
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 
 	apis "github.com/IBM/ibm-management-ingress-operator/pkg/apis"
-	operator "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1"
+	operator "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 	"github.com/IBM/ibm-management-ingress-operator/test/testgroups"
 )
 
