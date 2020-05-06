@@ -255,7 +255,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 	imageWithSha := strings.Join([]string{
 		imageRepo,
 		os.Getenv("OPERAND_IMAGE_DIGEST"),
-	}, "@sha256")
+	}, "@sha256:")
 	// Default image type is imageWithTag
 	image := imageWithTag
 	// If image digest configed then use imageWithSha
