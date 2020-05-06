@@ -61,3 +61,5 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "ibm-management-ingress-operator"
+            - name: OPERAND_IMAGE_DIGEST
+              value: ""

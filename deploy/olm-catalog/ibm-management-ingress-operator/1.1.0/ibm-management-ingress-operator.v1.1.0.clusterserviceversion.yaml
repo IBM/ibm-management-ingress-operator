@@ -202,6 +202,8 @@ spec:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: ibm-management-ingress-operator
+                - name: OPERAND_IMAGE_DIGEST
+                  value: "c49e551f9f68f2e024a8a50e35f2ce4a6ec86f169d9bfb489b47fa6e8e216571"
                 image: quay.io/opencloudio/ibm-management-ingress-operator:1.1.0
                 imagePullPolicy: Always
                 name: ibm-management-ingress-operator
