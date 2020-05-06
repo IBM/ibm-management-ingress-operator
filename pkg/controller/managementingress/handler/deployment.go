@@ -17,6 +17,7 @@ package handler
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -245,10 +246,22 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 		ingressRequest.managementIngress.Spec.ImageRegistry,
 		ingressRequest.managementIngress.Spec.Image.Repository,
 	}, "/")
-	image := strings.Join([]string{
+	// Image with tag should like: image:tag
+	imageWithTag := strings.Join([]string{
 		imageRepo,
 		ingressRequest.managementIngress.Spec.Image.Tag,
 	}, ":")
+	// Image with sha should like: image@sha
+	imageWithSha := strings.Join([]string{
+		imageRepo,
+		os.Getenv("OPERAND_IMAGE_DIGEST"),
+	}, "@sha256")
+	// Default image type is imageWithTag
+	image := imageWithTag
+	// If image digest configed then use imageWithSha
+	if len(os.Getenv("OPERAND_IMAGE_DIGEST")) != 0 {
+		image = imageWithSha
+	}
 
 	hostHeader := strings.Join([]string{
 		ingressRequest.managementIngress.Spec.AllowedHostHeader,
