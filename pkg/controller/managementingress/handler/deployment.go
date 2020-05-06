@@ -258,9 +258,11 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 	}, "@sha256:")
 	// Default image type is imageWithTag
 	image := imageWithTag
+	klog.Infof("Creating Deployment with image: %s.", image)
 	// If image digest configed then use imageWithSha
 	if len(os.Getenv("OPERAND_IMAGE_DIGEST")) != 0 {
 		image = imageWithSha
+		klog.Infof("Creating Deployment with image digest: %s.", image)
 	}
 
 	hostHeader := strings.Join([]string{
