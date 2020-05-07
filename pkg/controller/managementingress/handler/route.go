@@ -16,7 +16,10 @@
 package handler
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
+	"reflect"
 
 	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	operatorv1 "github.com/openshift/api/operator/v1"
@@ -60,6 +63,64 @@ func NewRoute(name, namespace, serviceName, routeHost string, cert, key, caCert,
 	}
 }
 
+func NewSecret(name, namespace string, caCert []byte) *core.Secret {
+
+	labels := GetCommonLabels()
+	return &core.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Secret",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+			Labels:    labels,
+		},
+		Data: map[string][]byte{
+			"ca.crt": caCert,
+		},
+	}
+}
+
+func (ingressRequest *IngressRequest) createOrUpdateSecret(secretName, namespace string, caCert []byte) error {
+	// create ibmcloud-cluster-ca-cert
+	clusterSecret := NewSecret(secretName, namespace, caCert)
+	utils.AddOwnerRefToObject(clusterSecret, utils.AsOwner(ingressRequest.managementIngress))
+
+	klog.Infof("create secret: %s for %q.", secretName, ingressRequest.managementIngress.ObjectMeta.Name)
+	err := ingressRequest.Create(clusterSecret)
+
+	if err != nil {
+		if !errors.IsAlreadyExists(err) {
+			return fmt.Errorf("Failure constructing secret for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
+		}
+
+		klog.Infof("Trying to update Secret: %s for %q as it already existed.", secretName, ingressRequest.managementIngress.Name)
+		current := &core.Secret{}
+		// Update config
+		if err, current = ingressRequest.GetSecret(secretName); err != nil {
+			return fmt.Errorf("Failure getting Secret: %q  for %q: %v", secretName, ingressRequest.managementIngress.Name, err)
+		}
+
+		// no data change, just return
+		if reflect.DeepEqual(clusterSecret.Data, current.Data) {
+			klog.Infof("No change found from the Secret: %s.", secretName)
+			return nil
+		}
+
+		json, _ := json.Marshal(clusterSecret)
+		klog.Infof("Found change from Secret %s. Trying to update it.", json)
+		current.Data = clusterSecret.Data
+
+		// Apply the latest change to configmap
+		if err = ingressRequest.Update(current); err != nil {
+			return fmt.Errorf("Failure updating Secret: %v for %q: %v", secretName, ingressRequest.managementIngress.Name, err)
+		}
+	}
+	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedSecret", "Successfully created secret %q", secretName)
+
+	return nil
+}
+
 func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	// Get TLS secret for OCP route
 	err, secret := ingressRequest.GetSecret(RouteSecret)
@@ -97,6 +158,10 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 		return fmt.Errorf("Failure constructing route for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
 	}
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedRoute", "Successfully created route %q", RouteName)
+
+	if err = ingressRequest.createOrUpdateSecret(ClusterSecretName, os.Getenv(PODNAMESPACE), caCert); err != nil {
+		return fmt.Errorf("Unable to create or update secret for %q: %v", ingressRequest.managementIngress.Name, err)
+	}
 
 	return nil
 }

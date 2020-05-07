@@ -55,7 +55,7 @@ Build the meta operator image and push it to a public registry, such as quay.io:
 
 ```bash
 # make build
-# make image
+# make images
 ```
 
 ### Installing
