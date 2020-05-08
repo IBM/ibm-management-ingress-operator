@@ -51,9 +51,6 @@ metadata:
               {
                 "operands": [
                   {
-                    "name": "ibm-iam-operator"
-                  },
-                  {
                     "name": "ibm-cert-manager-operator"
                   }
                 ],
@@ -63,7 +60,7 @@ metadata:
           }
         },
         {
-          "apiVersion": "odlm.ibm.com/v1alpha1",
+          "apiVersion": "operator.ibm.com/v1alpha1",
           "kind": "OperandBindInfo",
           "metadata": {
             "name": "management-ingress"
