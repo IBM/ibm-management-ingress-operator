@@ -20,9 +20,11 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
 	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
+	"gopkg.in/yaml.v2"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -47,6 +49,52 @@ func NewConfigMap(name string, namespace string, data map[string]string) *core.C
 		},
 		Data: data,
 	}
+}
+
+// for configmap ibmcloud-cluster-info, need to check whether it's already existed, if so, patch it, else create it
+func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
+
+	err, cfg := ingr.GetConfigmap(ClusterConfigName, ingr.managementIngress.ObjectMeta.Namespace)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// create configmap
+			klog.Infof("Creating Configmap: %s for %q.", cm.ObjectMeta.Name, ingr.managementIngress.Name)
+			utils.AddOwnerRefToObject(cm, utils.AsOwner(ingr.managementIngress))
+			err = ingr.Create(cm)
+			if err != nil {
+				ingr.recorder.Eventf(ingr.managementIngress, "Warning", "CreatedConfigmap", "Failure creating configmap %q: %v", cm.ObjectMeta.Name, err)
+				return fmt.Errorf("Failure creating configmap: %v", err)
+			}
+
+		} else {
+			return err
+		}
+	} else {
+		// need to patch configmap
+		if reflect.DeepEqual(cfg.Data, cm.Data) {
+			klog.Infof("No change found from the configmap: %s.", cm.ObjectMeta.Name)
+			return nil
+		}
+		var mergePatch []byte
+		mergePatch, err := json.Marshal(map[string]interface{}{
+			"data": cm.Data,
+		})
+
+		if err != nil {
+			return fmt.Errorf("Failing encoding patch data for %q with value %s: %v", ingr.managementIngress.Name,
+				mergePatch, err)
+		}
+		klog.Infof("Patching Configmap: %s for %q with data %v.", cfg.ObjectMeta.Name, ingr.managementIngress.Name,
+			string(mergePatch))
+
+		if err = ingr.Patch(cfg, mergePatch); err != nil {
+			return fmt.Errorf("Failure patching Configmap: %v for %q: %v", cfg.ObjectMeta.Name, ingr.managementIngress.Name, err)
+		}
+	}
+
+	klog.Infof("Creating or patching configmap succeeded: %v for %q", cm.ObjectMeta.Name, ingr.managementIngress.Name)
+	ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created or patched configmap %q", AppName)
+	return nil
 }
 
 func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool) error {
@@ -147,7 +195,15 @@ func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
 		return fmt.Errorf("Failure creating bind info for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
-	// create configmap ibmcloud-cluster-info
+	if err := populateCloudClusterInfo(ingressRequest); err != nil {
+		return fmt.Errorf("Failure populate cloud cluster info for %q: %v", ingressRequest.managementIngress.Name, err)
+	}
+	return nil
+}
+
+// create configmap ibmcloud-cluster-info
+func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
+
 	baseDomain, err := ingressRequest.GetRouteAppDomain()
 	if err != nil {
 		return fmt.Errorf("Failure getting route base domain %q: %v", ingressRequest.managementIngress.Name, err)
@@ -175,24 +231,49 @@ func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
 	ns := os.Getenv(PODNAMESPACE)
 	ep := "https://" + ServiceName + "." + ns + ".svc:443"
 
+	// get api server address and port from configmap console-config in namespace openshift-console
+	err, console := ingressRequest.GetConfigmap(ConsoleCfg, ConsoleNS)
+	if err != nil {
+		return err
+	}
+
+	var result map[interface{}]interface{}
+	var apiaddr string
+	yaml.Unmarshal([]byte(console.Data[ConsoleCfgYaml]), &result)
+
+	for k, v := range result {
+		if k.(string) == ConsoleClusterInfo {
+			cinfo := v.(map[interface{}]interface{})
+			for k1, v1 := range cinfo {
+				if k1.(string) == ConsoleMasterURL {
+					apiaddr = v1.(string)
+					break
+				}
+			}
+			break
+		}
+	}
+	pos := strings.LastIndex(apiaddr, ":")
+
 	clustercfg := NewConfigMap(
 		ClusterConfigName,
 		ingressRequest.managementIngress.Namespace,
 		map[string]string{
-			ClusterAddr:     RouteName + "." + baseDomain,
-			ClusterCADomain: RouteName + "." + baseDomain,
-			ClusterEP:       ep,
-			ClusterName:     cname,
-			RouteHTTPPort:   rhttpPort,
-			RouteHTTPSPort:  rhttpsPort,
-			RouteBaseDomain: baseDomain,
-			ProxyAddr:       ProxyName + "." + baseDomain,
-			CSVersion:       ver,
+			ClusterAddr:          RouteName + "." + baseDomain,
+			ClusterCADomain:      RouteName + "." + baseDomain,
+			ClusterEP:            ep,
+			ClusterName:          cname,
+			RouteHTTPPort:        rhttpPort,
+			RouteHTTPSPort:       rhttpsPort,
+			RouteBaseDomain:      baseDomain,
+			CSVersion:            ver,
+			ClusterAPIServerHost: apiaddr[0:pos],
+			ClusterAPIServerPort: apiaddr[pos+1:],
 		},
 	)
 
-	if err := syncConfigmap(ingressRequest, clustercfg, false); err != nil {
-		return fmt.Errorf("Failure creating or updating cluster config for %q: %v", clustercfg, err)
+	if err := patchOrCreateConfigmap(ingressRequest, clustercfg); err != nil {
+		return fmt.Errorf("Failure creating cluster info for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
 	return nil

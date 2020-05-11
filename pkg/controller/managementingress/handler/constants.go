@@ -60,9 +60,6 @@ const (
 	ClusterNameValue string = "mycluster"
 	ClusterNameEnv   string = "CLUSTER_NAME"
 
-	ProxyAddr string = "proxy_address"
-	ProxyName string = "cp-proxy"
-
 	CSVersion      string = "version"
 	CSVersionValue string = "3.4.0"
 	CSVersionEnv   string = "VERSION"
@@ -70,4 +67,12 @@ const (
 	PODNAMESPACE string = "POD_NAMESPACE"
 
 	ClusterSecretName string = "ibmcloud-cluster-ca-cert"
+
+	ClusterAPIServerHost string = "cluster_kube_apiserver_host"
+	ClusterAPIServerPort string = "cluster_kube_apiserver_port"
+	ConsoleCfg           string = "console-config"
+	ConsoleNS            string = "openshift-console"
+	ConsoleCfgYaml       string = "console-config.yaml"
+	ConsoleClusterInfo   string = "clusterInfo"
+	ConsoleMasterURL     string = "masterPublicURL"
 )
