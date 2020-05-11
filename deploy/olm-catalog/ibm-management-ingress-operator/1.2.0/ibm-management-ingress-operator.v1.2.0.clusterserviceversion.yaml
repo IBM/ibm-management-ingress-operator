@@ -22,10 +22,6 @@ metadata:
               "disable-access-log": "true"
             },
             "imageRegistry": "quay.io/opencloudio",
-            "image": {
-              "repository": "icp-management-ingress",
-              "tag": "2.5.2"
-              },
             "managementState": "managed",
             "resources": {
               "limits": {
@@ -217,7 +213,7 @@ spec:
                 - name: OPERATOR_NAME
                   value: ibm-management-ingress-operator
                 - name: OPERAND_IMAGE_DIGEST
-                  value: "2edc3b00ddfdea12d150e2361a8122551aff9814725ef3053f8feb969f2f4e7d"
+                  value: quay.io/opencloudio/icp-management-ingress:2.5.2
                 - name: POD_NAMESPACE
                   valueFrom:
                     fieldRef:
