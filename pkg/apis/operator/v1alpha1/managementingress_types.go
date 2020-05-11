@@ -42,7 +42,7 @@ type ManagementIngressList struct {
 type ManagementIngressSpec struct {
 	ManagementState   ManagementState          `json:"managementState"`
 	ImageRegistry     string                   `json:"imageRegistry"`
-	Image             OperandImage             `json:"image"`
+	Image             OperandImage             `json:"image,omitempty"`
 	Resources         *v1.ResourceRequirements `json:"resources,omitempty"`
 	NodeSelector      map[string]string        `json:"nodeSelector,omitempty"`
 	Tolerations       []v1.Toleration          `json:"tolerations,omitempty"`
@@ -54,8 +54,8 @@ type ManagementIngressSpec struct {
 }
 
 type OperandImage struct {
-	Repository string `json:"repository"`
-	Tag        string `json:"tag"`
+	Repository string `json:"repository,omitempty"`
+	Tag        string `json:"tag,omitempty"`
 }
 
 type Cert struct {

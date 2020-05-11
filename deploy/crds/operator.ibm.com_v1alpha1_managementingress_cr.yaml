@@ -9,9 +9,6 @@ metadata:
 spec:
   managementState: "managed"
   imageRegistry: quay.io/opencloudio
-  image:
-    repository: "icp-management-ingress"
-    tag: 2.5.1
   routeHost: ""
   resources:
     requests:

@@ -147,7 +147,6 @@ spec:
               type: array
           required:
           - cert
-          - image
           - imageRegistry
           - managementState
           - routeHost

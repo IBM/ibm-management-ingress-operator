@@ -242,29 +242,8 @@ func getClusterDomain(ingressRequest *IngressRequest) (string, error) {
 func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 
 	klog.Infof("Creating Deployment: %s for %q.", AppName, ingressRequest.managementIngress.Name)
-	imageRepo := strings.Join([]string{
-		ingressRequest.managementIngress.Spec.ImageRegistry,
-		ingressRequest.managementIngress.Spec.Image.Repository,
-	}, "/")
-	// Image with tag should like: image:tag
-	imageWithTag := strings.Join([]string{
-		imageRepo,
-		ingressRequest.managementIngress.Spec.Image.Tag,
-	}, ":")
-	// Image with sha should like: image@sha
-	imageWithSha := strings.Join([]string{
-		imageRepo,
-		os.Getenv("OPERAND_IMAGE_DIGEST"),
-	}, "@sha256:")
-	// Default image type is imageWithTag
-	image := imageWithTag
+	image := os.Getenv("OPERAND_IMAGE_DIGEST")
 	klog.Infof("Creating Deployment with image: %s.", image)
-	// If image digest configed then use imageWithSha
-	if len(os.Getenv("OPERAND_IMAGE_DIGEST")) != 0 {
-		image = imageWithSha
-		klog.Infof("Creating Deployment with image digest: %s.", image)
-	}
-
 	hostHeader := strings.Join([]string{
 		ingressRequest.managementIngress.Spec.AllowedHostHeader,
 		ingressRequest.managementIngress.Status.Host,
