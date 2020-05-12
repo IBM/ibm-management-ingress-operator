@@ -57,6 +57,12 @@ func (ingressRequest *IngressRequest) UpdateStatus(object runtime.Object) (err e
 	return ingressRequest.client.Status().Update(context.TODO(), object)
 }
 
+//Patch the runtime Object or return error
+func (ingressRequest *IngressRequest) Patch(object runtime.Object, mergePatch []byte) (err error) {
+	klog.V(4).Infof("Patching object: %v", object)
+	return ingressRequest.client.Patch(context.TODO(), object, client.ConstantPatch(types.StrategicMergePatchType, mergePatch))
+}
+
 func (ingressRequest *IngressRequest) Get(objectName, objectNamespace string, object runtime.Object) error {
 	namespace := types.NamespacedName{Name: objectName, Namespace: objectNamespace}
 	klog.V(4).Infof("Getting namespace: %v, object: %v", namespace, object)
@@ -92,6 +98,25 @@ func (ingressRequest *IngressRequest) GetSecret(name string) (error, *core.Secre
 	}
 
 	return nil, secret
+}
+
+func (ingressRequest *IngressRequest) GetConfigmap(name, namespace string) (error, *core.ConfigMap) {
+	cfg := &core.ConfigMap{}
+
+	err := wait.Poll(3*time.Second, 2*time.Second, func() (done bool, err error) {
+		err = ingressRequest.Get(name, namespace, cfg)
+		if err != nil {
+			return false, err
+		}
+
+		return true, nil
+	})
+
+	if err != nil {
+		return err, nil
+	}
+
+	return nil, cfg
 }
 
 func (ingressRequest *IngressRequest) Delete(object runtime.Object) (err error) {
