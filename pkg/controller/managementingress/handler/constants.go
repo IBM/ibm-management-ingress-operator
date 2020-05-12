@@ -38,7 +38,7 @@ const (
 	// Product info required by metering
 	ProductName    string = "IBM Cloud Platform Common Services"
 	ProductID      string = "068a62892a1e4db39641342e592daa25"
-	ProductVersion string = "3.3.0"
+	ProductVersion string = "3.4.0"
 	ProductMetric  string = "FREE"
 
 	// ClusterConfigName ... ibmcloud-cluster-info
