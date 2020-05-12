@@ -75,12 +75,17 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 			klog.Infof("No change found from the configmap: %s.", cm.ObjectMeta.Name)
 			return nil
 		}
+		utils.AddOwnerRefToObject(cfg, utils.AsOwner(ingr.managementIngress))
 		var mergePatch []byte
 		mergePatch, err := json.Marshal(map[string]interface{}{
 			"data": cm.Data,
+			"metadata": map[string]interface{}{
+				"ownerReferences": cfg.ObjectMeta.OwnerReferences,
+			},
 		})
 
 		if err != nil {
+			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "PatchConfigmap", "Failure encoding patch data for %q: %v", cm.ObjectMeta.Name, err)
 			return fmt.Errorf("Failing encoding patch data for %q with value %s: %v", ingr.managementIngress.Name,
 				mergePatch, err)
 		}
@@ -88,6 +93,7 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 			string(mergePatch))
 
 		if err = ingr.Patch(cfg, mergePatch); err != nil {
+			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "PatchConfigmap", "Failure patching configmap for %q: %v", cm.ObjectMeta.Name, err)
 			return fmt.Errorf("Failure patching Configmap: %v for %q: %v", cfg.ObjectMeta.Name, ingr.managementIngress.Name, err)
 		}
 	}
