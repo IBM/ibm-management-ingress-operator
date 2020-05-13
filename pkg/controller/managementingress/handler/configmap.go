@@ -253,6 +253,9 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 			for k1, v1 := range cinfo {
 				if k1.(string) == ConsoleMasterURL {
 					apiaddr = v1.(string)
+					if strings.HasPrefix(apiaddr, "https://") {
+						apiaddr = apiaddr[8:]
+					}
 					break
 				}
 			}
