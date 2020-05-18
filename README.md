@@ -1,104 +1,113 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+# ibm-management-ingress-operator 
 
-- [Management Ingress Operator](#ibm-management-ingress-operator)
-    - [Overview](#overview)
-    - [Prerequisites](#prerequisites)
-        - [PodSecurityPolicy Requirements](#podsecuritypolicy-requirements)
-        - [PodSecurityPolicy Requirements](#securitycontextconstraints-requirements)
-    - [Getting Started](#getting-started)
-        - [Cloning the repository](#cloning-the-repository)
-        - [Building the operator](#building-the-operator)
-        - [Installing](#installing)
-        - [Uninstalling](#uninstalling)
-        - [Troubleshooting](#troubleshooting)
-        - [Running Tests](#running-tests)
-        - [Development](#development)
+> **Important:** Do not install this operator directly. Only install this operator using the IBM Common Services Operator. For more information about installing this operator and other Common Services operators, see [Installer documentation](http://ibm.biz/cpcs_opinstall). If you are using this operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For more information about IBM Cloud Paks, see [IBM Cloud Paks that use Common Services](http://ibm.biz/cpcs_cloudpaks).
 
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+You can use the ibm-management-ingress-operator to install the IBM System Management Ingress service, which includes a Nginx-based ingress controller. You can use the IBM System Management Ingress service to expose your services when you install and use an IBM Cloud Pak or IBM Cloud Platform Common Services.
 
-# Management Ingress Operator
+For more information about the available IBM Cloud Platform Common Services, see the [IBM Knowledge Center](http://ibm.biz/cpcsdocs).
 
-## Overview
+## Supported platforms
 
-This is the operator to deploy management ingress of IBM Cloud Pak foundation..
+Red Hat OpenShift Container Platform 4.3 or newer installed on one of the following platforms:
+
+- Linux x86_64
+- Linux on Power (ppc64le)
+- Linux on IBM Z and LinuxONE
+
+## Operator versions
+
+- 3.6.0
+    - Support for OpenShift 4.3 and 4.4.
+- 3.5.0
 
 ## Prerequisites
 
-- [go][go_tool] version v1.13+.
-- [docker][docker_tool] version 17.03+
-- [kubectl][kubectl_tool] v1.13.0+
-- [operator-sdk][operator_install]
-- Access to a Kubernetes v1.13.0+ cluster
+Before you install this operator, you need to first install the operator dependencies and prerequisites:
 
-### PodSecurityPolicy Requirements
+- For the list of operator dependencies, see the IBM Knowledge Center [Common Services dependencies documentation](http://ibm.biz/cpcs_opdependencies).
+- For the list of prerequisites for installing the operator, see the IBM Knowledge Center [Preparing to install services documentation](http://ibm.biz/cpcs_opinstprereq).
 
-### SecurityContextConstraints Requirements
+## Documentation
 
-The management service supports running under the OpenShift Container Platform default restricted security context constraints.
+To install the operator with the IBM Common Services Operator follow the the installation and configuration instructions within the IBM Knowledge Center.
 
-## Getting Started
+- If you are using the operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak. For a list of IBM Cloud Paks, see [IBM Cloud Paks that use Common Services](http://ibm.biz/cpcs_cloudpaks).
+- If you are using the operator with an IBM Containerized Software, see the IBM Cloud Platform Common Services Knowledge Center [Installer documentation](http://ibm.biz/cpcs_opinstall).
 
-### Cloning the repository
+## SecurityContextConstraints Requirements
 
-Checkout this Management Ingress Operator repository
+The IBM System Management ingress service does not support running with the OpenShift Container Platform 4.3 default restricted Security Context Constraints (SCCs).
+
+For more information about the OpenShift Container Platform Security Context Constraints, see [Managing Security Context Constraints](https://docs.openshift.com/container-platform/4.3/authentication/managing-security-context-constraints.html).
+
+## Developer guide
+
+If, as a developer, you are looking to build and test this operator to try out and learn more about the operator and its capabilities, you can use the following developer guide. This guide provides commands for a quick install and initial validation for running the operator.
+
+> **Important:** The following developer guide is provided as-is and only for trial and education purposes. IBM and IBM Support does not provide any support for the usage of the operator with this developer guide. For the official supported install and usage guide for the operator, see the the IBM Knowledge Center documentation for your IBM Cloud Pak or for IBM Cloud Platform Common Services.
+
+### Quick start guide
+
+Use the following quick start commands for building and testing the operator:
+
+#### Cloning the repository
+
+Check out the ibm-management-ingress-operator repository.
 
 ```bash
 # git clone https://github.com/IBM/ibm-management-ingress-operator.git
 # cd ibm-management-ingress-operator
 ```
 
-### Building the operator
+#### Building the operator
 
-Build the meta operator image and push it to a public registry, such as quay.io:
+Build the ibm-management-ingress-operator image and push it to a public registry, such as Quay.io.
 
 ```bash
-# make build
 # make images
 ```
 
-### Installing
+#### Using the image
 
-Run `make install` to install the operator. Check that the operator is running in the cluster.
-
-Following the expected result.
+Edit `deploy/operator.yaml` and replace the image name.
 
 ```bash
-# kubectl get all -n ibm-management-ingress-operator
-NAME                                           READY   STATUS    RESTARTS   AGE
-pod/ibm-management-ingress-operator-786d699956-z7k4n   1/1     Running   0          21s
-
-NAME                                      READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/ibm-management-ingress-operator   1/1     1            1           22s
-
-NAME                                                 DESIRED   CURRENT   READY   AGE
-replicaset.apps/ibm-management-ingress-operator-786d699956   1         1         1       22s
+vim deploy/operator.yaml
 ```
 
-### Uninstalling
-
-To uninstall all that was performed in the above step run `make uninstall`.
-
-### Troubleshooting
-
-Use the following command to check the operator logs.
+#### Installing
 
 ```bash
-# kubectl logs deployment.apps/ibm-management-ingress-operator -n ibm-management-ingress-operator
+# kubectl apply -f deploy/
+deployment.apps/ibm-management-ingress-operator created
+role.rbac.authorization.k8s.io/ibm-management-ingress-operator created
+clusterrole.rbac.authorization.k8s.io/ibm-management-ingress-operator created
+rolebinding.rbac.authorization.k8s.io/ibm-management-ingress-operator created
+clusterrolebinding.rbac.authorization.k8s.io/ibm-management-ingress-operator created
+serviceaccount/ibm-management-ingress-operator created
 ```
 
-### Running Tests
+```bash
+# kubectl get pods
+NAME                                               READY   STATUS    RESTARTS   AGE
+ibm-management-ingress-operator-686fdb84f8-cxqc7   1/1     Running   0          62s
+management-ingress-5b5b66dcd7-hfnpm                1/1     Running   0          33s
+```
 
-[End to end tests](./docs/e2e.md)
-For more information see the [writing e2e tests](https://github.com/operator-framework/operator-sdk/blob/master/doc/test-framework/writing-e2e-tests.md) guide.
+#### Uninstalling
 
-### Development
+```bash
+# kubectl delete -f deploy/
+```
 
-When the API or CRD changed, run `make code-dev` re-generate the code.
+### Debugging guide
 
-[go_tool]: https://golang.org/dl/
-[kubectl_tool]: https://kubernetes.io/docs/tasks/tools/install-kubectl/
-[docker_tool]: https://docs.docker.com/install/
-[operator_sdk]: https://github.com/operator-framework/operator-sdk
-[operator_install]: https://github.com/operator-framework/operator-sdk/blob/master/doc/user/install-operator-sdk.md
+Use the following commands to debug the operator:
+
+```bash
+# kubectl logs deployment.apps/ibm-management-ingress-operator -n <namespace>
+```
+
+### End-to-End testing
+
+For more instructions on how to run end-to-end testing with the Operand Deployment Lifecycle Manager, see [ODLM guide](https://github.com/IBM/operand-deployment-lifecycle-manager/blob/master/docs/install/common-service-integration.md#end-to-end-test).
