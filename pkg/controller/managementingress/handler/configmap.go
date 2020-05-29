@@ -268,8 +268,8 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 		ClusterConfigName,
 		ingressRequest.managementIngress.Namespace,
 		map[string]string{
-			ClusterAddr:          RouteName + "." + baseDomain,
-			ClusterCADomain:      RouteName + "." + baseDomain,
+			ClusterAddr:          ingressRequest.managementIngress.Status.Host,
+			ClusterCADomain:      ingressRequest.managementIngress.Status.Host,
 			ClusterEP:            ep,
 			ClusterName:          cname,
 			RouteHTTPPort:        rhttpPort,
