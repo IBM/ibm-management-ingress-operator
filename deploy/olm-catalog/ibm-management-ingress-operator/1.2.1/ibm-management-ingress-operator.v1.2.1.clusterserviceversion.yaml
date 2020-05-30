@@ -227,7 +227,7 @@ spec:
                   value: ""
                 - name: VERSION
                   value: ""
-                image: quay.io/opencloudio/ibm-management-ingress-operator:latest
+                image: quay.io/opencloudio/ibm-management-ingress-operator@sha256:cc474d2e2b0356e64092f7441fa92c9411e6d9810c5f136d3e3b8c3c8cddefed
                 imagePullPolicy: Always
                 name: ibm-management-ingress-operator
                 resources: {}
