@@ -55,6 +55,7 @@ func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer 
 			},
 			DNSNames:    hosts,
 			IPAddresses: ips,
+			Usages:      []certmanager.KeyUsage{certmanager.UsageDigitalSignature, certmanager.UsageKeyEncipherment, certmanager.UsageServerAuth},
 		},
 	}
 }
