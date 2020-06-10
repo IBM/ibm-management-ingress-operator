@@ -1,5 +1,5 @@
 channels:
-- currentCSV: ibm-management-ingress-operator.v1.2.1
+- currentCSV: ibm-management-ingress-operator.v1.3.0
   name: dev
 - currentCSV: ibm-management-ingress-operator.v1.2.1
   name: beta

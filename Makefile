@@ -29,7 +29,7 @@ NAMESPACE=ibm-management-ingress-operator
 # Use your own docker registry and image name for dev/test by overridding the IMG and REGISTRY environment variable.
 IMG ?= ibm-management-ingress-operator
 REGISTRY ?= quay.io/opencloudio
-CSV_VERSION ?= 1.2.1
+CSV_VERSION ?= 1.3.0
 
 IMAGE_REPO ?= quay.io/opencloudio
 IMAGE_NAME ?= ibm-management-ingress-operator
