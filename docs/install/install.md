@@ -1,6 +1,4 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+**Table of Contents**
 
 - [Install the management ingress operator](#install-the-ibm-management-ingress-operator)
     - [Install the management ingress operator On OCP 4.x](#install-the-ibm-management-ingress-operator-on-ocp-4x)
@@ -9,8 +7,6 @@
         - [3. Install meta Operator](#3-install-ibm-management-ingress-operator)
         - [4. Check the installed operators](#4-check-the-installed-operators)
     - [Post-installation](#post-installation)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Install the management ingress operator
 

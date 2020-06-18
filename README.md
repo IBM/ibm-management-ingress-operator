@@ -16,9 +16,10 @@ Red Hat OpenShift Container Platform 4.3 or newer installed on one of the follow
 
 ## Operator versions
 
-- 3.6.0
+- 1.2.1
     - Support for OpenShift 4.3 and 4.4.
-- 3.5.0
+- 1.2.0
+- 1.1.0
 
 ## Prerequisites
 
@@ -36,7 +37,7 @@ To install the operator with the IBM Common Services Operator follow the the ins
 
 ## SecurityContextConstraints Requirements
 
-The IBM System Management ingress service does not support running with the OpenShift Container Platform 4.3 default restricted Security Context Constraints (SCCs).
+The IBM System Management ingress service does not support running with the OpenShift Container Platform 4.3 default restricted Security Context Constraints (SCCs).It run as root.
 
 For more information about the OpenShift Container Platform Security Context Constraints, see [Managing Security Context Constraints](https://docs.openshift.com/container-platform/4.3/authentication/managing-security-context-constraints.html).
 
