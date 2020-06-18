@@ -1,6 +1,4 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+**Table of Contents**
 
 - [Contributing guidelines](#contributing-guidelines)
     - [Developer Certificate of Origin](#developer-certificate-of-origin)
@@ -8,8 +6,6 @@
     - [Issue and Pull Request Management](#issue-and-pull-request-management)
     - [Pre-check before submitting a PR](#pre-check-before-submitting-a-pr)
     - [Build images](#build-images)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # Contributing guidelines
 
