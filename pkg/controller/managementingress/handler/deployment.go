@@ -39,7 +39,7 @@ const (
 )
 
 //NewDeployment stubs an instance of a deployment
-func NewDeployment(name string, namespace string, podSpec core.PodSpec) *apps.Deployment {
+func NewDeployment(name string, namespace string, replicas int32, podSpec core.PodSpec) *apps.Deployment {
 
 	labels := GetCommonLabels()
 	commAnnotations := GetCommonAnnotations()
@@ -65,6 +65,7 @@ func NewDeployment(name string, namespace string, podSpec core.PodSpec) *apps.De
 			Annotations: commAnnotations,
 		},
 		Spec: apps.DeploymentSpec{
+			Replicas: &replicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: labels,
 			},
@@ -273,6 +274,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 	ds := NewDeployment(
 		AppName,
 		ingressRequest.managementIngress.Namespace,
+		ingressRequest.managementIngress.Spec.ReplicaCount,
 		podSpec)
 
 	utils.AddOwnerRefToObject(ds, utils.AsOwner(ingressRequest.managementIngress))

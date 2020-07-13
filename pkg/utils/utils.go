@@ -301,6 +301,11 @@ func IsDeploymentDifferent(current *apps.Deployment, desired *apps.Deployment) (
 		different = true
 	}
 
+	if &current.Spec.Replicas != &desired.Spec.Replicas {
+		current.Spec.Replicas = desired.Spec.Replicas
+		different = true
+	}
+
 	if AreResourcesDifferent(current, desired) {
 		different = true
 	}
