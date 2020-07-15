@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	operatorv1 "github.com/openshift/api/operator/v1"
@@ -148,6 +149,12 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 		caCert,
 		destinationCAcert,
 	)
+
+	// Set router as the owner
+	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, route, ingressRequest.scheme); err != nil {
+		return fmt.Errorf("Unable to set router reference for %q: %v", ingressRequest.managementIngress.Name, err)
+	}
+	klog.Infof("Setting route as the owner successfully: %s for %q.", route.ObjectMeta.Name, ingressRequest.managementIngress.ObjectMeta.Name)
 
 	// Create route resource
 	utils.AddOwnerRefToObject(route, utils.AsOwner(ingressRequest.managementIngress))

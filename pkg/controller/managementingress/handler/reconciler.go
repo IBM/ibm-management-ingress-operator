@@ -21,14 +21,16 @@ import (
 
 	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/apimachinery/pkg/runtime"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func Reconcile(requestIngress *v1alpha1.ManagementIngress, requestClient client.Client, recorder record.EventRecorder) (err error) {
+func Reconcile(requestIngress *v1alpha1.ManagementIngress, requestClient client.Client, recorder record.EventRecorder, scheme *runtime.Scheme) (err error) {
 	ingressRequest := IngressRequest{
 		client:            requestClient,
 		managementIngress: requestIngress,
 		recorder:          recorder,
+		scheme:		   scheme,
 	}
 
 	// First time in reconcile set route host in status.

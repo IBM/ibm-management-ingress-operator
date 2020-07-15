@@ -34,6 +34,7 @@ type IngressRequest struct {
 	client            client.Client
 	managementIngress *v1alpha1.ManagementIngress
 	recorder          record.EventRecorder
+	scheme            *runtime.Scheme
 }
 
 func (ingressRequest *IngressRequest) isManaged() bool {
