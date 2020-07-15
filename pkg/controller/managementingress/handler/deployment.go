@@ -271,6 +271,11 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 		ingressRequest.managementIngress.Spec.FIPSEnabled,
 	)
 
+	// Set default Management Ingress replica is 1.
+	if ingressRequest.managementIngress.Spec.ReplicaCount == 0 {
+		ingressRequest.managementIngress.Spec.ReplicaCount = 1
+	}
+
 	ds := NewDeployment(
 		AppName,
 		ingressRequest.managementIngress.Namespace,
@@ -297,6 +302,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 			klog.Infof("No change found from the deployment: %s.", AppName)
 			return nil
 		}
+		klog.Infof("Found change from Deployment ReplicaCount %d. Trying to update it.", ingressRequest.managementIngress.Spec.ReplicaCount)
 
 		klog.Infof("Found change from Deployment %s. Trying to update it.", podSpec)
 		err = ingressRequest.Update(desired)
