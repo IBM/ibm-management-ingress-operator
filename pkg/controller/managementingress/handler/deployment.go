@@ -272,14 +272,14 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 	)
 
 	// Set default Management Ingress replica is 1.
-	if ingressRequest.managementIngress.Spec.ReplicaCount == 0 {
-		ingressRequest.managementIngress.Spec.ReplicaCount = 1
+	if ingressRequest.managementIngress.Spec.Replicas == 0 {
+		ingressRequest.managementIngress.Spec.Replicas = 1
 	}
 
 	ds := NewDeployment(
 		AppName,
 		ingressRequest.managementIngress.Namespace,
-		ingressRequest.managementIngress.Spec.ReplicaCount,
+		ingressRequest.managementIngress.Spec.Replicas,
 		podSpec)
 
 	utils.AddOwnerRefToObject(ds, utils.AsOwner(ingressRequest.managementIngress))
@@ -302,7 +302,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 			klog.Infof("No change found from the deployment: %s.", AppName)
 			return nil
 		}
-		klog.Infof("Found change from Deployment ReplicaCount %d. Trying to update it.", ingressRequest.managementIngress.Spec.ReplicaCount)
+		klog.Infof("Found change from Deployment Replicas %d. Trying to update it.", ingressRequest.managementIngress.Spec.Replicas)
 
 		klog.Infof("Found change from Deployment %s. Trying to update it.", podSpec)
 		err = ingressRequest.Update(desired)
