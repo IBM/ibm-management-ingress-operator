@@ -9,7 +9,7 @@ metadata:
 spec:
   managementState: "managed"
   imageRegistry: quay.io/opencloudio
-  replicaCount: 1
+  replicas: 1
   routeHost: ""
   resources:
     requests:

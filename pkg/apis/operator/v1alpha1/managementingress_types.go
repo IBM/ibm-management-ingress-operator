@@ -43,7 +43,7 @@ type ManagementIngressSpec struct {
 	ManagementState   ManagementState          `json:"managementState"`
 	ImageRegistry     string                   `json:"imageRegistry"`
 	Image             OperandImage             `json:"image,omitempty"`
-	ReplicaCount      int32 		   `json:"replicaCount,omitempty"`
+	Replicas          int32 		   `json:"replicas,omitempty"`
 	Resources         *v1.ResourceRequirements `json:"resources,omitempty"`
 	NodeSelector      map[string]string        `json:"nodeSelector,omitempty"`
 	Tolerations       []v1.Toleration          `json:"tolerations,omitempty"`

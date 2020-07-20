@@ -35,7 +35,7 @@ spec:
         spec:
           description: ManagementIngressSpec defines the desired state of ManagementIngress
           properties:
-            replicaCount:
+            replicas:
               type: integer
             allowedHostHeader:
               type: string
