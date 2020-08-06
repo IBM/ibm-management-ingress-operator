@@ -28,10 +28,10 @@ NAMESPACE=ibm-management-ingress-operator
 # Image URL to use all building/pushing image targets;
 # Use your own docker registry and image name for dev/test by overridding the IMG and REGISTRY environment variable.
 IMG ?= ibm-management-ingress-operator
-REGISTRY ?= quay.io/opencloudio
+REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
 CSV_VERSION ?= 1.3.0
 
-IMAGE_REPO ?= quay.io/opencloudio
+IMAGE_REPO ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
 IMAGE_NAME ?= ibm-management-ingress-operator
 
 QUAY_USERNAME ?=
@@ -43,7 +43,7 @@ TESTARGS_DEFAULT := "-v"
 export TESTARGS ?= $(TESTARGS_DEFAULT)
 #VERSION ?= $(shell git describe --exact-match 2> /dev/null || \
                  git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)
-VERSION ?= $(shell git describe --match=$(git rev-parse --short=8 HEAD) --tags --always --dirty)
+VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ print $$3}' | tr -d '"')
 LOCAL_OS := $(shell uname)
 LOCAL_ARCH := $(shell uname -m)
 ifeq ($(LOCAL_OS),Linux)
