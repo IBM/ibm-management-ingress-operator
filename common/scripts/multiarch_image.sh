@@ -24,7 +24,8 @@ ALL_PLATFORMS="amd64 ppc64le s390x"
 IMAGE_REPO=${1}
 IMAGE_NAME=${2}
 #VERSION=${3-"$(date +v%Y%m%d)-$(git describe --tags --always --dirty)"}
-VERSION=$(git describe --match=$(git rev-parse --short=8 HEAD) --tags --always --dirty)
+#VERSION=$(git describe --match=$(git rev-parse --short=8 HEAD) --tags --always --dirty)
+VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ print $$3}' | tr -d '"')
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
 MAX_PULLING_RETRY=${MAX_PULLING_RETRY-20}
