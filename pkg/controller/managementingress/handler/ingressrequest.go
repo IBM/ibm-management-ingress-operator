@@ -21,6 +21,7 @@ import (
 
 	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 	core "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -135,6 +136,21 @@ func GetCommonLabels() map[string]string {
 		"app.kubernetes.io/name":       AppName,
 		"app.kubernetes.io/instance":   ServiceName,
 		"app.kubernetes.io/managed-by": "",
+	}
+}
+
+func getCommonMatchExpressions() []metav1.LabelSelectorRequirement {
+	return []metav1.LabelSelectorRequirement{
+		{
+			Key:      "app",
+			Operator: metav1.LabelSelectorOperator("In"),
+			Values:   []string{AppName},
+		},
+		{
+			Key:      "component",
+			Operator: metav1.LabelSelectorOperator("In"),
+			Values:   []string{AppName},
+		},
 	}
 }
 

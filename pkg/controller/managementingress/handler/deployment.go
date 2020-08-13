@@ -103,12 +103,12 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 	}
 
 	container.Ports = []core.ContainerPort{
-		core.ContainerPort{
+		{
 			Name:          "https",
 			ContainerPort: httpsPort,
 			Protocol:      core.ProtocolTCP,
 		},
-		core.ContainerPort{
+		{
 			Name:          "http",
 			ContainerPort: httpPort,
 			Protocol:      core.ProtocolTCP,
@@ -183,12 +183,12 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 	tolerations = utils.AppendTolerations(
 		tolerations,
 		[]core.Toleration{
-			core.Toleration{
+			{
 				Key:      "node.kubernetes.io/memory-pressure",
 				Operator: core.TolerationOpExists,
 				Effect:   core.TaintEffectNoSchedule,
 			},
-			core.Toleration{
+			{
 				Key:      "node.kubernetes.io/disk-pressure",
 				Operator: core.TolerationOpExists,
 				Effect:   core.TaintEffectNoSchedule,
@@ -196,11 +196,26 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		},
 	)
 
+	matchExpressions := getCommonMatchExpressions()
+	podAffinityTerm := core.PodAffinityTerm{
+		LabelSelector: &metav1.LabelSelector{
+			MatchExpressions: matchExpressions,
+		},
+		TopologyKey: "kubernetes.io/hostname",
+	}
+
+	podAntiAffinity := &core.PodAntiAffinity{
+		RequiredDuringSchedulingIgnoredDuringExecution: []core.PodAffinityTerm{podAffinityTerm},
+	}
+
+	affinity := &core.Affinity{PodAntiAffinity: podAntiAffinity}
+
 	podSpec := core.PodSpec{
 		Containers:         []core.Container{container},
 		ServiceAccountName: ServiceAccountName,
 		NodeSelector:       nodeSelector,
 		Tolerations:        tolerations,
+		Affinity:           affinity,
 	}
 
 	defaultMode := int32(0644)
