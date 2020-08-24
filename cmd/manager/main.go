@@ -23,7 +23,6 @@ import (
 	"runtime"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	"github.com/operator-framework/operator-sdk/pkg/metrics"
@@ -33,7 +32,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -116,9 +114,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = serveCRMetrics(cfg); err != nil {
-		klog.Errorf("Could not generate and serve custom resource metrics", "error", err.Error())
-	}
+	// if err = serveCRMetrics(cfg); err != nil {
+	// 	klog.Errorf("Could not generate and serve custom resource metrics", "error", err.Error())
+	// }
 
 	// Add to the below struct any other metrics ports you want to expose.
 	servicePorts := []v1.ServicePort{
@@ -155,20 +153,20 @@ func main() {
 
 // serveCRMetrics gets the Operator/CustomResource GVKs and generates metrics based on those types.
 // It serves those metrics on "http://metricsHost:operatorMetricsPort".
-func serveCRMetrics(cfg *rest.Config) error {
-	// Below function returns filtered operator/CustomResource specific GVKs.
-	// For more control override the below GVK list with your own custom logic.
-	filteredGVK, err := k8sutil.GetGVKsFromAddToScheme(apis.AddToScheme)
-	if err != nil {
-		return err
-	}
+// func serveCRMetrics(cfg *rest.Config) error {
+// 	// Below function returns filtered operator/CustomResource specific GVKs.
+// 	// For more control override the below GVK list with your own custom logic.
+// 	filteredGVK, err := k8sutil.GetGVKsFromAddToScheme(apis.AddToScheme)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	// To generate metrics in other namespaces, add the values below.
-	ns := []string{""}
-	// Generate and serve custom resource specific metrics.
-	err = kubemetrics.GenerateAndServeCRMetrics(cfg, ns, filteredGVK, metricsHost, operatorMetricsPort)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+// 	// To generate metrics in other namespaces, add the values below.
+// 	ns := []string{""}
+// 	// Generate and serve custom resource specific metrics.
+// 	err = kubemetrics.GenerateAndServeCRMetrics(cfg, ns, filteredGVK, metricsHost, operatorMetricsPort)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }

@@ -17,7 +17,9 @@ package handler
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	core "k8s.io/api/core/v1"
 	rbac "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -58,7 +60,72 @@ func (ingressRequest *IngressRequest) CreateServiceAccount() error {
 		return fmt.Errorf("Failure constructing ServiceAccount for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
+	namespace, err := k8sutil.GetWatchNamespace()
+	if err != nil {
+		klog.Errorf("Failure getting watch namespace: %v", err)
+		os.Exit(1)
+	}
+
 	// Create required clusterRole
+	clusterrules := NewPolicyRules(
+		NewPolicyRule(
+			[]string{""},
+			[]string{"nodes"},
+			nil,
+			[]string{"list", "watch"},
+		),
+		NewPolicyRule(
+			[]string{"security.openshift.io"},
+			[]string{"securitycontextconstraints"},
+			[]string{SCCName},
+			[]string{"use"},
+		),
+	)
+
+	// Create required role
+	rules := NewPolicyRules(
+		NewPolicyRule(
+			[]string{""},
+			[]string{"services"},
+			nil,
+			[]string{"get", "list", "watch"},
+		),
+		NewPolicyRule(
+			[]string{""},
+			[]string{"endpoints", "pods", "secrets"},
+			nil,
+			[]string{"list", "watch"},
+		),
+		NewPolicyRule(
+			[]string{""},
+			[]string{"configmaps"},
+			nil,
+			[]string{"create", "get", "list", "update", "watch"},
+		),
+		NewPolicyRule(
+			[]string{""},
+			[]string{"events"},
+			nil,
+			[]string{"create", "patch"},
+		),
+		NewPolicyRule(
+			[]string{"extensions", "networking.k8s.io"},
+			[]string{"ingresses"},
+			nil,
+			[]string{"get", "list", "watch"},
+		),
+		NewPolicyRule(
+			[]string{"extensions", "networking.k8s.io"},
+			[]string{"ingresses/status"},
+			nil,
+			[]string{"update"},
+		),
+	)
+
+	if len(namespace) == 0 {
+		clusterrules = append(clusterrules, rules...)
+	}
+
 	klog.Infof("Creating ClusterRole: %q for %q.", AppName, ingressRequest.managementIngress.Name)
 	_, err = ingressRequest.CreateClusterRole(AppName, defaultRules)
 	if err != nil && !errors.IsAlreadyExists(err) {
@@ -79,11 +146,41 @@ func (ingressRequest *IngressRequest) CreateServiceAccount() error {
 		),
 	)
 
-	klog.Infof("Creating ClusterRoleBingding: %q for %q.", AppName, ingressRequest.managementIngress.Name)
+	klog.Infof("Creating ClusterRoleBinding: %q for %q.", AppName, ingressRequest.managementIngress.Name)
 	err = ingressRequest.CreateClusterRoleBinding(clusterRoleBinding)
 	if err != nil && !errors.IsAlreadyExists(err) {
 		return fmt.Errorf("Failure constructing ClusterRoleBinding for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
+
+	if len(namespace) > 0 {
+		klog.Infof("Creating Role: %q for %q.", AppName, ingressRequest.managementIngress.Name)
+		_, err = ingressRequest.CreateRole(AppName, ingressRequest.managementIngress.ObjectMeta.Namespace, rules)
+		if err != nil && !errors.IsAlreadyExists(err) {
+			return fmt.Errorf("Failure constructing Role for %q: %v", ingressRequest.managementIngress.Name, err)
+		}
+	
+		// Create required clusterRoleBinding
+		subject := rbac.Subject{
+			Kind:      "ServiceAccount",
+			Name:      ServiceAccountName,
+			Namespace: ingressRequest.managementIngress.ObjectMeta.Namespace,
+		}
+		RoleBinding := NewRoleBinding(
+			AppName,
+			ingressRequest.managementIngress.ObjectMeta.Namespace,
+			AppName,
+			NewSubjects(
+				subject,
+			),
+		)
+	
+		klog.Infof("Creating RoleBinding: %q for %q.", AppName, ingressRequest.managementIngress.Name)
+		err = ingressRequest.CreateRoleBinding(RoleBinding)
+		if err != nil && !errors.IsAlreadyExists(err) {
+			return fmt.Errorf("Failure constructing RoleBinding for %q: %v", ingressRequest.managementIngress.Name, err)
+		}
+	}
+
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedServiceAccount", "Successfully created service account %q", ServiceAccountName)
 
 	return nil

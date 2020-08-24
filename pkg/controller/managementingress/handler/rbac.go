@@ -107,6 +107,40 @@ func NewClusterRoleBinding(bindingName, roleName string, subjects []rbac.Subject
 	}
 }
 
+// CreateRole creates a Role or returns error
+func (ingressRequest *IngressRequest) CreateRole(name, namespace string, rules []rbac.PolicyRule) (*rbac.Role, error) {
+	role := &rbac.Role{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Role",
+			APIVersion: rbac.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+			Namespace: namespace,
+		},
+		Rules: rules,
+	}
+
+	utils.AddOwnerRefToObject(role, utils.AsOwner(ingressRequest.managementIngress))
+
+	err := ingressRequest.Create(role)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		return nil, fmt.Errorf("Failure creating '%s' role: %v", name, err)
+	}
+	return role, nil
+}
+
+// CreateRoleBinding creates a RoleBinding or returns error
+func (ingressRequest *IngressRequest) CreateRoleBinding(binding *rbac.RoleBinding) error {
+	utils.AddOwnerRefToObject(binding, utils.AsOwner(ingressRequest.managementIngress))
+
+	err := ingressRequest.Create(binding)
+	if err != nil && !errors.IsAlreadyExists(err) {
+		return fmt.Errorf("Failure creating RoleBinding: %v", err)
+	}
+	return nil
+}
+
 // CreateClusterRole creates a cluser role or returns error
 func (ingressRequest *IngressRequest) CreateClusterRole(name string, rules []rbac.PolicyRule) (*rbac.ClusterRole, error) {
 	clusterRole := &rbac.ClusterRole{

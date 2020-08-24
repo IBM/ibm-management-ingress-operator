@@ -17,20 +17,50 @@ package handler
 
 import (
 	"context"
+	"os"
 	"time"
 
+	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
+	operatorv1 "github.com/openshift/api/operator/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 
 	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 )
+
+var (
+	aclient client.Client
+	scheme = runtime.NewScheme()
+	ConfigMapSchemeGroupVersion = schema.GroupVersion{Group: "operator.openshift.io", Version: "v1"}
+	OperatorSchemeGroupVersion = schema.GroupVersion{Group: "", Version: "v1"}
+)
+
+func init() {
+	// Get a config to talk to the apiserver
+	cfg, err := config.GetConfig()
+	if err != nil {
+		klog.Errorf("Failure getting config: %v", err)
+		os.Exit(1)
+	}
+
+	scheme.AddKnownTypes(ConfigMapSchemeGroupVersion, &core.ConfigMap{}, &core.ConfigMapList{})
+	scheme.AddKnownTypes(OperatorSchemeGroupVersion, &operatorv1.IngressController{}, &operatorv1.IngressControllerList{})
+
+	aclient, err = client.New(cfg, client.Options{Scheme: scheme})
+	if err != nil {
+		klog.Errorf("Failure creating client: %v", err)
+		os.Exit(1)
+	}
+}
 
 type IngressRequest struct {
 	client            client.Client

@@ -16,6 +16,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -27,6 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog"
 )
 
@@ -185,7 +187,7 @@ func (ingressRequest *IngressRequest) GetRouteAppDomain() (string, error) {
 	klog.Infof("Getting route application domain name from ingress controller config.")
 
 	ing := &operatorv1.IngressController{}
-	if err := ingressRequest.Get("default", "openshift-ingress-operator", ing); err != nil {
+	if err := aclient.Get(context.TODO(), types.NamespacedName{Name: "default", Namespace: "openshift-ingress-operator"}, ing); err != nil {
 		return "", err
 	}
 

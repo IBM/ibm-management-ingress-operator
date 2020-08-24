@@ -16,6 +16,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -28,6 +29,7 @@ import (
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -239,7 +241,8 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 	ep := "https://" + ServiceName + "." + ns + ".svc:443"
 
 	// get api server address and port from configmap console-config in namespace openshift-console
-	err, console := ingressRequest.GetConfigmap(ConsoleCfg, ConsoleNS)
+	console := &core.ConfigMap{}
+	err = aclient.Get(context.TODO(), types.NamespacedName{Name: ConsoleCfg, Namespace: ConsoleNS}, console)
 	if err != nil {
 		return err
 	}
