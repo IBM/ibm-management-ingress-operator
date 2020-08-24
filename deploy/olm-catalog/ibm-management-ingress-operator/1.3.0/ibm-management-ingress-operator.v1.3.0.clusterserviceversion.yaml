@@ -215,7 +215,7 @@ spec:
                 - name: OPERATOR_NAME
                   value: ibm-management-ingress-operator
                 - name: OPERAND_IMAGE_DIGEST
-                  value: quay.io/opencloudio/icp-management-ingress@sha256:f6694ea8a461468989874b4b091f1d64366eacb9821cc9836d8100e34f333634
+                  value: quay.io/opencloudio/icp-management-ingress@sha256:c7f4960f2df024cd3b43b08d115047293359478b5b91b15e9f3b8c40a3af74d3
                 - name: POD_NAMESPACE
                   valueFrom:
                     fieldRef:
