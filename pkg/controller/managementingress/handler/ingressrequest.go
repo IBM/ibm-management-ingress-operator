@@ -85,7 +85,7 @@ func (ingressRequest *IngressRequest) List(selector map[string]string, object ru
 func (ingressRequest *IngressRequest) GetSecret(name string) (error, *core.Secret) {
 	secret := &core.Secret{}
 
-	err := wait.Poll(3*time.Second, 2*time.Second, func() (done bool, err error) {
+	err := wait.Poll(3*time.Second, 300*time.Second, func() (done bool, err error) {
 		err = ingressRequest.Get(name, ingressRequest.managementIngress.ObjectMeta.Namespace, secret)
 		if err != nil {
 			return false, err
@@ -104,7 +104,7 @@ func (ingressRequest *IngressRequest) GetSecret(name string) (error, *core.Secre
 func (ingressRequest *IngressRequest) GetConfigmap(name, namespace string) (error, *core.ConfigMap) {
 	cfg := &core.ConfigMap{}
 
-	err := wait.Poll(3*time.Second, 2*time.Second, func() (done bool, err error) {
+	err := wait.Poll(3*time.Second, 300*time.Second, func() (done bool, err error) {
 		err = ingressRequest.Get(name, namespace, cfg)
 		if err != nil {
 			return false, err
