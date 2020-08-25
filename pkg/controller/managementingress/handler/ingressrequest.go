@@ -40,8 +40,8 @@ import (
 var (
 	aclient client.Client
 	scheme = runtime.NewScheme()
-	ConfigMapSchemeGroupVersion = schema.GroupVersion{Group: "operator.openshift.io", Version: "v1"}
-	OperatorSchemeGroupVersion = schema.GroupVersion{Group: "", Version: "v1"}
+	ConfigMapSchemeGroupVersion = schema.GroupVersion{Group: "", Version: "v1"}
+	OperatorSchemeGroupVersion = schema.GroupVersion{Group: "operator.openshift.io", Version: "v1"}
 )
 
 func init() {
