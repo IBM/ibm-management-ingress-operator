@@ -22,6 +22,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	operatorv1 "github.com/openshift/api/operator/v1"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
@@ -84,6 +86,12 @@ func NewDeployment(name string, namespace string, replicas int32, podSpec core.P
 }
 
 func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements, nodeSelector map[string]string, tolerations []core.Toleration, allowedHostHeader string, fipsEnabled bool) core.PodSpec {
+	namespace, err := k8sutil.GetWatchNamespace()
+	if err != nil {
+		klog.Errorf("Failure getting watch namespace: %v", err)
+		os.Exit(1)
+	}
+
 	if resources == nil {
 		resources = &core.ResourceRequirements{
 			Limits: core.ResourceList{
@@ -123,6 +131,10 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		"--configmap=$(POD_NAMESPACE)/management-ingress",
 		"--http-port=8080",
 		"--https-port=443",
+	}
+
+	if len(namespace) > 0 {
+		container.Command = append(container.Command, "--watch-namespace=" + namespace)
 	}
 
 	container.Env = []core.EnvVar{

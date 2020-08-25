@@ -70,9 +70,9 @@ func (ingressRequest *IngressRequest) CreateServiceAccount() error {
 	clusterrules := NewPolicyRules(
 		NewPolicyRule(
 			[]string{""},
-			[]string{"nodes"},
+			[]string{"nodes", "namespaces"},
 			nil,
-			[]string{"list", "watch"},
+			[]string{"get", "list", "watch"},
 		),
 		NewPolicyRule(
 			[]string{"security.openshift.io"},
