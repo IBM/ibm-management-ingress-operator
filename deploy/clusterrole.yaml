@@ -50,7 +50,9 @@ rules:
 - apiGroups:
   - ""
   resources:
+  - namespaces
   - nodes
+  - services
   verbs:
   - get
   - list
