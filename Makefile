@@ -29,7 +29,7 @@ NAMESPACE=ibm-management-ingress-operator
 # Use your own docker registry and image name for dev/test by overridding the IMG and REGISTRY environment variable.
 IMG ?= ibm-management-ingress-operator
 REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
-CSV_VERSION ?= 1.3.0
+CSV_VERSION ?= 1.3.1
 
 IMAGE_REPO ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
 IMAGE_NAME ?= ibm-management-ingress-operator
