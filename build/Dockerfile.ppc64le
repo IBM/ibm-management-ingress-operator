@@ -36,6 +36,8 @@ LABEL org.label-schema.vendor="IBM" \
   description="IBM Management Ingress Operator" \
   summary="IBM Management Ingress Operator"
 
+RUN microdnf update
+
 ENV OPERATOR=/usr/local/bin/ibm-management-ingress-operator \
   DEPLOY_DIR=/deploy \
   USER_UID=1001 \
