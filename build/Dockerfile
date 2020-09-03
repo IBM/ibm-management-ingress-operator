@@ -35,6 +35,8 @@ ENV OPERATOR=/usr/local/bin/ibm-management-ingress-operator \
   USER_UID=1001 \
   USER_NAME=ibm-management-ingress-operator
 
+RUN microdnf update 
+
 # install operator binary
 COPY build/_output/bin/ibm-management-ingress-operator ${OPERATOR}
 COPY deploy/crds ${DEPLOY_DIR}
