@@ -36,12 +36,12 @@ LABEL org.label-schema.vendor="IBM" \
   description="IBM Management Ingress Operator" \
   summary="IBM Management Ingress Operator"
 
-RUN microdnf update
-
 ENV OPERATOR=/usr/local/bin/ibm-management-ingress-operator \
   DEPLOY_DIR=/deploy \
   USER_UID=1001 \
   USER_NAME=ibm-management-ingress-operator
+
+RUN microdnf update
 
 COPY --from=builder /qemu-ppc64le-static /usr/bin/
 
