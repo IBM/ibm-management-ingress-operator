@@ -20,7 +20,6 @@
 # environment variables before build the repo.
 BUILD_LOCALLY ?= 1
 TARGET_GOOS=linux
-TARGET_GOARCH=amd64
 
 # The namespce that operator will be deployed in
 NAMESPACE=ibm-management-ingress-operator
@@ -113,59 +112,19 @@ endif
 ##@ Build
 
 build:
-	@echo "Building ibm-management-ingress-operator binary"
-	@CGO_ENABLED=0 go build -o build/_output/bin/$(IMG) ./cmd/manager
+	@echo "Building ibm-management-ingress-operator binary for $(LOCAL_ARCH)..."
+	@GOARCH=$(LOCAL_ARCH) common/scripts/gobuild.sh build/_output/bin/$(IMG) ./cmd/manager
 	@strip $(STRIP_FLAGS) build/_output/bin/$(IMG)
 
-build-image-amd64: build $(CONFIG_DOCKER_TARGET)
-	@echo "Building ibm-management-ingress-operator amd64 image"
-	$(eval ARCH := $(shell uname -m|sed 's/x86_64/amd64/'))
-	docker build -t $(REGISTRY)/$(IMG)-$(ARCH):$(VERSION) -f build/Dockerfile .
-	@\rm -f build/_output/bin/ibm-management-ingress-operator
-	@if [ $(BUILD_LOCALLY) -ne 1 ] && [ "$(ARCH)" = "amd64" ]; then docker push $(REGISTRY)/$(IMG)-$(ARCH):$(VERSION); fi
+build-push-image: build-image push-image
 
-push-image-amd64: build-image-amd64
-	@docker push $(REGISTRY)/$(IMG)-amd64:$(VERSION)
+build-image: build
+	@echo "Building the $(IMG) docker image for $(LOCAL_ARCH)..."
+	@docker build -t $(REGISTRY)/$(IMG)-$(LOCAL_ARCH):$(VERSION) -f build/Dockerfile .
 
-# runs on amd64 machine
-build-image-ppc64le: $(CONFIG_DOCKER_TARGET)
-ifeq ($(LOCAL_OS),Linux)
-ifeq ($(LOCAL_ARCH),x86_64)
-	@echo "Building ibm-management-ingress-operator ppc64le image"
-	GOOS=linux GOARCH=ppc64le CGO_ENABLED=0 go build -o build/_output/bin/ibm-management-ingress-operator-ppc64le ./cmd/manager
-	docker run --rm --privileged multiarch/qemu-user-static:register --reset
-	docker build -t $(REGISTRY)/$(IMG)-ppc64le:$(VERSION) -f build/Dockerfile.ppc64le .
-	@\rm -f build/_output/bin/ibm-management-ingress-operator-ppc64le
-	@if [ $(BUILD_LOCALLY) -ne 1 ]; then docker push $(REGISTRY)/$(IMG)-ppc64le:$(VERSION); fi
-endif
-endif
-
-push-image-ppc64le: build-image-ppc64le
-ifeq ($(LOCAL_OS),Linux)
-ifeq ($(LOCAL_ARCH),x86_64)
-	@docker push $(REGISTRY)/$(IMG)-ppc64le:$(VERSION)
-endif
-endif
-
-# runs on amd64 machine
-build-image-s390x: $(CONFIG_DOCKER_TARGET)
-ifeq ($(LOCAL_OS),Linux)
-ifeq ($(LOCAL_ARCH),x86_64)
-	@echo "Building ibm-management-ingress-operator s390x image"
-	GOOS=linux GOARCH=s390x CGO_ENABLED=0 go build -o build/_output/bin/ibm-management-ingress-operator-s390x ./cmd/manager
-	docker run --rm --privileged multiarch/qemu-user-static:register --reset
-	docker build -t $(REGISTRY)/$(IMG)-s390x:$(VERSION) -f build/Dockerfile.s390x .
-	@\rm -f build/_output/bin/ibm-management-ingress-operator-s390x
-	@if [ $(BUILD_LOCALLY) -ne 1 ]; then docker push $(REGISTRY)/$(IMG)-s390x:$(VERSION); fi
-endif
-endif
-
-push-image-s390x: build-image-s390x
-ifeq ($(LOCAL_OS),Linux)
-ifeq ($(LOCAL_ARCH),x86_64)
-	@docker push $(REGISTRY)/$(IMG)-s390x:$(VERSION)
-endif
-endif
+push-image: $(CONFIG_DOCKER_TARGET) build-image
+	@echo "Pushing the $(IMG) docker image for $(LOCAL_ARCH)..."
+	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
 
 ##@ Test
 
@@ -185,17 +144,9 @@ scorecard: ## Run scorecard test
 
 ##@ Release
 
-build-images: build-image-amd64 build-image-ppc64le build-image-s390x
-
-push-images: push-image-amd64 push-image-ppc64le push-image-s390x
-
-build-push-image: build-images push-images multiarch-image
-
 # multiarch-image section
 multiarch-image: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(IMAGE_REPO) $(IMAGE_NAME) $(VERSION)
-
-images: build-push-image
 
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
@@ -214,3 +165,5 @@ help: ## Display this help
 		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 .PHONY: all build run check install uninstall code-dev test test-e2e coverage images csv clean help multiarch-image
+
+.PHONY: all work fmt check coverage lint test build build-push-image multiarch-image clean
