@@ -124,22 +124,21 @@ spec:
         name: ibm-management-ingress-operator
         version: v1alpha1
       statusDescriptors:
+      - description: ManagementIngressStatus defines the observed state of ManagementIngress
+        displayName: ManagementIngress Status
+        path: ManagementIngressStatus
       - description: condition used to sign the certificate of IBM Management Ingress
         displayName: Condition
         path: Conditions
-      statusDescriptors:
       - description: host used to sign the certificate of IBM Management Ingress
         displayName: Host
         path: Host
-      statusDescriptors:
       - description: condition used to sign the certificate of IBM Management Ingress
         displayName: Podstate
         path: Podstate
-      statusDescriptors:
       - description: host used to sign the certificate of IBM Management Ingress
         displayName: operandState
         path: State
-      specDescriptors:
       - description: Image of IBM Management Ingress
         displayName: Image
         path: spec.imageRepo
@@ -236,7 +235,13 @@ spec:
                 image: quay.io/opencloudio/ibm-management-ingress-operator:latest
                 imagePullPolicy: Always
                 name: ibm-management-ingress-operator
-                resources: {}
+                resources:
+                  limits:
+                    cpu: 160m
+                    memory: 512Mi
+                  requests:
+                    cpu: 100m
+                    memory: 320Mi
               serviceAccountName: ibm-management-ingress-operator
       clusterPermissions:
       - rules:
