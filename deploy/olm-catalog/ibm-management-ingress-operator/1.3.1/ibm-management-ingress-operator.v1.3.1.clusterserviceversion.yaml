@@ -98,10 +98,6 @@ spec:
       group: operator.ibm.com
       kind: ManagementIngress
       name: managementingresses.operator.ibm.com
-      statusDescriptors:
-      - description: ManagementIngressStatus defines the observed state of ManagementIngress
-        displayName: ManagementIngress Status
-        path: ManagementIngressStatus
       version: v1alpha1
       displayName: IBM Management Ingress Operator
       resources:
