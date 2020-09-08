@@ -207,9 +207,7 @@ spec:
                     memory: 64Mi
                 env:
                 - name: WATCH_NAMESPACE
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.annotations['olm.targetNamespaces']
+                  value: ""
                 - name: POD_NAME
                   valueFrom:
                     fieldRef:
@@ -259,45 +257,6 @@ spec:
           verbs:
           - use
         - apiGroups:
-          - "operator.openshift.io"
-          resources:
-          - dnses
-          - ingresscontrollers
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - configmaps
-          resourceNames:
-          - console-config
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - namespaces
-          - nodes
-          - services
-          verbs:
-          - get
-          - list
-          - watch
-        serviceAccountName: ibm-management-ingress-operator
-      permissions:
-      - rules:
-        - apiGroups:
-          - rbac.authorization.k8s.io
-          resources:
-          - roles
-          - rolebindings
-          verbs:
-          - create
-        - apiGroups:
           - certmanager.k8s.io
           resources:
           - certificates
@@ -307,21 +266,38 @@ spec:
           - list
           - watch
         - apiGroups:
-          - "extensions"
-          - "networking.k8s.io"
+            - "extensions"
+            - "networking.k8s.io"
           resources:
-          - ingresses
+            - ingresses
           verbs:
-          - get
-          - list
-          - watch
+            - get
+            - list
+            - watch
         - apiGroups:
-          - "extensions"
-          - "networking.k8s.io"
+            - "extensions"
+            - "networking.k8s.io"
           resources:
-          - ingresses/status
+            - ingresses/status
           verbs:
-          - update
+            - update
+        - apiGroups:
+            - "operator.openshift.io"
+          resources:
+            - dnses
+            - ingresscontrollers
+          verbs:
+            - get
+            - list
+            - watch
+        - apiGroups:
+            - ""
+          resources:
+            - nodes
+          verbs:
+            - get
+            - list
+            - watch
         - apiGroups:
           - ""
           resources:
