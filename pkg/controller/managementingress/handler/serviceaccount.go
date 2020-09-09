@@ -80,16 +80,16 @@ func (ingressRequest *IngressRequest) CreateServiceAccount() error {
 			[]string{SCCName},
 			[]string{"use"},
 		),
-	)
-
-	// Create required role
-	rules := NewPolicyRules(
 		NewPolicyRule(
 			[]string{""},
 			[]string{"services"},
 			nil,
 			[]string{"get", "list", "watch"},
 		),
+	)
+
+	// Create required role
+	rules := NewPolicyRules(
 		NewPolicyRule(
 			[]string{""},
 			[]string{"endpoints", "pods", "secrets"},
