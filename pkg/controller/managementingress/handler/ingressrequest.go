@@ -158,7 +158,6 @@ func GetCommonAnnotations() map[string]string {
 	return map[string]string{
 		"productName":    ProductName,
 		"productID":      ProductID,
-		"productVersion": ProductVersion,
 		"productMetric":  ProductMetric,
 	}
 }
