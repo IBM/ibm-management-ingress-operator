@@ -20,22 +20,16 @@ import (
 	"strings"
 
 	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
-	"k8s.io/client-go/tools/record"
-	client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func Reconcile(requestIngress *v1alpha1.ManagementIngress, requestClient client.Client, recorder record.EventRecorder) (err error) {
-	ingressRequest := IngressRequest{
-		client:            requestClient,
-		managementIngress: requestIngress,
-		recorder:          recorder,
-	}
+func Reconcile(ingressRequest *IngressRequest) (err error) {
 
 	// First time in reconcile set route host in status.
+	requestIngress := ingressRequest.managementIngress.DeepCopy()
 	if len(requestIngress.Status.Host) <= 0 {
 		// Get route host
 		status := &v1alpha1.ManagementIngressStatus{}
-		host, err := getRouteHost(&ingressRequest)
+		host, err := getRouteHost(ingressRequest)
 		if err != nil {
 			return err
 		} else {
@@ -108,4 +102,24 @@ func getRouteHost(ing *IngressRequest) (string, error) {
 	}
 
 	return strings.Join([]string{RouteName, appDomain}, "."), nil
+}
+
+func DeleteClusterResources(i *IngressRequest) error {
+
+	// Delete SCC
+	if err := i.RemoveSecurityContextConstraint(SCCName); err != nil {
+		return err
+	}
+
+	// Delete ClusterRole
+	if err := i.RemoveClusterRole(AppName); err != nil {
+		return err
+	}
+
+	// Delete ClusterRoleBinding
+	if err := i.RemoveClusterRoleBinding(AppName); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -74,9 +74,6 @@ spec:
                   type: string
                 tag:
                   type: string
-              required:
-              - repository
-              - tag
               type: object
             imageRegistry:
               type: string

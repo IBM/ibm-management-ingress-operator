@@ -23,13 +23,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	"gopkg.in/yaml.v2"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 //NewConfigMap stubs an instance of Configmap
@@ -59,7 +61,7 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 		if errors.IsNotFound(err) {
 			// create configmap
 			klog.Infof("Creating Configmap: %s for %q.", cm.ObjectMeta.Name, ingr.managementIngress.Name)
-			utils.AddOwnerRefToObject(cm, utils.AsOwner(ingr.managementIngress))
+
 			err = ingr.Create(cm)
 			if err != nil {
 				ingr.recorder.Eventf(ingr.managementIngress, "Warning", "CreatedConfigmap", "Failure creating configmap %q: %v", cm.ObjectMeta.Name, err)
@@ -75,7 +77,7 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 			klog.Infof("No change found from the configmap: %s.", cm.ObjectMeta.Name)
 			return nil
 		}
-		utils.AddOwnerRefToObject(cfg, utils.AsOwner(ingr.managementIngress))
+
 		var mergePatch []byte
 		mergePatch, err := json.Marshal(map[string]interface{}{
 			"data": cm.Data,
@@ -104,7 +106,9 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 }
 
 func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool) error {
-	utils.AddOwnerRefToObject(cm, utils.AsOwner(ingr.managementIngress))
+	if err := controllerutil.SetControllerReference(ingr.managementIngress, cm, ingr.scheme); err != nil {
+		klog.Errorf("Error setting controller reference on Configmap: %v", err)
+	}
 
 	klog.Infof("Creating Configmap: %s for %q.", cm.ObjectMeta.Name, ingr.managementIngress.Name)
 	err := ingr.Create(cm)
@@ -283,29 +287,6 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 
 	if err := patchOrCreateConfigmap(ingressRequest, clustercfg); err != nil {
 		return fmt.Errorf("Failure creating cluster info for %q: %v", ingressRequest.managementIngress.Name, err)
-	}
-
-	return nil
-}
-
-//RemoveConfigMap with a given name and namespace
-func (ingressRequest *IngressRequest) RemoveConfigMap(name string) error {
-	configMap := &core.ConfigMap{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "ConfigMap",
-			APIVersion: core.SchemeGroupVersion.String(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: ingressRequest.managementIngress.Namespace,
-		},
-		Data: map[string]string{},
-	}
-
-	klog.Infof("Removing ConfigMap for %q.", ingressRequest.managementIngress.Name)
-	err := ingressRequest.Delete(configMap)
-	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("Failure deleting %q configmap: %v", name, err)
 	}
 
 	return nil

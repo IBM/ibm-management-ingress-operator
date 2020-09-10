@@ -18,12 +18,12 @@ package handler
 import (
 	"fmt"
 
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/klog"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 //NewService stubs an instance of a Service
@@ -64,7 +64,9 @@ func (ingressRequest *IngressRequest) CreateOrUpdateService() error {
 			},
 		})
 
-	utils.AddOwnerRefToObject(service, utils.AsOwner(ingressRequest.managementIngress))
+	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, service, ingressRequest.scheme); err != nil {
+		klog.Errorf("Error setting controller reference on Service: %v", err)
+	}
 
 	klog.Infof("Creating Service %q for %q.", ServiceName, ingressRequest.managementIngress.Name)
 	err := ingressRequest.Create(service)
@@ -72,30 +74,6 @@ func (ingressRequest *IngressRequest) CreateOrUpdateService() error {
 		return fmt.Errorf("Failure constructing service for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedService", "Successfully created service %q", ServiceName)
-
-	return nil
-}
-
-//RemoveService with given name and namespace
-func (ingressRequest *IngressRequest) RemoveService(name string) error {
-
-	service := &core.Service{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Service",
-			APIVersion: core.SchemeGroupVersion.String(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: ingressRequest.managementIngress.Namespace,
-		},
-		Spec: core.ServiceSpec{},
-	}
-
-	klog.Infof("Removing Service for %q.", ingressRequest.managementIngress.Name)
-	err := ingressRequest.Delete(service)
-	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("Failure deleting %v service %v", name, err)
-	}
 
 	return nil
 }

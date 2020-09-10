@@ -18,10 +18,11 @@ package utils
 import (
 	"reflect"
 
-	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 )
 
 // GetAnnotation returns the value of an annoation for a given key and true if the key was found
@@ -99,13 +100,6 @@ func AppendTolerations(lhsTolerations, rhsTolerations []core.Toleration) []core.
 	}
 
 	return append(lhsTolerations, rhsTolerations...)
-}
-
-//AddOwnerRefToObject adds the parent as an owner to the child
-func AddOwnerRefToObject(object metav1.Object, ownerRef metav1.OwnerReference) {
-	if (metav1.OwnerReference{}) != ownerRef {
-		object.SetOwnerReferences(append(object.GetOwnerReferences(), ownerRef))
-	}
 }
 
 func GetBool(value bool) *bool {
