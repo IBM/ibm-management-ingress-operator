@@ -21,12 +21,12 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	operatorv1 "github.com/openshift/api/operator/v1"
 	route "github.com/openshift/api/route/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"k8s.io/klog"
 )
 
@@ -84,14 +84,12 @@ func NewSecret(name, namespace string, caCert []byte) *core.Secret {
 func (ingressRequest *IngressRequest) createOrUpdateSecret(secretName, namespace string, caCert []byte) error {
 	// create ibmcloud-cluster-ca-cert
 	clusterSecret := NewSecret(secretName, namespace, caCert)
-	utils.AddOwnerRefToObject(clusterSecret, utils.AsOwner(ingressRequest.managementIngress))
 
 	klog.Infof("create secret: %s for %q.", secretName, ingressRequest.managementIngress.ObjectMeta.Name)
 	err := ingressRequest.Create(clusterSecret)
-
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
-			return fmt.Errorf("Failure constructing secret for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
+			return fmt.Errorf("Failure creating secret for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
 		}
 
 		klog.Infof("Trying to update Secret: %s for %q as it already existed.", secretName, ingressRequest.managementIngress.Name)
@@ -150,7 +148,9 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	)
 
 	// Create route resource
-	utils.AddOwnerRefToObject(route, utils.AsOwner(ingressRequest.managementIngress))
+	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, route, ingressRequest.scheme); err != nil {
+		klog.Errorf("Error setting controller reference on Route: %v", err)
+	}
 
 	klog.Infof("Creating route: %s for %q.", route.ObjectMeta.Name, ingressRequest.managementIngress.ObjectMeta.Name)
 	err = ingressRequest.Create(route)
@@ -178,30 +178,6 @@ func (ingressRequest *IngressRequest) GetRouteURL(name string) (string, error) {
 	}
 
 	return fmt.Sprintf("%s%s", "https://", foundRoute.Spec.Host), nil
-}
-
-//RemoveRoute with given name and namespace
-func (ingressRequest *IngressRequest) RemoveRoute(name string) error {
-
-	route := &route.Route{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Route",
-			APIVersion: route.SchemeGroupVersion.String(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: ingressRequest.managementIngress.ObjectMeta.Namespace,
-		},
-		Spec: route.RouteSpec{},
-	}
-
-	klog.Infof("Deleting route for %q.", ingressRequest.managementIngress.ObjectMeta.Name)
-	err := ingressRequest.Delete(route)
-	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("Failure deleting %q route %v", name, err)
-	}
-
-	return nil
 }
 
 // GetRouteAppDomain ... auto detect route application domain of OCP cluster.

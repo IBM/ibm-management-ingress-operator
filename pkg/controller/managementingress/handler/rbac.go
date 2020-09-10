@@ -21,8 +21,7 @@ import (
 	rbac "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
+	"k8s.io/klog"
 )
 
 //NewPolicyRule stubs policy rule
@@ -121,8 +120,6 @@ func (ingressRequest *IngressRequest) CreateClusterRole(name string, rules []rba
 		Rules: rules,
 	}
 
-	utils.AddOwnerRefToObject(clusterRole, utils.AsOwner(ingressRequest.managementIngress))
-
 	err := ingressRequest.Create(clusterRole)
 	if err != nil && !errors.IsAlreadyExists(err) {
 		return nil, fmt.Errorf("Failure creating '%s' clusterrole: %v", name, err)
@@ -131,7 +128,6 @@ func (ingressRequest *IngressRequest) CreateClusterRole(name string, rules []rba
 }
 
 func (ingressRequest *IngressRequest) CreateClusterRoleBinding(binding *rbac.ClusterRoleBinding) error {
-	utils.AddOwnerRefToObject(binding, utils.AsOwner(ingressRequest.managementIngress))
 
 	err := ingressRequest.Create(binding)
 	if err != nil && !errors.IsAlreadyExists(err) {
@@ -140,18 +136,52 @@ func (ingressRequest *IngressRequest) CreateClusterRoleBinding(binding *rbac.Clu
 	return nil
 }
 
+//RemoveClusterRole removes a cluster role binding
+func (ingressRequest *IngressRequest) RemoveClusterRole(name string) error {
+
+	r := &rbac.ClusterRole{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ClusterRole",
+			APIVersion: rbac.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		Rules: []rbac.PolicyRule{},
+	}
+
+	klog.Infof("Removing ClusterRole .", name)
+	err := ingressRequest.Delete(r)
+	if err != nil && !errors.IsNotFound(err) {
+		return fmt.Errorf("Failure deleting %q ClusterRole: %v", name, err)
+	}
+
+	return nil
+}
+
 //RemoveClusterRoleBinding removes a cluster role binding
 func (ingressRequest *IngressRequest) RemoveClusterRoleBinding(name string) error {
 
-	binding := NewClusterRoleBinding(
-		name,
-		"",
-		[]rbac.Subject{},
-	)
+	b := &rbac.ClusterRoleBinding{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ClusterRoleBinding",
+			APIVersion: rbac.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		RoleRef: rbac.RoleRef{
+			APIGroup: "",
+			Kind:     "",
+			Name:     "",
+		},
+		Subjects: []rbac.Subject{},
+	}
 
-	err := ingressRequest.Delete(binding)
+	klog.Infof("Removing ClusterRoleBinding .", name)
+	err := ingressRequest.Delete(b)
 	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("Failure deleting %q clusterrolebinding: %v", name, err)
+		return fmt.Errorf("Failure deleting %q ClusterRoleBinding: %v", name, err)
 	}
 
 	return nil

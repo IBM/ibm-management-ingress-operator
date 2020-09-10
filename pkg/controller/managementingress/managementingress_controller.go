@@ -28,8 +28,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+
 	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 	k8shandler "github.com/IBM/ibm-management-ingress-operator/pkg/controller/managementingress/handler"
+	k8sutils "github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 const (
@@ -100,7 +102,46 @@ func (r *ReconcileManagementIngress) Reconcile(request reconcile.Request) (recon
 		return reconcile.Result{}, nil
 	}
 
-	err = k8shandler.Reconcile(instance, r.client, r.recorder)
+	i := k8shandler.NewIngressHandler(instance, r.client, r.recorder, r.scheme)
+
+	finalizerName := "managementIngress-clean-up"
+
+	// examine DeletionTimestamp to determine if object is under deletion
+	if instance.ObjectMeta.DeletionTimestamp.IsZero() {
+		// The object is not being deleted, so if it does not have our finalizer,
+		// then lets add the finalizer and update the object. This is equivalent
+		// registering our finalizer.
+		if !k8sutils.ContainsString(instance.ObjectMeta.Finalizers, finalizerName) {
+			instance.ObjectMeta.Finalizers = append(instance.ObjectMeta.Finalizers, finalizerName)
+			if err := r.client.Update(context.Background(), instance); err != nil {
+				klog.Errorf("Failed to add finalizer: ", err)
+				return reconcile.Result{}, err
+			}
+		}
+	} else {
+		// The object is being deleted
+		if k8sutils.ContainsString(instance.ObjectMeta.Finalizers, finalizerName) {
+			// our finalizer is present, so lets handle any external dependency
+			if err := k8shandler.DeleteClusterResources(i); err != nil {
+				// if fail to delete the external dependency here, return with error
+				// so that it can be retried
+				klog.Errorf("Failed to delete cluster resources: ", err)
+				return reconcile.Result{}, err
+			}
+
+			// remove our finalizer from the list and update it.
+			instance.ObjectMeta.Finalizers = k8sutils.RemoveString(instance.ObjectMeta.Finalizers, finalizerName)
+			if err := r.client.Update(context.Background(), instance); err != nil {
+				klog.Errorf("Failed to remove finalizer: ", err)
+				return reconcile.Result{}, err
+			}
+		}
+
+		// Stop reconciliation as the item is being deleted
+		return reconcile.Result{}, nil
+	}
+
+	err = k8shandler.Reconcile(i)
 	if err != nil {
 		klog.Errorf("Failure reconciling ManagementIngress: %v", err)
 		return reconcile.Result{}, err

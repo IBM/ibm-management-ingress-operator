@@ -16,6 +16,7 @@
 package handler
 
 import (
+	rbac "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
@@ -26,3 +27,48 @@ var (
 	defaultMemoryLimit resource.Quantity = resource.MustParse("512Mi")
 	defaultCpuLimit    resource.Quantity = resource.MustParse("200m")
 )
+
+var defaultRules = []rbac.PolicyRule{
+	{
+		APIGroups: []string{""},
+		Resources: []string{"services"},
+		ResourceNames: nil,
+		Verbs: []string{"get", "list", "watch"},
+	},
+	{
+		APIGroups: []string{""},
+		Resources: []string{"endpoints", "nodes", "pods", "secrets"},
+		ResourceNames: nil,
+		Verbs: []string{"list", "watch"},
+	},
+	{
+		APIGroups: []string{""},
+		Resources: []string{"configmaps"},
+		ResourceNames: nil,
+		Verbs: []string{"create", "get", "list", "update", "watch"},
+	},
+	{
+		APIGroups: []string{""},
+		Resources: []string{"events"},
+		ResourceNames: nil,
+		Verbs: []string{"create", "patch"},
+	},
+	{
+		APIGroups: []string{"extensions", "networking.k8s.io"},
+		Resources: []string{"ingresses"},
+		ResourceNames: nil,
+		Verbs: []string{"get", "list", "watch"},
+	},
+	{
+		APIGroups: []string{"extensions", "networking.k8s.io"},
+		Resources: []string{"ingresses/status"},
+		ResourceNames: nil,
+		Verbs: []string{"update"},
+	},
+	{
+		APIGroups: []string{"security.openshift.io"},
+		Resources: []string{"securitycontextconstraints"},
+		ResourceNames: []string{SCCName},
+		Verbs: []string{"use"},
+	},
+}

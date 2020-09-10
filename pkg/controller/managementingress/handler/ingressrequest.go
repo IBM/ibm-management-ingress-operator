@@ -19,7 +19,6 @@ import (
 	"context"
 	"time"
 
-	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -29,12 +28,25 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
+
+	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 )
 
 type IngressRequest struct {
 	client            client.Client
 	managementIngress *v1alpha1.ManagementIngress
 	recorder          record.EventRecorder
+	scheme            *runtime.Scheme
+}
+
+func NewIngressHandler(instance *v1alpha1.ManagementIngress, c client.Client, r record.EventRecorder, s *runtime.Scheme) *IngressRequest {
+
+	return &IngressRequest{
+		managementIngress: instance,
+		client:            c,
+		recorder:          r,
+		scheme:            s,
+	}
 }
 
 func (ingressRequest *IngressRequest) isManaged() bool {

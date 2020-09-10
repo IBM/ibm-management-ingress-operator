@@ -256,6 +256,30 @@ spec:
           - list
           - use
         - apiGroups:
+          - rbac.authorization.k8s.io
+          resources:
+          - clusterroles
+          resourceNames:
+          - management-ingress
+          verbs:
+          - delete
+        - apiGroups:
+          - rbac.authorization.k8s.io
+          resources:
+          - clusterrolebindings
+          resourceNames:
+          - management-ingress
+          verbs:
+          - delete
+        - apiGroups:
+          - security.openshift.io
+          resources:
+          - securitycontextconstraints
+          resourceNames:
+          - management-ingress-scc
+          verbs:
+          - delete
+        - apiGroups:
           - certmanager.k8s.io
           resources:
           - clusterissuers
@@ -271,44 +295,42 @@ spec:
           - list
           - watch
         - apiGroups:
-            - "extensions"
-            - "networking.k8s.io"
+          - "extensions"
+          - "networking.k8s.io"
           resources:
-            - ingresses
+          - ingresses
           verbs:
-            - get
-            - list
-            - watch
+          - get
+          - list
+          - watch
         - apiGroups:
-            - "extensions"
-            - "networking.k8s.io"
+          - "extensions"
+          - "networking.k8s.io"
           resources:
-            - ingresses/status
+          - ingresses/status
           verbs:
-            - update
+          - update
         - apiGroups:
-            - "operator.openshift.io"
+          - "operator.openshift.io"
           resources:
-            - dnses
-            - ingresscontrollers
+          - dnses
+          - ingresscontrollers
           verbs:
-            - get
-            - list
-            - watch
+          - get
+          - list
+          - watch
         - apiGroups:
-            - ""
+          - ""
           resources:
-            - nodes
+          - nodes
           verbs:
-            - get
-            - list
-            - watch
+          - get
+          - list
+          - watch
         - apiGroups:
           - ""
           resources:
           - pods
-          - services
-          - services/finalizers
           - serviceaccounts
           - endpoints
           - persistentvolumeclaims
@@ -317,12 +339,34 @@ spec:
           - secrets
           verbs:
           - create
-          - delete
           - get
           - list
+          - watch
+        - apiGroups:
+          - ""
+          resources:
+          - services
+          verbs:
+          - create
+          - get
+          - list
+          - watch
           - patch
           - update
-          - watch
+        - apiGroups:
+          - ""
+          resources:
+          - events
+          verbs:
+          - patch
+          - update
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          verbs:
+          - patch
+          - update
         - apiGroups:
           - apps
           resources:
@@ -332,10 +376,8 @@ spec:
           - statefulsets
           verbs:
           - create
-          - delete
           - get
           - list
-          - patch
           - update
           - watch
         - apiGroups:
@@ -350,15 +392,15 @@ spec:
           - operator.ibm.com
           resources:
           - managementingresses
+          verbs:
+          - '*'
+        - apiGroups:
+          - operator.ibm.com
+          resources:
+          - managementingresses/finalizers
           - managementingresses/status
           verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
           - update
-          - watch
         - apiGroups:
           - route.openshift.io
           resources:
@@ -387,13 +429,7 @@ spec:
           resources:
           - servicemonitors
           verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
+          - '*'
         serviceAccountName: ibm-management-ingress-operator
     strategy: deployment
   installModes:

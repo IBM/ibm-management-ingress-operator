@@ -30,6 +30,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"k8s.io/klog"
 )
 
@@ -297,7 +298,9 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 		ingressRequest.managementIngress.Spec.Replicas,
 		podSpec)
 
-	utils.AddOwnerRefToObject(ds, utils.AsOwner(ingressRequest.managementIngress))
+	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, ds, ingressRequest.scheme); err != nil {
+		klog.Errorf("Error setting controller reference on Deployment: %v", err)
+	}
 
 	err = ingressRequest.Create(ds)
 	if err != nil {
@@ -364,30 +367,6 @@ func (ingressRequest *IngressRequest) GetDeploymentPods(selector map[string]stri
 	)
 
 	return list, err
-}
-
-//RemoveDaemonset with given name and namespace
-func (ingressRequest *IngressRequest) RemoveDaemonset(name string) error {
-
-	deployment := &apps.Deployment{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Deployment",
-			APIVersion: apps.SchemeGroupVersion.String(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: ingressRequest.managementIngress.Namespace,
-		},
-		Spec: apps.DeploymentSpec{},
-	}
-
-	klog.Infof("Deleting Deployment for %q.", ingressRequest.managementIngress.Name)
-	err := ingressRequest.Delete(deployment)
-	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("Failure deleting %q deployment %v", name, err)
-	}
-
-	return nil
 }
 
 func (ingressRequest *IngressRequest) waitForDeploymentReady(ds *apps.Deployment) error {

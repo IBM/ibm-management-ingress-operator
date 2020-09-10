@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	scc "github.com/openshift/api/security/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -77,8 +76,6 @@ func (ingressRequest *IngressRequest) CreateSecurityContextConstraint() error {
 		ingressRequest.managementIngress.Namespace,
 	)
 
-	utils.AddOwnerRefToObject(scc, utils.AsOwner(ingressRequest.managementIngress))
-
 	klog.Infof("Creating SecurityContextConstraint %q for %q.", SCCName, ingressRequest.managementIngress.Name)
 	err := ingressRequest.Create(scc)
 	if err != nil && !errors.IsAlreadyExists(err) {
@@ -102,7 +99,7 @@ func (ingressRequest *IngressRequest) RemoveSecurityContextConstraint(name strin
 		},
 	}
 
-	klog.Infof("Removing SecurityContextConstraint for %q.", ingressRequest.managementIngress.Name)
+	klog.Infof("Removing SecurityContextConstraint .", name)
 	err := ingressRequest.Delete(scc)
 	if err != nil && !errors.IsNotFound(err) {
 		return fmt.Errorf("Failure deleting %v SecurityContextConstraint %v", name, err)
