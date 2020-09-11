@@ -30,6 +30,13 @@ IMG ?= ibm-management-ingress-operator
 REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
 CSV_VERSION ?= 1.3.1
 
+VERSION ?= $(shell git describe --exact-match 2> /dev/null || \
+                 git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)
+RELEASE_VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ print $$3}' | tr -d '"')
+
+VCS_URL ?= https://github.com/IBM/go-repo-template
+VCS_REF ?= $(shell git rev-parse HEAD)
+
 IMAGE_REPO ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
 IMAGE_NAME ?= ibm-management-ingress-operator
 
@@ -40,9 +47,7 @@ MARKDOWN_LINT_WHITELIST=https://quay.io/cnr
 
 TESTARGS_DEFAULT := "-v"
 export TESTARGS ?= $(TESTARGS_DEFAULT)
-#VERSION ?= $(shell git describe --exact-match 2> /dev/null || \
-                 git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)
-VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ print $$3}' | tr -d '"')
+
 LOCAL_OS := $(shell uname)
 ARCH := $(shell uname -m)
 LOCAL_ARCH := "amd64"
@@ -158,7 +163,7 @@ scorecard: ## Run scorecard test
 
 # multiarch-image section
 multiarch-image: $(CONFIG_DOCKER_TARGET)
-	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(IMAGE_REPO) $(IMAGE_NAME) $(VERSION)
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(IMAGE_REPO) $(IMAGE_NAME) $(VERSION) $(RELEASE_VERSION)
 
 csv: ## Push CSV package to the catalog
 	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
