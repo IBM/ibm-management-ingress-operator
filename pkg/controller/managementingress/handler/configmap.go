@@ -81,9 +81,6 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 		var mergePatch []byte
 		mergePatch, err := json.Marshal(map[string]interface{}{
 			"data": cm.Data,
-			"metadata": map[string]interface{}{
-				"ownerReferences": cfg.ObjectMeta.OwnerReferences,
-			},
 		})
 
 		if err != nil {
@@ -101,7 +98,7 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 	}
 
 	klog.Infof("Creating or patching configmap succeeded: %v for %q", cm.ObjectMeta.Name, ingr.managementIngress.Name)
-	ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created or patched configmap %q", AppName)
+	ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created or patched configmap %q", cm.ObjectMeta.Name)
 	return nil
 }
 
@@ -172,7 +169,7 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 			}
 		}
 	} else {
-		ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created or updated configmap %q", AppName)
+		ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created or updated configmap %q", cm.ObjectMeta.Name)
 	}
 
 	return nil
