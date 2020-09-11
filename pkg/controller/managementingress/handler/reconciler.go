@@ -56,11 +56,6 @@ func Reconcile(ingressRequest *IngressRequest) (err error) {
 		return fmt.Errorf("Unable to create or update certificates for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
-	// create serviceAccount
-	if err = ingressRequest.CreateServiceAccount(); err != nil {
-		return fmt.Errorf("Unable to create serviceAccount for %q: %v", ingressRequest.managementIngress.Name, err)
-	}
-
 	// create scc
 	if err = ingressRequest.CreateSecurityContextConstraint(); err != nil {
 		return fmt.Errorf("Unable to create SecurityContextConstraint for %q: %v", ingressRequest.managementIngress.Name, err)

@@ -229,7 +229,7 @@ spec:
                   value: ""
                 - name: VERSION
                   value: ""
-                image: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibm-management-ingress-operator:citi
+                image: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom/ibm-management-ingress-operator:citi
                 imagePullPolicy: Always
                 name: ibm-management-ingress-operator
                 resources:
@@ -387,6 +387,7 @@ spec:
           - operator.ibm.com
           resources:
           - managementingresses
+          - managementingresses/finalizers
           - managementingresses/status
           verbs:
           - create

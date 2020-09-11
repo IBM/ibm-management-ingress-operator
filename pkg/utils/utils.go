@@ -45,6 +45,10 @@ func AsOwner(o *v1alpha1.ManagementIngress) metav1.OwnerReference {
 	}
 }
 
+func AddOwnerRefToObject(o metav1.Object, r metav1.OwnerReference) {
+	o.SetOwnerReferences(append(o.GetOwnerReferences(), r))
+}
+
 func AreMapsSame(lhs, rhs map[string]string) bool {
 	return reflect.DeepEqual(lhs, rhs)
 }

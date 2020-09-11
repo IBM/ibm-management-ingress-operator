@@ -33,8 +33,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 const (

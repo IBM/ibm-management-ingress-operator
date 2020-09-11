@@ -33,8 +33,6 @@ import (
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
-
-	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 )
 
 var (
