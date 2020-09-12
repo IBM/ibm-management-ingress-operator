@@ -25,7 +25,7 @@ import (
 func Reconcile(ingressRequest *IngressRequest) (err error) {
 
 	// First time in reconcile set route host in status.
-	requestIngress := ingressRequest.managementIngress.DeepCopy()
+	requestIngress := ingressRequest.managementIngress
 	if len(requestIngress.Status.Host) <= 0 {
 		// Get route host
 		status := &v1alpha1.ManagementIngressStatus{}
