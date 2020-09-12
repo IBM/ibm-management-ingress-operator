@@ -22,7 +22,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 	operatorv1 "github.com/openshift/api/operator/v1"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
@@ -30,8 +29,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"k8s.io/klog"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	"github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 const (
@@ -205,8 +206,13 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		TopologyKey: "kubernetes.io/hostname",
 	}
 
+	weightedPodAffinityTerm := core.WeightedPodAffinityTerm{
+		PodAffinityTerm: podAffinityTerm,
+		Weight:          100,
+	}
+
 	podAntiAffinity := &core.PodAntiAffinity{
-		RequiredDuringSchedulingIgnoredDuringExecution: []core.PodAffinityTerm{podAffinityTerm},
+		PreferredDuringSchedulingIgnoredDuringExecution: []core.WeightedPodAffinityTerm{weightedPodAffinityTerm},
 	}
 
 	affinity := &core.Affinity{PodAntiAffinity: podAntiAffinity}
