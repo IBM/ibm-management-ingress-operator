@@ -17,10 +17,12 @@ package handler
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
 	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
@@ -33,6 +35,17 @@ import (
 func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer *v1alph1.CertIssuer) *certmanager.Certificate {
 
 	labels := GetCommonLabels()
+
+	namespace, err := k8sutil.GetWatchNamespace()
+	if err != nil {
+		klog.Errorf("Failure getting watch namespace: %v", err)
+		os.Exit(1)
+	}
+
+	issuerKind := "Issuer"
+	if len(namespace) == 0 {
+		issuerKind = "ClusterIssuer"
+	}
 
 	return &certmanager.Certificate{
 		TypeMeta: metav1.TypeMeta{
@@ -50,7 +63,7 @@ func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer 
 			RenewBefore: &metav1.Duration{Duration: 24 * time.Hour},
 			SecretName:  secret,
 			IssuerRef: certmanager.ObjectReference{
-				Kind: string(issuer.Kind),
+				Kind: issuerKind,
 				Name: issuer.Name,
 			},
 			DNSNames:    hosts,
