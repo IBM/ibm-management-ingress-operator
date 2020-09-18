@@ -248,6 +248,7 @@ spec:
           - securitycontextconstraints
           verbs:
           - create
+          - delete
           - list
           - use
         - apiGroups:
