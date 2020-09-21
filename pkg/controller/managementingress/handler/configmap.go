@@ -61,13 +61,14 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 		if errors.IsNotFound(err) {
 			// create configmap
 			klog.Infof("Creating Configmap: %s for %q.", cm.ObjectMeta.Name, ingr.managementIngress.Name)
-
+			if err = controllerutil.SetControllerReference(ingr.managementIngress, cm, ingr.scheme); err != nil {
+				klog.Errorf("Error setting controller reference on Configmap: %v", err)
+			}
 			err = ingr.Create(cm)
 			if err != nil {
 				ingr.recorder.Eventf(ingr.managementIngress, "Warning", "CreatedConfigmap", "Failure creating configmap %q: %v", cm.ObjectMeta.Name, err)
 				return fmt.Errorf("Failure creating configmap: %v", err)
 			}
-
 		} else {
 			return err
 		}

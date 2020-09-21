@@ -26,8 +26,8 @@ import (
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"k8s.io/klog"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 //NewRoute stubs an instance of a Route
@@ -86,6 +86,9 @@ func (ingressRequest *IngressRequest) createOrUpdateSecret(secretName, namespace
 	clusterSecret := NewSecret(secretName, namespace, caCert)
 
 	klog.Infof("create secret: %s for %q.", secretName, ingressRequest.managementIngress.ObjectMeta.Name)
+	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, clusterSecret, ingressRequest.scheme); err != nil {
+		klog.Errorf("Error setting controller reference on Secret: %v", err)
+	}
 	err := ingressRequest.Create(clusterSecret)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
