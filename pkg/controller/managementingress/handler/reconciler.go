@@ -107,14 +107,14 @@ func DeleteClusterResources(i *IngressRequest) error {
 	}
 
 	// Delete ClusterRole
-	if err := i.RemoveClusterRole(AppName); err != nil {
-		return err
-	}
+	// if err := i.RemoveClusterRole(AppName); err != nil {
+	// 	return err
+	// }
 
 	// Delete ClusterRoleBinding
-	if err := i.RemoveClusterRoleBinding(AppName); err != nil {
-		return err
-	}
+	// if err := i.RemoveClusterRoleBinding(AppName); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
