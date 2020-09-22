@@ -19,23 +19,64 @@ import (
 	"context"
 
 	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	v1alpha1 "github.com/IBM/ibm-management-ingress-operator/pkg/apis/operator/v1alpha1"
 	k8shandler "github.com/IBM/ibm-management-ingress-operator/pkg/controller/managementingress/handler"
-	k8sutils "github.com/IBM/ibm-management-ingress-operator/pkg/utils"
 )
 
 const (
 	controllerName = "managementingress-controller"
+)
+
+var (
+	// watchedResources contains all resources we will watch and reconcile when changed
+	// Ideally this would also contain Istio CRDs, but there is a race condition here - we cannot watch
+	// a type that does not yet exist.
+	watchedResources = []schema.GroupVersionKind{
+		{Group: "apps", Version: "v1", Kind: "Deployment"},
+		{Group: "", Version: "v1", Kind: "Service"},
+		{Group: "", Version: "v1", Kind: "Secret"},
+		{Group: "", Version: "v1", Kind: "ConfigMap"},
+		{Group: "", Version: "v1", Kind: "ServiceAccount"},
+		{Group: "certmanager.k8s.io", Version: "v1alpha1", Kind: "Certificate"},
+		{Group: "route.openshift.io", Version: "v1", Kind: "Route"},
+	}
+
+	// watchedClusterResources = []schema.GroupVersionKind{
+	// 	{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRoleBinding"},
+	// 	{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRole"},
+	// 	{Group: "security.openshift.io", Version: "v1", Kind: "SecurityContextConstraints"},
+	// }
+
+	ownedResourcePredicates = predicate.Funcs{
+		CreateFunc: func(e event.CreateEvent) bool {
+			return false
+		},
+		GenericFunc: func(_ event.GenericEvent) bool {
+			// no action
+			return false
+		},
+		DeleteFunc: func(e event.DeleteEvent) bool {
+			// only handle delete event in case user accidently removed the managed resource.
+			return true
+		},
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			return false
+		},
+	}
 )
 
 // Add creates a new ManagementIngress Controller and adds it to the Manager. The Manager will set fields on the Controller
@@ -67,6 +108,13 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	//watch for changes to operand resources
+	err = watchOperandResources(c)
+	if err != nil {
+		return err
+	}
+
+	klog.Info("Controller added")
 	return nil
 }
 
@@ -85,7 +133,6 @@ type ReconcileManagementIngress struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileManagementIngress) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	klog.Info("Reconciling ManagementIngress")
 
 	// Fetch the ManagementIngress instance
 	instance := &v1alpha1.ManagementIngress{}
@@ -101,45 +148,48 @@ func (r *ReconcileManagementIngress) Reconcile(request reconcile.Request) (recon
 	if instance.Spec.ManagementState == v1alpha1.ManagementStateUnmanaged {
 		return reconcile.Result{}, nil
 	}
-
-	i := k8shandler.NewIngressHandler(instance, r.client, r.recorder, r.scheme)
-
-	finalizerName := "managementIngress-clean-up"
-
-	// examine DeletionTimestamp to determine if object is under deletion
-	if instance.ObjectMeta.DeletionTimestamp.IsZero() {
-		// The object is not being deleted, so if it does not have our finalizer,
-		// then lets add the finalizer and update the object. This is equivalent
-		// registering our finalizer.
-		if !k8sutils.ContainsString(instance.ObjectMeta.Finalizers, finalizerName) {
-			instance.ObjectMeta.Finalizers = append(instance.ObjectMeta.Finalizers, finalizerName)
-			if err := r.client.Update(context.Background(), instance); err != nil {
-				klog.Errorf("Failed to add finalizer: ", err)
-				return reconcile.Result{}, err
-			}
-		}
-	} else {
-		// The object is being deleted
-		if k8sutils.ContainsString(instance.ObjectMeta.Finalizers, finalizerName) {
-			// our finalizer is present, so lets handle any external dependency
-			if err := k8shandler.DeleteClusterResources(i); err != nil {
-				// if fail to delete the external dependency here, return with error
-				// so that it can be retried
-				klog.Errorf("Failed to delete cluster resources: ", err)
-				return reconcile.Result{}, err
-			}
-
-			// remove our finalizer from the list and update it.
-			instance.ObjectMeta.Finalizers = k8sutils.RemoveString(instance.ObjectMeta.Finalizers, finalizerName)
-			if err := r.client.Update(context.Background(), instance); err != nil {
-				klog.Errorf("Failed to remove finalizer: ", err)
-				return reconcile.Result{}, err
-			}
-		}
-
-		// Stop reconciliation as the item is being deleted
+	if !instance.ObjectMeta.DeletionTimestamp.IsZero() {
+		klog.Infof("Instance: %s/%s was deleted. Do nothing!", request.NamespacedName.Namespace, request.NamespacedName.Name)
 		return reconcile.Result{}, nil
 	}
+
+	klog.Info("Reconciling ManagementIngress")
+	i := k8shandler.NewIngressHandler(instance, r.client, r.recorder, r.scheme)
+
+	// // examine DeletionTimestamp to determine if object is under deletion
+	// if instance.ObjectMeta.DeletionTimestamp.IsZero() {
+	// 	// The object is not being deleted, so if it does not have our finalizer,
+	// 	// then lets add the finalizer and update the object. This is equivalent
+	// 	// registering our finalizer.
+	// 	if !k8sutils.ContainsString(instance.ObjectMeta.Finalizers, finalizerName) {
+	// 		instance.ObjectMeta.Finalizers = append(instance.ObjectMeta.Finalizers, finalizerName)
+	// 		if err := r.client.Update(context.Background(), instance); err != nil {
+	// 			klog.Errorf("Failed to add finalizer: ", err)
+	// 			return reconcile.Result{}, err
+	// 		}
+	// 	}
+	// } else {
+	// 	// The object is being deleted
+	// 	if k8sutils.ContainsString(instance.ObjectMeta.Finalizers, finalizerName) {
+	// 		// our finalizer is present, so lets handle any external dependency
+	// 		if err := k8shandler.DeleteClusterResources(i); err != nil {
+	// 			// if fail to delete the external dependency here, return with error
+	// 			// so that it can be retried
+	// 			klog.Errorf("Failed to delete cluster resources: ", err)
+	// 			return reconcile.Result{}, err
+	// 		}
+
+	// 		// remove our finalizer from the list and update it.
+	// 		instance.ObjectMeta.Finalizers = k8sutils.RemoveString(instance.ObjectMeta.Finalizers, finalizerName)
+	// 		if err := r.client.Update(context.Background(), instance); err != nil {
+	// 			klog.Errorf("Failed to remove finalizer: ", err)
+	// 			return reconcile.Result{}, err
+	// 		}
+	// 	}
+
+	// 	// Stop reconciliation as the item is being deleted
+	// 	return reconcile.Result{}, nil
+	// }
 
 	err = k8shandler.Reconcile(i)
 	if err != nil {
@@ -149,4 +199,25 @@ func (r *ReconcileManagementIngress) Reconcile(request reconcile.Request) (recon
 		klog.Infof("Reconciling ManagementIngress was successful")
 	}
 	return reconcile.Result{}, nil
+}
+
+// Watch changes for Istio resources managed by the operator
+func watchOperandResources(c controller.Controller) error {
+	for _, t := range watchedResources {
+		u := &unstructured.Unstructured{}
+		u.SetGroupVersionKind(schema.GroupVersionKind{
+			Kind:    t.Kind,
+			Group:   t.Group,
+			Version: t.Version,
+		})
+		err := c.Watch(&source.Kind{Type: u}, &handler.EnqueueRequestForOwner{
+			IsController: true,
+			OwnerType:    &v1alpha1.ManagementIngress{},
+		}, ownedResourcePredicates)
+
+		if err != nil {
+			klog.Errorf("Could not create watch for %s/%s/%s: %s.", t.Kind, t.Group, t.Version, err)
+		}
+	}
+	return nil
 }

@@ -57,14 +57,14 @@ func Reconcile(ingressRequest *IngressRequest) (err error) {
 	}
 
 	// create serviceAccount
-	if err = ingressRequest.CreateServiceAccount(); err != nil {
-		return fmt.Errorf("Unable to create serviceAccount for %q: %v", ingressRequest.managementIngress.Name, err)
-	}
+	// if err = ingressRequest.CreateServiceAccount(); err != nil {
+	// 	return fmt.Errorf("Unable to create serviceAccount for %q: %v", ingressRequest.managementIngress.Name, err)
+	// }
 
 	// create scc
-	if err = ingressRequest.CreateSecurityContextConstraint(); err != nil {
-		return fmt.Errorf("Unable to create SecurityContextConstraint for %q: %v", ingressRequest.managementIngress.Name, err)
-	}
+	// if err = ingressRequest.CreateSecurityContextConstraint(); err != nil {
+	// 	return fmt.Errorf("Unable to create SecurityContextConstraint for %q: %v", ingressRequest.managementIngress.Name, err)
+	// }
 
 	// Reconcile service
 	if err = ingressRequest.CreateOrUpdateService(); err != nil {
