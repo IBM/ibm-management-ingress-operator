@@ -36,14 +36,14 @@ func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer 
 
 	labels := GetCommonLabels()
 
-	namespace, err := k8sutil.GetWatchNamespace()
+	watchNamespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
 		klog.Errorf("Failure getting watch namespace: %v", err)
 		os.Exit(1)
 	}
 
 	issuerKind := "Issuer"
-	if len(namespace) == 0 {
+	if len(watchNamespace) == 0 {
 		issuerKind = "ClusterIssuer"
 	}
 
