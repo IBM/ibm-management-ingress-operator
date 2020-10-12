@@ -20,7 +20,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	operatorv1 "github.com/openshift/api/operator/v1"
 	apps "k8s.io/api/apps/v1"
@@ -28,7 +27,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -83,16 +81,17 @@ func NewDeployment(name string, namespace string, replicas int32, podSpec core.P
 	}
 }
 
-func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements, nodeSelector map[string]string, tolerations []core.Toleration, allowedHostHeader string, fipsEnabled bool) core.PodSpec {
+func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements, nodeSelector map[string]string,
+	tolerations []core.Toleration, allowedHostHeader string, fipsEnabled bool) core.PodSpec {
 	if resources == nil {
 		resources = &core.ResourceRequirements{
 			Limits: core.ResourceList{
 				core.ResourceMemory: defaultMemoryLimit,
-				core.ResourceCPU:    defaultCpuLimit,
+				core.ResourceCPU:    defaultCPULimit,
 			},
 			Requests: core.ResourceList{
 				core.ResourceMemory: defaultMemoryRequest,
-				core.ResourceCPU:    defaultCpuRequest,
+				core.ResourceCPU:    defaultCPURequest,
 			},
 		}
 	}
@@ -375,27 +374,27 @@ func (ingressRequest *IngressRequest) GetDeploymentPods(selector map[string]stri
 	return list, err
 }
 
-func (ingressRequest *IngressRequest) waitForDeploymentReady(ds *apps.Deployment) error {
+// func (ingressRequest *IngressRequest) waitForDeploymentReady(ds *apps.Deployment) error {
 
-	err := wait.Poll(5*time.Second, 2*time.Second, func() (done bool, err error) {
-		err = ingressRequest.Get(ds.Name, ingressRequest.managementIngress.ObjectMeta.Namespace, ds)
-		if err != nil {
-			if errors.IsNotFound(err) {
-				return false, fmt.Errorf("Failed to get Fluentd deployment: %v", err)
-			}
-			return false, err
-		}
+// 	err := wait.Poll(5*time.Second, 2*time.Second, func() (done bool, err error) {
+// 		err = ingressRequest.Get(ds.Name, ingressRequest.managementIngress.ObjectMeta.Namespace, ds)
+// 		if err != nil {
+// 			if errors.IsNotFound(err) {
+// 				return false, fmt.Errorf("Failed to get Fluentd deployment: %v", err)
+// 			}
+// 			return false, err
+// 		}
 
-		if int(ds.Status.ReadyReplicas) == int(ds.Status.Replicas) {
-			return true, nil
-		}
+// 		if int(ds.Status.ReadyReplicas) == int(ds.Status.Replicas) {
+// 			return true, nil
+// 		}
 
-		return false, nil
-	})
+// 		return false, nil
+// 	})
 
-	if err != nil {
-		return err
-	}
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }

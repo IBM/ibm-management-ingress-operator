@@ -22,53 +22,53 @@ import (
 
 var (
 	defaultMemoryRequest resource.Quantity = resource.MustParse("300Mi")
-	defaultCpuRequest    resource.Quantity = resource.MustParse("50m")
+	defaultCPURequest    resource.Quantity = resource.MustParse("50m")
 
 	defaultMemoryLimit resource.Quantity = resource.MustParse("512Mi")
-	defaultCpuLimit    resource.Quantity = resource.MustParse("200m")
+	defaultCPULimit    resource.Quantity = resource.MustParse("200m")
 )
 
 var defaultRules = []rbac.PolicyRule{
 	{
-		APIGroups: []string{""},
-		Resources: []string{"services"},
+		APIGroups:     []string{""},
+		Resources:     []string{"services"},
 		ResourceNames: nil,
-		Verbs: []string{"get", "list", "watch"},
+		Verbs:         []string{"get", "list", "watch"},
 	},
 	{
-		APIGroups: []string{""},
-		Resources: []string{"endpoints", "nodes", "pods", "secrets"},
+		APIGroups:     []string{""},
+		Resources:     []string{"endpoints", "nodes", "pods", "secrets"},
 		ResourceNames: nil,
-		Verbs: []string{"list", "watch"},
+		Verbs:         []string{"list", "watch"},
 	},
 	{
-		APIGroups: []string{""},
-		Resources: []string{"configmaps"},
+		APIGroups:     []string{""},
+		Resources:     []string{"configmaps"},
 		ResourceNames: nil,
-		Verbs: []string{"create", "get", "list", "update", "watch"},
+		Verbs:         []string{"create", "get", "list", "update", "watch"},
 	},
 	{
-		APIGroups: []string{""},
-		Resources: []string{"events"},
+		APIGroups:     []string{""},
+		Resources:     []string{"events"},
 		ResourceNames: nil,
-		Verbs: []string{"create", "patch"},
+		Verbs:         []string{"create", "patch"},
 	},
 	{
-		APIGroups: []string{"extensions", "networking.k8s.io"},
-		Resources: []string{"ingresses"},
+		APIGroups:     []string{"extensions", "networking.k8s.io"},
+		Resources:     []string{"ingresses"},
 		ResourceNames: nil,
-		Verbs: []string{"get", "list", "watch"},
+		Verbs:         []string{"get", "list", "watch"},
 	},
 	{
-		APIGroups: []string{"extensions", "networking.k8s.io"},
-		Resources: []string{"ingresses/status"},
+		APIGroups:     []string{"extensions", "networking.k8s.io"},
+		Resources:     []string{"ingresses/status"},
 		ResourceNames: nil,
-		Verbs: []string{"update"},
+		Verbs:         []string{"update"},
 	},
 	{
-		APIGroups: []string{"security.openshift.io"},
-		Resources: []string{"securitycontextconstraints"},
+		APIGroups:     []string{"security.openshift.io"},
+		Resources:     []string{"securitycontextconstraints"},
 		ResourceNames: []string{SCCName},
-		Verbs: []string{"use"},
+		Verbs:         []string{"use"},
 	},
 }

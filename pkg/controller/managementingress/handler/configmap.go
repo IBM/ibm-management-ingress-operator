@@ -56,7 +56,7 @@ func NewConfigMap(name string, namespace string, data map[string]string) *core.C
 // for configmap ibmcloud-cluster-info, need to check whether it's already existed, if so, patch it, else create it
 func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 
-	err, cfg := ingr.GetConfigmap(ClusterConfigName, ingr.managementIngress.ObjectMeta.Namespace)
+	cfg, err := ingr.GetConfigmap(ClusterConfigName, ingr.managementIngress.ObjectMeta.Namespace)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// create configmap
@@ -240,14 +240,16 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 	ep := "https://" + ServiceName + "." + ns + ".svc:443"
 
 	// get api server address and port from configmap console-config in namespace openshift-console
-	err, console := ingressRequest.GetConfigmap(ConsoleCfg, ConsoleNS)
+	console, err := ingressRequest.GetConfigmap(ConsoleCfg, ConsoleNS)
 	if err != nil {
 		return err
 	}
 
 	var result map[interface{}]interface{}
 	var apiaddr string
-	yaml.Unmarshal([]byte(console.Data[ConsoleCfgYaml]), &result)
+	if err = yaml.Unmarshal([]byte(console.Data[ConsoleCfgYaml]), &result); err != nil {
+		return err
+	}
 
 	for k, v := range result {
 		if k.(string) == ConsoleClusterInfo {
@@ -255,9 +257,7 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 			for k1, v1 := range cinfo {
 				if k1.(string) == ConsoleMasterURL {
 					apiaddr = v1.(string)
-					if strings.HasPrefix(apiaddr, "https://") {
-						apiaddr = apiaddr[8:]
-					}
+					apiaddr = strings.TrimPrefix(apiaddr, "https://")
 					break
 				}
 			}

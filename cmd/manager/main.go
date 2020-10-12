@@ -22,6 +22,9 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/IBM/ibm-management-ingress-operator/pkg/apis"
+	"github.com/IBM/ibm-management-ingress-operator/pkg/controller"
+	"github.com/IBM/ibm-management-ingress-operator/version"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
@@ -38,9 +41,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
-	"github.com/IBM/ibm-management-ingress-operator/pkg/apis"
-	"github.com/IBM/ibm-management-ingress-operator/pkg/controller"
-	"github.com/IBM/ibm-management-ingress-operator/version"
 )
 
 // Change below variables to serve metrics on different host or port.

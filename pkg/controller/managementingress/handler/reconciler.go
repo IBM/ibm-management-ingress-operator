@@ -26,22 +26,20 @@ func Reconcile(ingressRequest *IngressRequest) (err error) {
 
 	// First time in reconcile set route host in status.
 	requestIngress := ingressRequest.managementIngress
-	if len(requestIngress.Status.Host) <= 0 {
+	if len(requestIngress.Status.Host) == 0 {
 		// Get route host
-		status := &v1alpha1.ManagementIngressStatus{}
 		host, err := getRouteHost(ingressRequest)
 		if err != nil {
 			return err
-		} else {
-			status = &v1alpha1.ManagementIngressStatus{
-				Conditions: map[string]v1alpha1.ConditionList{},
-				PodState:   v1alpha1.PodStateMap{},
-				Host:       host,
-				State: v1alpha1.OperandState{
-					Message: "Get router host for management ingress.",
-					Status:  v1alpha1.StatusDeploying,
-				},
-			}
+		}
+		status := &v1alpha1.ManagementIngressStatus{
+			Conditions: map[string]v1alpha1.ConditionList{},
+			PodState:   v1alpha1.PodStateMap{},
+			Host:       host,
+			State: v1alpha1.OperandState{
+				Message: "Get router host for management ingress.",
+				Status:  v1alpha1.StatusDeploying,
+			},
 		}
 
 		// Update CR status

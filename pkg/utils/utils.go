@@ -177,10 +177,9 @@ func PodVolumeEquivalent(lhs, rhs []core.Volume) bool {
 			}
 
 			return false
-		} else {
-			// if rhsMap doesn't have the same key has lhsMap
-			return false
 		}
+		// if rhsMap doesn't have the same key has lhsMap
+		return false
 	}
 
 	return true

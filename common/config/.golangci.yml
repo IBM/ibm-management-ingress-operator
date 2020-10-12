@@ -35,7 +35,7 @@ linters:
     - gofmt
     - goimports
     - golint
-    - gosec
+    # - gosec
     - gosimple
     - govet
     - ineffassign
@@ -80,7 +80,7 @@ linters-settings:
     check-shadowing: false
   golint:
     # minimal confidence for issues, default is 0.8
-    min-confidence: 0.0
+    min-confidence: 0.6
   gofmt:
     # simplify code: gofmt with `-s` option, true by default
     simplify: true
@@ -101,7 +101,7 @@ linters-settings:
   lll:
     # max line length, lines longer will be reported. Default is 120.
     # '\t' is counted as 1 character by default, and can be changed with the tab-width option
-    line-length: 200
+    line-length: 180
     # tab width in spaces. Default to 1.
     tab-width: 1
   unused:
@@ -131,7 +131,7 @@ linters-settings:
       - captLocal
       - caseOrder
       - codegenComment
-      - commentedOutCode
+      # - commentedOutCode
       - commentedOutImport
       - defaultCaseOrder
       - deprecatedComment
@@ -150,7 +150,7 @@ linters-settings:
       - initClause
       - methodExprCall
       - nilValReturn
-      - octalLiteral
+      # - octalLiteral
       - offBy1
       - rangeExprCopy
       - regexpMust

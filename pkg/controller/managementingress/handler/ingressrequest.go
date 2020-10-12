@@ -49,9 +49,9 @@ func NewIngressHandler(instance *v1alpha1.ManagementIngress, c client.Client, r 
 	}
 }
 
-func (ingressRequest *IngressRequest) isManaged() bool {
-	return ingressRequest.managementIngress.Spec.ManagementState == v1alpha1.ManagementStateManaged
-}
+// func (ingressRequest *IngressRequest) isManaged() bool {
+// 	return ingressRequest.managementIngress.Spec.ManagementState == v1alpha1.ManagementStateManaged
+// }
 
 func (ingressRequest *IngressRequest) Create(object runtime.Object) (err error) {
 	klog.V(4).Infof("Creating object: %v", object)
@@ -94,7 +94,7 @@ func (ingressRequest *IngressRequest) List(selector map[string]string, object ru
 	)
 }
 
-func (ingressRequest *IngressRequest) GetSecret(name string) (error, *core.Secret) {
+func (ingressRequest *IngressRequest) GetSecret(name string) (*core.Secret, error) {
 	secret := &core.Secret{}
 
 	err := wait.Poll(3*time.Second, 2*time.Second, func() (done bool, err error) {
@@ -107,13 +107,13 @@ func (ingressRequest *IngressRequest) GetSecret(name string) (error, *core.Secre
 	})
 
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
-	return nil, secret
+	return secret, nil
 }
 
-func (ingressRequest *IngressRequest) GetConfigmap(name, namespace string) (error, *core.ConfigMap) {
+func (ingressRequest *IngressRequest) GetConfigmap(name, namespace string) (*core.ConfigMap, error) {
 	cfg := &core.ConfigMap{}
 
 	err := wait.Poll(3*time.Second, 2*time.Second, func() (done bool, err error) {
@@ -126,10 +126,10 @@ func (ingressRequest *IngressRequest) GetConfigmap(name, namespace string) (erro
 	})
 
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
-	return nil, cfg
+	return cfg, nil
 }
 
 func (ingressRequest *IngressRequest) Delete(object runtime.Object) (err error) {
@@ -168,8 +168,8 @@ func getCommonMatchExpressions() []metav1.LabelSelectorRequirement {
 
 func GetCommonAnnotations() map[string]string {
 	return map[string]string{
-		"productName":    ProductName,
-		"productID":      ProductID,
-		"productMetric":  ProductMetric,
+		"productName":   ProductName,
+		"productID":     ProductID,
+		"productMetric": ProductMetric,
 	}
 }

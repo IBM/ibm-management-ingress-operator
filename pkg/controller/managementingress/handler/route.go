@@ -96,9 +96,9 @@ func (ingressRequest *IngressRequest) createOrUpdateSecret(secretName, namespace
 		}
 
 		klog.Infof("Trying to update Secret: %s for %q as it already existed.", secretName, ingressRequest.managementIngress.Name)
-		current := &core.Secret{}
 		// Update config
-		if err, current = ingressRequest.GetSecret(secretName); err != nil {
+		current, err := ingressRequest.GetSecret(secretName)
+		if err != nil {
 			return fmt.Errorf("Failure getting Secret: %q  for %q: %v", secretName, ingressRequest.managementIngress.Name, err)
 		}
 
@@ -124,7 +124,7 @@ func (ingressRequest *IngressRequest) createOrUpdateSecret(secretName, namespace
 
 func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	// Get TLS secret for OCP route
-	err, secret := ingressRequest.GetSecret(RouteSecret)
+	secret, err := ingressRequest.GetSecret(RouteSecret)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	caCert := secret.Data["ca.crt"]
 
 	// Get TLS secret of management ingress service, then get CA cert for OCP route
-	err, secret = ingressRequest.GetSecret(TLSSecretName)
+	secret, err = ingressRequest.GetSecret(TLSSecretName)
 	if err != nil {
 		return err
 	}
