@@ -113,7 +113,7 @@ func (ingressRequest *IngressRequest) CreateCert(cert *certmanager.Certificate) 
 	klog.Infof("Creating Certificate: %s for %q.", cert.ObjectMeta.Name, ingressRequest.managementIngress.ObjectMeta.Name)
 	err := ingressRequest.Create(cert)
 	if err != nil && !errors.IsAlreadyExists(err) {
-		return fmt.Errorf("Failure constructing certificate for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
+		return fmt.Errorf("failure constructing certificate for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
 	}
 
 	return nil

@@ -258,7 +258,7 @@ func getClusterDomain(ingressRequest *IngressRequest) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("The Cluster Domain from DNS operator config is empty. Check DNS: %v", dns)
+	return "", fmt.Errorf("the Cluster Domain from DNS operator config is empty. Check DNS: %v", dns)
 }
 
 func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
@@ -279,7 +279,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 
 	clusterDomain, err := getClusterDomain(ingressRequest)
 	if err != nil {
-		return fmt.Errorf("Failure getting cluster domain: %v", err)
+		return fmt.Errorf("failure getting cluster domain: %v", err)
 	}
 
 	podSpec := newPodSpec(
@@ -311,13 +311,13 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
 			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedDeployment", "Failure creating deployment %q: %v", AppName, err)
-			return fmt.Errorf("Failure creating Deployment: %v", err)
+			return fmt.Errorf("failure creating Deployment: %v", err)
 		}
 
 		klog.Infof("Trying to update Deployment: %s for %q as it already existed.", AppName, ingressRequest.managementIngress.Name)
 		current := &apps.Deployment{}
 		if err = ingressRequest.Get(AppName, ingressRequest.managementIngress.ObjectMeta.Namespace, current); err != nil {
-			return fmt.Errorf("Failure getting %q Deployment for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
+			return fmt.Errorf("failure getting %q Deployment for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
 		}
 
 		desired, different := utils.IsDeploymentDifferent(current, ds)
@@ -331,7 +331,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 		err = ingressRequest.Update(desired)
 		if err != nil {
 			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedDeployment", "Failure updating deployment %q: %v", AppName, err)
-			return fmt.Errorf("Failure updating %q Deployment for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
+			return fmt.Errorf("failure updating %q Deployment for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
 		}
 		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "UpdatedDeployment", "Successfully updated deployment %q", AppName)
 	} else {
@@ -380,7 +380,7 @@ func (ingressRequest *IngressRequest) GetDeploymentPods(selector map[string]stri
 // 		err = ingressRequest.Get(ds.Name, ingressRequest.managementIngress.ObjectMeta.Namespace, ds)
 // 		if err != nil {
 // 			if errors.IsNotFound(err) {
-// 				return false, fmt.Errorf("Failed to get Fluentd deployment: %v", err)
+// 				return false, fmt.Errorf("failed to get Fluentd deployment: %v", err)
 // 			}
 // 			return false, err
 // 		}

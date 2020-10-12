@@ -71,7 +71,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateService() error {
 	klog.Infof("Creating Service %q for %q.", ServiceName, ingressRequest.managementIngress.Name)
 	err := ingressRequest.Create(service)
 	if err != nil && !errors.IsAlreadyExists(err) {
-		return fmt.Errorf("Failure constructing service for %q: %v", ingressRequest.managementIngress.Name, err)
+		return fmt.Errorf("failure constructing service for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedService", "Successfully created service %q", ServiceName)
 

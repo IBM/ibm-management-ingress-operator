@@ -79,7 +79,7 @@ func (ingressRequest *IngressRequest) CreateSecurityContextConstraint() error {
 	klog.Infof("Creating SecurityContextConstraint %q for %q.", SCCName, ingressRequest.managementIngress.Name)
 	err := ingressRequest.Create(scc)
 	if err != nil && !errors.IsAlreadyExists(err) {
-		return fmt.Errorf("Failure constructing SecurityContextConstraint for %q: %v", ingressRequest.managementIngress.Name, err)
+		return fmt.Errorf("failure constructing SecurityContextConstraint for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedSecurityContextConstraint", "Successfully created SecurityContextConstraint %q", SCCName)
 
@@ -102,7 +102,7 @@ func (ingressRequest *IngressRequest) RemoveSecurityContextConstraint(name strin
 	klog.Infof("Removing SecurityContextConstraint: %s", name)
 	err := ingressRequest.Delete(scc)
 	if err != nil && !errors.IsNotFound(err) {
-		return fmt.Errorf("Failure deleting %v SecurityContextConstraint %v", name, err)
+		return fmt.Errorf("failure deleting %v SecurityContextConstraint %v", name, err)
 	}
 
 	return nil
