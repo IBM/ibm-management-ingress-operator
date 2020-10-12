@@ -6,11 +6,7 @@ require (
 	github.com/Azure/go-autorest v12.2.0+incompatible
 	github.com/jetstack/cert-manager v0.10.0
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
-	github.com/openshift/cluster-logging-operator v0.0.0-20191214044220-23b8ba943be0
-	github.com/openshift/elasticsearch-operator v0.0.0-20191205050238-a39c936a841a
-	github.com/operator-framework/operator-lifecycle-manager v0.0.0-20191115003340-16619cd27fa5
 	github.com/operator-framework/operator-sdk v0.13.0
-	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/pflag v1.0.5
 	gopkg.in/yaml.v2 v2.2.4
 	k8s.io/api v0.0.0
@@ -18,7 +14,6 @@ require (
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
 	k8s.io/kube-openapi v0.0.0-20190918143330-0270cf2f1c1d
-	k8s.io/kubernetes v1.16.2
 	sigs.k8s.io/controller-runtime v0.4.0
 )
 

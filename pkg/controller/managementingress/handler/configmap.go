@@ -56,7 +56,7 @@ func NewConfigMap(name string, namespace string, data map[string]string) *core.C
 // for configmap ibmcloud-cluster-info, need to check whether it's already existed, if so, patch it, else create it
 func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 
-	err, cfg := ingr.GetConfigmap(ClusterConfigName, ingr.managementIngress.ObjectMeta.Namespace)
+	cfg, err := ingr.GetConfigmap(ClusterConfigName, ingr.managementIngress.ObjectMeta.Namespace)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// create configmap
@@ -67,7 +67,7 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 			err = ingr.Create(cm)
 			if err != nil {
 				ingr.recorder.Eventf(ingr.managementIngress, "Warning", "CreatedConfigmap", "Failure creating configmap %q: %v", cm.ObjectMeta.Name, err)
-				return fmt.Errorf("Failure creating configmap: %v", err)
+				return fmt.Errorf("failure creating configmap: %v", err)
 			}
 		} else {
 			return err
@@ -86,7 +86,7 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 
 		if err != nil {
 			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "PatchConfigmap", "Failure encoding patch data for %q: %v", cm.ObjectMeta.Name, err)
-			return fmt.Errorf("Failing encoding patch data for %q with value %s: %v", ingr.managementIngress.Name,
+			return fmt.Errorf("failing encoding patch data for %q with value %s: %v", ingr.managementIngress.Name,
 				mergePatch, err)
 		}
 		klog.Infof("Patching Configmap: %s for %q with data %v.", cfg.ObjectMeta.Name, ingr.managementIngress.Name,
@@ -94,7 +94,7 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 
 		if err = ingr.Patch(cfg, mergePatch); err != nil {
 			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "PatchConfigmap", "Failure patching configmap for %q: %v", cm.ObjectMeta.Name, err)
-			return fmt.Errorf("Failure patching Configmap: %v for %q: %v", cfg.ObjectMeta.Name, ingr.managementIngress.Name, err)
+			return fmt.Errorf("failure patching Configmap: %v for %q: %v", cfg.ObjectMeta.Name, ingr.managementIngress.Name, err)
 		}
 	}
 
@@ -113,7 +113,7 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
 			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failure creating configmap %q: %v", cm.ObjectMeta.Name, err)
-			return fmt.Errorf("Failure creating configmap: %v", err)
+			return fmt.Errorf("failure creating configmap: %v", err)
 		}
 
 		if !ingressConfig {
@@ -124,7 +124,7 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 		current := &core.ConfigMap{}
 		// Update config
 		if err = ingr.Get(cm.ObjectMeta.Name, ingr.managementIngress.ObjectMeta.Namespace, current); err != nil {
-			return fmt.Errorf("Failure getting Configmap: %q  for %q: %v", cm.ObjectMeta.Name, ingr.managementIngress.Name, err)
+			return fmt.Errorf("failure getting Configmap: %q  for %q: %v", cm.ObjectMeta.Name, ingr.managementIngress.Name, err)
 		}
 
 		// no data change, just return
@@ -139,7 +139,7 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 
 		// Apply the latest change to configmap
 		if err = ingr.Update(current); err != nil {
-			return fmt.Errorf("Failure updating Configmap: %v for %q: %v", cm.ObjectMeta.Name, ingr.managementIngress.Name, err)
+			return fmt.Errorf("failure updating Configmap: %v for %q: %v", cm.ObjectMeta.Name, ingr.managementIngress.Name, err)
 		}
 
 		// Restart Deployment because config is updated.
@@ -186,7 +186,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
 	)
 
 	if err := syncConfigmap(ingressRequest, config, true); err != nil {
-		return fmt.Errorf("Failure creating or updating management ingress config for %q: %v", ConfigName, err)
+		return fmt.Errorf("failure creating or updating management ingress config for %q: %v", ConfigName, err)
 	}
 
 	// Create bindinfo
@@ -200,11 +200,11 @@ func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
 	)
 
 	if err := syncConfigmap(ingressRequest, bindInfo, false); err != nil {
-		return fmt.Errorf("Failure creating bind info for %q: %v", ingressRequest.managementIngress.Name, err)
+		return fmt.Errorf("failure creating bind info for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
 	if err := populateCloudClusterInfo(ingressRequest); err != nil {
-		return fmt.Errorf("Failure populate cloud cluster info for %q: %v", ingressRequest.managementIngress.Name, err)
+		return fmt.Errorf("failure populate cloud cluster info for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 	return nil
 }
@@ -214,7 +214,7 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 
 	baseDomain, err := ingressRequest.GetRouteAppDomain()
 	if err != nil {
-		return fmt.Errorf("Failure getting route base domain %q: %v", ingressRequest.managementIngress.Name, err)
+		return fmt.Errorf("failure getting route base domain %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
 	ver := os.Getenv(CSVersionEnv)
@@ -240,14 +240,16 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 	ep := "https://" + ServiceName + "." + ns + ".svc:443"
 
 	// get api server address and port from configmap console-config in namespace openshift-console
-	err, console := ingressRequest.GetConfigmap(ConsoleCfg, ConsoleNS)
+	console, err := ingressRequest.GetConfigmap(ConsoleCfg, ConsoleNS)
 	if err != nil {
 		return err
 	}
 
 	var result map[interface{}]interface{}
 	var apiaddr string
-	yaml.Unmarshal([]byte(console.Data[ConsoleCfgYaml]), &result)
+	if err = yaml.Unmarshal([]byte(console.Data[ConsoleCfgYaml]), &result); err != nil {
+		return err
+	}
 
 	for k, v := range result {
 		if k.(string) == ConsoleClusterInfo {
@@ -255,9 +257,7 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 			for k1, v1 := range cinfo {
 				if k1.(string) == ConsoleMasterURL {
 					apiaddr = v1.(string)
-					if strings.HasPrefix(apiaddr, "https://") {
-						apiaddr = apiaddr[8:]
-					}
+					apiaddr = strings.TrimPrefix(apiaddr, "https://")
 					break
 				}
 			}
@@ -284,7 +284,7 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 	)
 
 	if err := patchOrCreateConfigmap(ingressRequest, clustercfg); err != nil {
-		return fmt.Errorf("Failure creating cluster info for %q: %v", ingressRequest.managementIngress.Name, err)
+		return fmt.Errorf("failure creating cluster info for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
 	return nil

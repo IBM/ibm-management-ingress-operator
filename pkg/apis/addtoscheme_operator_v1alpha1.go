@@ -27,17 +27,17 @@ import (
 )
 
 var (
-	// SchemeGroupVersion is group version used to register these objects
-	CertSchemeGroupVersion  = schema.GroupVersion{Group: "certmanager.k8s.io", Version: "v1alpha1"}
-	RouteSchemeGroupVersion = schema.GroupVersion{Group: "route.openshift.io", Version: "v1"}
-	SCCSchemeGroupVersion   = schema.GroupVersion{Group: "security.openshift.io", Version: "v1"}
-	OperatorSchemeGroupVersion   = schema.GroupVersion{Group: "operator.openshift.io", Version: "v1"}
+	// CertSchemeGroupVersion is group version used to register these objects
+	CertSchemeGroupVersion     = schema.GroupVersion{Group: "certmanager.k8s.io", Version: "v1alpha1"}
+	RouteSchemeGroupVersion    = schema.GroupVersion{Group: "route.openshift.io", Version: "v1"}
+	SCCSchemeGroupVersion      = schema.GroupVersion{Group: "security.openshift.io", Version: "v1"}
+	OperatorSchemeGroupVersion = schema.GroupVersion{Group: "operator.openshift.io", Version: "v1"}
 
-	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
-	CertSchemeBuilder  = &scheme.Builder{GroupVersion: CertSchemeGroupVersion}
-	RouteSchemeBuilder = &scheme.Builder{GroupVersion: RouteSchemeGroupVersion}
-	SCCSchemeBuilder   = &scheme.Builder{GroupVersion: SCCSchemeGroupVersion}
-	OperatorSchemeBuilder   = &scheme.Builder{GroupVersion: OperatorSchemeGroupVersion}
+	// CertSchemeBuilder is used to add go types to the GroupVersionKind scheme
+	CertSchemeBuilder     = &scheme.Builder{GroupVersion: CertSchemeGroupVersion}
+	RouteSchemeBuilder    = &scheme.Builder{GroupVersion: RouteSchemeGroupVersion}
+	SCCSchemeBuilder      = &scheme.Builder{GroupVersion: SCCSchemeGroupVersion}
+	OperatorSchemeBuilder = &scheme.Builder{GroupVersion: OperatorSchemeGroupVersion}
 )
 
 func init() {
@@ -50,9 +50,6 @@ func init() {
 	OperatorSchemeBuilder.Register(&operator.DNSList{})
 
 	// Register the types with the Scheme so the components can map objects to GroupVersionKinds and bac
-	AddToSchemes = append(AddToSchemes, v1alpha1.SchemeBuilder.AddToScheme)
-	AddToSchemes = append(AddToSchemes, CertSchemeBuilder.AddToScheme)
-	AddToSchemes = append(AddToSchemes, RouteSchemeBuilder.AddToScheme)
-	AddToSchemes = append(AddToSchemes, SCCSchemeBuilder.AddToScheme)
-	AddToSchemes = append(AddToSchemes, OperatorSchemeBuilder.AddToScheme)
+	AddToSchemes = append(AddToSchemes, v1alpha1.SchemeBuilder.AddToScheme, CertSchemeBuilder.AddToScheme,
+		RouteSchemeBuilder.AddToScheme, SCCSchemeBuilder.AddToScheme, OperatorSchemeBuilder.AddToScheme)
 }

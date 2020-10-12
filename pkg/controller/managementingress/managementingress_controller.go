@@ -70,7 +70,7 @@ var (
 			return false
 		},
 		DeleteFunc: func(e event.DeleteEvent) bool {
-			// only handle delete event in case user accidently removed the managed resource.
+			// only handle delete event in case user accidentally removed the managed resource.
 			return true
 		},
 		UpdateFunc: func(e event.UpdateEvent) bool {
@@ -195,9 +195,8 @@ func (r *ReconcileManagementIngress) Reconcile(request reconcile.Request) (recon
 	if err != nil {
 		klog.Errorf("Failure reconciling ManagementIngress: %v", err)
 		return reconcile.Result{}, err
-	} else {
-		klog.Infof("Reconciling ManagementIngress was successful")
 	}
+	klog.Infof("Reconciling ManagementIngress was successful")
 	return reconcile.Result{}, nil
 }
 

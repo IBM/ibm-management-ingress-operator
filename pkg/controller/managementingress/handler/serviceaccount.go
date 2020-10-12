@@ -49,20 +49,20 @@ func (ingressRequest *IngressRequest) CreateServiceAccount() error {
 		ingressRequest.managementIngress.Namespace)
 
 	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, sa, ingressRequest.scheme); err != nil {
-		klog.Error("Error setting controller reference on ServiceAccount: %v", err)
+		klog.Errorf("Error setting controller reference on ServiceAccount: %v", err)
 	}
 
 	klog.Infof("Creating ServiceAccount %q for %q.", ServiceAccountName, ingressRequest.managementIngress.Name)
 	err := ingressRequest.Create(sa)
 	if err != nil && !errors.IsAlreadyExists(err) {
-		return fmt.Errorf("Failure constructing ServiceAccount for %q: %v", ingressRequest.managementIngress.Name, err)
+		return fmt.Errorf("failure constructing ServiceAccount for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
 	// Create required clusterRole
 	klog.Infof("Creating ClusterRole: %q for %q.", AppName, ingressRequest.managementIngress.Name)
 	_, err = ingressRequest.CreateClusterRole(AppName, defaultRules)
 	if err != nil && !errors.IsAlreadyExists(err) {
-		return fmt.Errorf("Failure constructing ClusterRole for %q: %v", ingressRequest.managementIngress.Name, err)
+		return fmt.Errorf("failure constructing ClusterRole for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
 	// Create required clusterRoleBinding
@@ -82,7 +82,7 @@ func (ingressRequest *IngressRequest) CreateServiceAccount() error {
 	klog.Infof("Creating ClusterRoleBingding: %q for %q.", AppName, ingressRequest.managementIngress.Name)
 	err = ingressRequest.CreateClusterRoleBinding(clusterRoleBinding)
 	if err != nil && !errors.IsAlreadyExists(err) {
-		return fmt.Errorf("Failure constructing ClusterRoleBinding for %q: %v", ingressRequest.managementIngress.Name, err)
+		return fmt.Errorf("failure constructing ClusterRoleBinding for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedServiceAccount", "Successfully created service account %q", ServiceAccountName)
 

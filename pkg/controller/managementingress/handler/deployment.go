@@ -20,7 +20,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	operatorv1 "github.com/openshift/api/operator/v1"
 	apps "k8s.io/api/apps/v1"
@@ -28,7 +27,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -83,16 +81,17 @@ func NewDeployment(name string, namespace string, replicas int32, podSpec core.P
 	}
 }
 
-func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements, nodeSelector map[string]string, tolerations []core.Toleration, allowedHostHeader string, fipsEnabled bool) core.PodSpec {
+func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements, nodeSelector map[string]string,
+	tolerations []core.Toleration, allowedHostHeader string, fipsEnabled bool) core.PodSpec {
 	if resources == nil {
 		resources = &core.ResourceRequirements{
 			Limits: core.ResourceList{
 				core.ResourceMemory: defaultMemoryLimit,
-				core.ResourceCPU:    defaultCpuLimit,
+				core.ResourceCPU:    defaultCPULimit,
 			},
 			Requests: core.ResourceList{
 				core.ResourceMemory: defaultMemoryRequest,
-				core.ResourceCPU:    defaultCpuRequest,
+				core.ResourceCPU:    defaultCPURequest,
 			},
 		}
 	}
@@ -259,7 +258,7 @@ func getClusterDomain(ingressRequest *IngressRequest) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("The Cluster Domain from DNS operator config is empty. Check DNS: %v", dns)
+	return "", fmt.Errorf("the Cluster Domain from DNS operator config is empty. Check DNS: %v", dns)
 }
 
 func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
@@ -280,7 +279,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 
 	clusterDomain, err := getClusterDomain(ingressRequest)
 	if err != nil {
-		return fmt.Errorf("Failure getting cluster domain: %v", err)
+		return fmt.Errorf("failure getting cluster domain: %v", err)
 	}
 
 	podSpec := newPodSpec(
@@ -312,13 +311,13 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
 			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedDeployment", "Failure creating deployment %q: %v", AppName, err)
-			return fmt.Errorf("Failure creating Deployment: %v", err)
+			return fmt.Errorf("failure creating Deployment: %v", err)
 		}
 
 		klog.Infof("Trying to update Deployment: %s for %q as it already existed.", AppName, ingressRequest.managementIngress.Name)
 		current := &apps.Deployment{}
 		if err = ingressRequest.Get(AppName, ingressRequest.managementIngress.ObjectMeta.Namespace, current); err != nil {
-			return fmt.Errorf("Failure getting %q Deployment for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
+			return fmt.Errorf("failure getting %q Deployment for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
 		}
 
 		desired, different := utils.IsDeploymentDifferent(current, ds)
@@ -328,11 +327,11 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 		}
 		klog.Infof("Found change from Deployment Replicas %d. Trying to update it.", ingressRequest.managementIngress.Spec.Replicas)
 
-		klog.Infof("Found change from Deployment %s. Trying to update it.", podSpec)
+		klog.Infof("Found change from Deployment %+v. Trying to update it.", podSpec)
 		err = ingressRequest.Update(desired)
 		if err != nil {
 			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedDeployment", "Failure updating deployment %q: %v", AppName, err)
-			return fmt.Errorf("Failure updating %q Deployment for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
+			return fmt.Errorf("failure updating %q Deployment for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
 		}
 		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "UpdatedDeployment", "Successfully updated deployment %q", AppName)
 	} else {
@@ -375,27 +374,27 @@ func (ingressRequest *IngressRequest) GetDeploymentPods(selector map[string]stri
 	return list, err
 }
 
-func (ingressRequest *IngressRequest) waitForDeploymentReady(ds *apps.Deployment) error {
+// func (ingressRequest *IngressRequest) waitForDeploymentReady(ds *apps.Deployment) error {
 
-	err := wait.Poll(5*time.Second, 2*time.Second, func() (done bool, err error) {
-		err = ingressRequest.Get(ds.Name, ingressRequest.managementIngress.ObjectMeta.Namespace, ds)
-		if err != nil {
-			if errors.IsNotFound(err) {
-				return false, fmt.Errorf("Failed to get Fluentd deployment: %v", err)
-			}
-			return false, err
-		}
+// 	err := wait.Poll(5*time.Second, 2*time.Second, func() (done bool, err error) {
+// 		err = ingressRequest.Get(ds.Name, ingressRequest.managementIngress.ObjectMeta.Namespace, ds)
+// 		if err != nil {
+// 			if errors.IsNotFound(err) {
+// 				return false, fmt.Errorf("failed to get Fluentd deployment: %v", err)
+// 			}
+// 			return false, err
+// 		}
 
-		if int(ds.Status.ReadyReplicas) == int(ds.Status.Replicas) {
-			return true, nil
-		}
+// 		if int(ds.Status.ReadyReplicas) == int(ds.Status.Replicas) {
+// 			return true, nil
+// 		}
 
-		return false, nil
-	})
+// 		return false, nil
+// 	})
 
-	if err != nil {
-		return err
-	}
+// 	if err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }

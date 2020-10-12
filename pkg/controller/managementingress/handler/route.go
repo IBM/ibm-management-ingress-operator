@@ -92,14 +92,14 @@ func (ingressRequest *IngressRequest) createOrUpdateSecret(secretName, namespace
 	err := ingressRequest.Create(clusterSecret)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
-			return fmt.Errorf("Failure creating secret for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
+			return fmt.Errorf("failure creating secret for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
 		}
 
 		klog.Infof("Trying to update Secret: %s for %q as it already existed.", secretName, ingressRequest.managementIngress.Name)
-		current := &core.Secret{}
 		// Update config
-		if err, current = ingressRequest.GetSecret(secretName); err != nil {
-			return fmt.Errorf("Failure getting Secret: %q  for %q: %v", secretName, ingressRequest.managementIngress.Name, err)
+		current, err := ingressRequest.GetSecret(secretName)
+		if err != nil {
+			return fmt.Errorf("failure getting Secret: %q  for %q: %v", secretName, ingressRequest.managementIngress.Name, err)
 		}
 
 		// no data change, just return
@@ -114,7 +114,7 @@ func (ingressRequest *IngressRequest) createOrUpdateSecret(secretName, namespace
 
 		// Apply the latest change to configmap
 		if err = ingressRequest.Update(current); err != nil {
-			return fmt.Errorf("Failure updating Secret: %v for %q: %v", secretName, ingressRequest.managementIngress.Name, err)
+			return fmt.Errorf("failure updating Secret: %v for %q: %v", secretName, ingressRequest.managementIngress.Name, err)
 		}
 	}
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedSecret", "Successfully created secret %q", secretName)
@@ -124,7 +124,7 @@ func (ingressRequest *IngressRequest) createOrUpdateSecret(secretName, namespace
 
 func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	// Get TLS secret for OCP route
-	err, secret := ingressRequest.GetSecret(RouteSecret)
+	secret, err := ingressRequest.GetSecret(RouteSecret)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	caCert := secret.Data["ca.crt"]
 
 	// Get TLS secret of management ingress service, then get CA cert for OCP route
-	err, secret = ingressRequest.GetSecret(TLSSecretName)
+	secret, err = ingressRequest.GetSecret(TLSSecretName)
 	if err != nil {
 		return err
 	}
@@ -158,12 +158,12 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	klog.Infof("Creating route: %s for %q.", route.ObjectMeta.Name, ingressRequest.managementIngress.ObjectMeta.Name)
 	err = ingressRequest.Create(route)
 	if err != nil && !errors.IsAlreadyExists(err) {
-		return fmt.Errorf("Failure constructing route for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
+		return fmt.Errorf("failure constructing route for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
 	}
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedRoute", "Successfully created route %q", RouteName)
 
 	if err = ingressRequest.createOrUpdateSecret(ClusterSecretName, os.Getenv(PODNAMESPACE), caCert); err != nil {
-		return fmt.Errorf("Unable to create or update secret for %q: %v", ingressRequest.managementIngress.Name, err)
+		return fmt.Errorf("unable  to create or update secret for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
 	return nil
@@ -199,5 +199,5 @@ func (ingressRequest *IngressRequest) GetRouteAppDomain() (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("The router Domain from config of Ingress Controller Operator is empty. See more info: %v", ing)
+	return "", fmt.Errorf("the router Domain from config of Ingress Controller Operator is empty. See more info: %v", ing)
 }
