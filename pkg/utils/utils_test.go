@@ -21,8 +21,6 @@ import (
 	"time"
 
 	v1 "k8s.io/api/core/v1"
-
-	handler "github.com/IBM/ibm-management-ingress-operator/pkg/controller/managementingress/handler"
 )
 
 func TestAreMapsSameWhenBothAreEmpty(t *testing.T) {
@@ -162,14 +160,14 @@ func TestAppendAnnotations(t *testing.T) {
 		"seccomp.security.alpha.kubernetes.io/pod": "docker/default",
 	}
 	rhsAnnotation := map[string]string{
-		handler.ConfigUpdateAnnotationKey: currentTime,
+		"management-ingress.operator.k8s.io/config-updated": currentTime,
 	}
 
 	resultAnnotation := AppendAnnotations(lhsAnnotation, rhsAnnotation)
 	expectAnnotation := map[string]string{
 		"productName": "icp-management-ingress",
-		"seccomp.security.alpha.kubernetes.io/pod": "docker/default",
-		handler.ConfigUpdateAnnotationKey:          currentTime,
+		"seccomp.security.alpha.kubernetes.io/pod":          "docker/default",
+		"management-ingress.operator.k8s.io/config-updated": currentTime,
 	}
 
 	if !reflect.DeepEqual(resultAnnotation, expectAnnotation) {
