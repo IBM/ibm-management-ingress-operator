@@ -49,7 +49,7 @@ func (ingressRequest *IngressRequest) CreateServiceAccount() error {
 		ingressRequest.managementIngress.Namespace)
 
 	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, sa, ingressRequest.scheme); err != nil {
-		klog.Error("Error setting controller reference on ServiceAccount: %v", err)
+		klog.Errorf("Error setting controller reference on ServiceAccount: %v", err)
 	}
 
 	klog.Infof("Creating ServiceAccount %q for %q.", ServiceAccountName, ingressRequest.managementIngress.Name)

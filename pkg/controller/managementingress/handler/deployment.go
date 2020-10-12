@@ -328,7 +328,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 		}
 		klog.Infof("Found change from Deployment Replicas %d. Trying to update it.", ingressRequest.managementIngress.Spec.Replicas)
 
-		klog.Infof("Found change from Deployment %s. Trying to update it.", podSpec)
+		klog.Infof("Found change from Deployment %+v. Trying to update it.", podSpec)
 		err = ingressRequest.Update(desired)
 		if err != nil {
 			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedDeployment", "Failure updating deployment %q: %v", AppName, err)

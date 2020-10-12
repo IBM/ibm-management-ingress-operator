@@ -150,7 +150,7 @@ func (ingressRequest *IngressRequest) RemoveClusterRole(name string) error {
 		Rules: []rbac.PolicyRule{},
 	}
 
-	klog.Infof("Removing ClusterRole .", name)
+	klog.Infof("Removing ClusterRole: %s", name)
 	err := ingressRequest.Delete(r)
 	if err != nil && !errors.IsNotFound(err) {
 		return fmt.Errorf("Failure deleting %q ClusterRole: %v", name, err)
@@ -178,7 +178,7 @@ func (ingressRequest *IngressRequest) RemoveClusterRoleBinding(name string) erro
 		Subjects: []rbac.Subject{},
 	}
 
-	klog.Infof("Removing ClusterRoleBinding .", name)
+	klog.Infof("Removing ClusterRoleBinding: %s", name)
 	err := ingressRequest.Delete(b)
 	if err != nil && !errors.IsNotFound(err) {
 		return fmt.Errorf("Failure deleting %q ClusterRoleBinding: %v", name, err)

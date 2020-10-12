@@ -99,7 +99,7 @@ func (ingressRequest *IngressRequest) RemoveSecurityContextConstraint(name strin
 		},
 	}
 
-	klog.Infof("Removing SecurityContextConstraint .", name)
+	klog.Infof("Removing SecurityContextConstraint: %s", name)
 	err := ingressRequest.Delete(scc)
 	if err != nil && !errors.IsNotFound(err) {
 		return fmt.Errorf("Failure deleting %v SecurityContextConstraint %v", name, err)
