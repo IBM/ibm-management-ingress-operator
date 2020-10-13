@@ -56,10 +56,10 @@ func (ingressRequest *IngressRequest) CreateOrUpdateService() error {
 		ingressRequest.managementIngress.Namespace,
 		[]core.ServicePort{
 			{
-				Port: 443,
+				Port: 8443,
 				TargetPort: intstr.IntOrString{
 					Type:   intstr.Int,
-					IntVal: 443,
+					IntVal: 8443,
 				},
 			},
 		})

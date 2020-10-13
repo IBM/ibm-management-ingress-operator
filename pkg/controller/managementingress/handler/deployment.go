@@ -34,7 +34,7 @@ import (
 )
 
 const (
-	httpsPort = int32(443)
+	httpsPort = int32(8443)
 	httpPort  = int32(8080)
 )
 
@@ -121,7 +121,7 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		"--default-ssl-certificate=$(POD_NAMESPACE)/icp-management-ingress-tls-secret",
 		"--configmap=$(POD_NAMESPACE)/management-ingress",
 		"--http-port=8080",
-		"--https-port=443",
+		"--https-port=8443",
 	}
 
 	container.Env = []core.EnvVar{
