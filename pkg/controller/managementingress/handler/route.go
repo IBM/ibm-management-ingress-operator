@@ -29,6 +29,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -197,7 +198,11 @@ func (ingressRequest *IngressRequest) GetRouteAppDomain() (string, error) {
 	klog.Infof("Getting route application domain name from ingress controller config.")
 
 	ing := &operatorv1.IngressController{}
-	if err := ingressRequest.eClient.Get(context.TODO(), types.NamespacedName{Name: "default", Namespace: "openshift-ingress-operator"}, ing); err != nil {
+	clusterClient, err := createOrGetClusterClient()
+	if err != nil {
+		return "", fmt.Errorf("failure creating or getting cluster client: %v", err)
+	}
+	if err := clusterClient.Get(context.TODO(), types.NamespacedName{Name: "default", Namespace: "openshift-ingress-operator"}, ing); err != nil {
 		return "", err
 	}
 
