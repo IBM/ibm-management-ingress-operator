@@ -33,16 +33,18 @@ import (
 )
 
 type IngressRequest struct {
+	eClient           client.Client
 	client            client.Client
 	managementIngress *v1alpha1.ManagementIngress
 	recorder          record.EventRecorder
 	scheme            *runtime.Scheme
 }
 
-func NewIngressHandler(instance *v1alpha1.ManagementIngress, c client.Client, r record.EventRecorder, s *runtime.Scheme) *IngressRequest {
+func NewIngressHandler(instance *v1alpha1.ManagementIngress, c client.Client, e client.Client, r record.EventRecorder, s *runtime.Scheme) *IngressRequest {
 
 	return &IngressRequest{
 		managementIngress: instance,
+		eClient:           e,
 		client:            c,
 		recorder:          r,
 		scheme:            s,

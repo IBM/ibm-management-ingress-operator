@@ -102,22 +102,22 @@ func getRouteHost(ing *IngressRequest) (string, error) {
 	return strings.Join([]string{RouteName, appDomain}, "."), nil
 }
 
-func DeleteClusterResources(i *IngressRequest) error {
+// func DeleteClusterResources(i *IngressRequest) error {
 
-	// Delete SCC
-	if err := i.RemoveSecurityContextConstraint(SCCName); err != nil {
-		return err
-	}
+// 	// Delete SCC
+// 	if err := i.RemoveSecurityContextConstraint(SCCName); err != nil {
+// 		return err
+// 	}
 
-	// Delete ClusterRole
-	if err := i.RemoveClusterRole(AppName); err != nil {
-		return err
-	}
+// 	// Delete ClusterRole
+// 	if err := i.RemoveClusterRole(AppName); err != nil {
+// 		return err
+// 	}
 
-	// Delete ClusterRoleBinding
-	if err := i.RemoveClusterRoleBinding(AppName); err != nil {
-		return err
-	}
+// 	// Delete ClusterRoleBinding
+// 	if err := i.RemoveClusterRoleBinding(AppName); err != nil {
+// 		return err
+// 	}
 
-	return nil
-}
+// 	return nil
+// }

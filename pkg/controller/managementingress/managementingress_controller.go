@@ -18,6 +18,8 @@ package managementingress
 import (
 	"context"
 
+	operatorv1 "github.com/openshift/api/operator/v1"
+	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -79,6 +81,11 @@ var (
 	}
 )
 
+var (
+	ConfigMapSchemeGroupVersion = schema.GroupVersion{Group: "", Version: "v1"}
+	OperatorSchemeGroupVersion  = schema.GroupVersion{Group: "operator.openshift.io", Version: "v1"}
+)
+
 // Add creates a new ManagementIngress Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -87,8 +94,22 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+	// Get a config to talk to the apiserver
+	cfg := mgr.GetConfig()
+
+	scheme := runtime.NewScheme()
+	scheme.AddKnownTypes(ConfigMapSchemeGroupVersion, &core.ConfigMap{}, &core.ConfigMapList{})
+	scheme.AddKnownTypes(OperatorSchemeGroupVersion, &operatorv1.IngressController{}, &operatorv1.IngressControllerList{})
+
+	c, err := client.New(cfg, client.Options{Scheme: scheme})
+	if err != nil {
+		return nil
+	}
+
 	return &ReconcileManagementIngress{
+		eClient:  c,
 		client:   mgr.GetClient(),
+		reader:   mgr.GetAPIReader(),
 		scheme:   mgr.GetScheme(),
 		recorder: mgr.GetEventRecorderFor(controllerName),
 	}
@@ -125,7 +146,9 @@ var _ reconcile.Reconciler = &ReconcileManagementIngress{}
 type ReconcileManagementIngress struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
+	eClient  client.Client
 	client   client.Client
+	reader   client.Reader
 	scheme   *runtime.Scheme
 	recorder record.EventRecorder
 }
@@ -154,7 +177,7 @@ func (r *ReconcileManagementIngress) Reconcile(request reconcile.Request) (recon
 	}
 
 	klog.Info("Reconciling ManagementIngress")
-	i := k8shandler.NewIngressHandler(instance, r.client, r.recorder, r.scheme)
+	i := k8shandler.NewIngressHandler(instance, r.client, r.eClient, r.recorder, r.scheme)
 
 	// // examine DeletionTimestamp to determine if object is under deletion
 	// if instance.ObjectMeta.DeletionTimestamp.IsZero() {

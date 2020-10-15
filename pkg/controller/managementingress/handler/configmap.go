@@ -16,6 +16,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -28,6 +29,7 @@ import (
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -53,17 +55,17 @@ func NewConfigMap(name string, namespace string, data map[string]string) *core.C
 	}
 }
 
-// for configmap ibmcloud-cluster-info, need to check whether it's already existed, if so, patch it, else create it
+// for configmap ibmcloud-cluster-info, need to check whether it's already existed, if so, update it, else create it
 func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
+	if err := controllerutil.SetControllerReference(ingr.managementIngress, cm, ingr.scheme); err != nil {
+		klog.Errorf("Error setting controller reference on Configmap: %v", err)
+	}
 
 	cfg, err := ingr.GetConfigmap(ClusterConfigName, ingr.managementIngress.ObjectMeta.Namespace)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// create configmap
-			klog.Infof("Creating Configmap: %s for %q.", cm.ObjectMeta.Name, ingr.managementIngress.Name)
-			if err = controllerutil.SetControllerReference(ingr.managementIngress, cm, ingr.scheme); err != nil {
-				klog.Errorf("Error setting controller reference on Configmap: %v", err)
-			}
+			klog.Infof("Creating Configmap %s.", cm.ObjectMeta.Name)
 			err = ingr.Create(cm)
 			if err != nil {
 				ingr.recorder.Eventf(ingr.managementIngress, "Warning", "CreatedConfigmap", "Failure creating configmap %q: %v", cm.ObjectMeta.Name, err)
@@ -73,33 +75,15 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 			return err
 		}
 	} else {
-		// need to patch configmap
-		if reflect.DeepEqual(cfg.Data, cm.Data) {
-			klog.Infof("No change found from the configmap: %s.", cm.ObjectMeta.Name)
-			return nil
-		}
-
-		var mergePatch []byte
-		mergePatch, err := json.Marshal(map[string]interface{}{
-			"data": cm.Data,
-		})
-
-		if err != nil {
-			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "PatchConfigmap", "Failure encoding patch data for %q: %v", cm.ObjectMeta.Name, err)
-			return fmt.Errorf("failing encoding patch data for %q with value %s: %v", ingr.managementIngress.Name,
-				mergePatch, err)
-		}
-		klog.Infof("Patching Configmap: %s for %q with data %v.", cfg.ObjectMeta.Name, ingr.managementIngress.Name,
-			string(mergePatch))
-
-		if err = ingr.Patch(cfg, mergePatch); err != nil {
-			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "PatchConfigmap", "Failure patching configmap for %q: %v", cm.ObjectMeta.Name, err)
-			return fmt.Errorf("failure patching Configmap: %v for %q: %v", cfg.ObjectMeta.Name, ingr.managementIngress.Name, err)
+		klog.Infof("Updating Configmap: %s.", cfg.ObjectMeta.Name)
+		if err := ingr.Update(cm); err != nil {
+			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdateConfigmap", "Failure updating configmap %s: %v", cm.ObjectMeta.Name, err)
+			return fmt.Errorf("Failure updating Configmap %s: %v", cfg.ObjectMeta.Name, err)
 		}
 	}
 
-	klog.Infof("Creating or patching configmap succeeded: %v for %q", cm.ObjectMeta.Name, ingr.managementIngress.Name)
-	ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created or patched configmap %q", cm.ObjectMeta.Name)
+	klog.Infof("Creating or updating configmap succeeded: %v for %q", cm.ObjectMeta.Name, ingr.managementIngress.Name)
+	ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created or updating configmap %q", cm.ObjectMeta.Name)
 	return nil
 }
 
@@ -211,7 +195,6 @@ func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
 
 // create configmap ibmcloud-cluster-info
 func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
-
 	baseDomain, err := ingressRequest.GetRouteAppDomain()
 	if err != nil {
 		return fmt.Errorf("failure getting route base domain %q: %v", ingressRequest.managementIngress.Name, err)
@@ -240,8 +223,8 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 	ep := "https://" + ServiceName + "." + ns + ".svc:443"
 
 	// get api server address and port from configmap console-config in namespace openshift-console
-	console, err := ingressRequest.GetConfigmap(ConsoleCfg, ConsoleNS)
-	if err != nil {
+	console := &core.ConfigMap{}
+	if err := ingressRequest.eClient.Get(context.TODO(), types.NamespacedName{Name: ConsoleCfg, Namespace: ConsoleNS}, console); err != nil {
 		return err
 	}
 
@@ -280,6 +263,9 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 			CSVersion:            ver,
 			ClusterAPIServerHost: apiaddr[0:pos],
 			ClusterAPIServerPort: apiaddr[pos+1:],
+			ProxyAddress:         "cp-proxy." + baseDomain,
+			ProxyHttpPort:        "80",
+			ProxyHttpsPort:       "443",
 		},
 	)
 
