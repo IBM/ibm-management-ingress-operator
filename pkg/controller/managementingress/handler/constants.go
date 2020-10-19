@@ -48,11 +48,11 @@ const (
 	ClusterEP         string = "cluster_endpoint"
 
 	RouteHTTPPort      string = "cluster_router_http_port"
-	RouteHTTPPortValue string = "80"
+	RouteHTTPPortValue string = "8080"
 	RouteHTTPPortEnv   string = "ROUTE_HTTP_PORT"
 
 	RouteHTTPSPort      string = "cluster_router_https_port"
-	RouteHTTPSPortValue string = "443"
+	RouteHTTPSPortValue string = "8443"
 	RouteHTTPSPortEnv   string = "ROUTE_HTTPS_PORT"
 
 	ClusterName      string = "cluster_name"
@@ -75,6 +75,6 @@ const (
 	ConsoleClusterInfo   string = "clusterInfo"
 	ConsoleMasterURL     string = "masterPublicURL"
 	ProxyAddress         string = "proxy_address"
-	ProxyHttpPort        string = "proxy_ingress_http_port"
-	ProxyHttpsPort       string = "proxy_ingress_https_port"
+	ProxyHTTPPort        string = "proxy_ingress_http_port"
+	ProxyHTTPSPort       string = "proxy_ingress_https_port"
 )
