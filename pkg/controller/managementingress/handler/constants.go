@@ -74,4 +74,7 @@ const (
 	ConsoleCfgYaml       string = "console-config.yaml"
 	ConsoleClusterInfo   string = "clusterInfo"
 	ConsoleMasterURL     string = "masterPublicURL"
+	ProxyAddress         string = "proxy_address"
+	ProxyHttpPort        string = "proxy_ingress_http_port"
+	ProxyHttpsPort       string = "proxy_ingress_https_port"
 )
