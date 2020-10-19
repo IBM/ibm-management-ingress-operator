@@ -78,7 +78,7 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 		klog.Infof("Updating Configmap: %s.", cfg.ObjectMeta.Name)
 		if err := ingr.Update(cm); err != nil {
 			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdateConfigmap", "Failure updating configmap %s: %v", cm.ObjectMeta.Name, err)
-			return fmt.Errorf("Failure updating Configmap %s: %v", cfg.ObjectMeta.Name, err)
+			return fmt.Errorf("failure updating Configmap %s: %v", cfg.ObjectMeta.Name, err)
 		}
 	}
 
@@ -220,7 +220,7 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 	}
 
 	ns := os.Getenv(PODNAMESPACE)
-	ep := "https://" + ServiceName + "." + ns + ".svc:443"
+	ep := "https://" + ServiceName + "." + ns + ".svc:8443"
 
 	// get api server address and port from configmap console-config in namespace openshift-console
 	console := &core.ConfigMap{}
@@ -264,8 +264,8 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 			ClusterAPIServerHost: apiaddr[0:pos],
 			ClusterAPIServerPort: apiaddr[pos+1:],
 			ProxyAddress:         "cp-proxy." + baseDomain,
-			ProxyHttpPort:        "80",
-			ProxyHttpsPort:       "443",
+			ProxyHTTPPort:        "8080",
+			ProxyHTTPSPort:       "8443",
 		},
 	)
 

@@ -28,6 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
@@ -49,6 +50,12 @@ func NewRoute(name, namespace, serviceName, routeHost string, cert, key, caCert,
 		},
 		Spec: route.RouteSpec{
 			Host: routeHost,
+			Port: &route.RoutePort{
+				TargetPort: intstr.IntOrString{
+					Type:   intstr.Int,
+					IntVal: 8443,
+				},
+			},
 			To: route.RouteTargetReference{
 				Name: serviceName,
 				Kind: "Service",
