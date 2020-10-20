@@ -242,51 +242,52 @@ spec:
               serviceAccountName: ibm-management-ingress-operator
       clusterPermissions:
       - rules:
-        - apiGroups:
-          - rbac.authorization.k8s.io
-          resources:
-          - clusterroles
-          - clusterrolebindings
-          verbs:
-          - create
-        - apiGroups:
-          - security.openshift.io
-          resources:
-          - securitycontextconstraints
-          verbs:
-          - create
-          - list
-          - use
-        - apiGroups:
-          - rbac.authorization.k8s.io
-          resources:
-          - clusterroles
-          resourceNames:
-          - management-ingress
-          verbs:
-          - delete
-        - apiGroups:
-          - rbac.authorization.k8s.io
-          resources:
-          - clusterrolebindings
-          resourceNames:
-          - management-ingress
-          verbs:
-          - delete
-        - apiGroups:
-          - security.openshift.io
-          resources:
-          - securitycontextconstraints
-          resourceNames:
-          - management-ingress-scc
-          verbs:
-          - delete
+        # TBD: may need to create own issuer instead of using existing clusterissuer
         - apiGroups:
           - certmanager.k8s.io
           resources:
           - clusterissuers
           verbs:
           - use
+        # management-ingress operator needs to read dnses&ingresscontrollers from namespace openshift-ingress-operator to get router app domain
+        - apiGroups:
+          - operator.openshift.io
+          resources:
+          - dnses
+          - ingresscontrollers
+          verbs:
+          - get
+          - list
+          - watch
+        # management-ingress operator needs to read configmap from namspace openshift-console to get kube-apiserver URL
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          resourceNames:
+          - console-config
+          verbs:
+          - get
+          - list
+          - watch
+        serviceAccountName: ibm-management-ingress-operator
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          # management-ingress controller requires read permission to nodes resource to update the loadBalancer ip of ingress status
+          - nodes
+          # management-ingress controller requires read permission to namespaces resource to get current watching namespaces
+          - namespaces
+          # management-ingress controller requires read permission to services resource of default/kubernetes besides services in the management ingress controller's namespace
+          - services
+          verbs:
+          - get
+          - list
+          - watch
+        serviceAccountName: management-ingress
+      permissions:
+      - rules:
         - apiGroups:
           - certmanager.k8s.io
           resources:
@@ -296,115 +297,6 @@ spec:
           - get
           - list
           - watch
-        - apiGroups:
-          - "extensions"
-          - "networking.k8s.io"
-          resources:
-          - ingresses
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - "extensions"
-          - "networking.k8s.io"
-          resources:
-          - ingresses/status
-          verbs:
-          - update
-        - apiGroups:
-          - "operator.openshift.io"
-          resources:
-          - dnses
-          - ingresscontrollers
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - nodes
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - pods
-          - serviceaccounts
-          - endpoints
-          - persistentvolumeclaims
-          - events
-          - configmaps
-          - secrets
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - update
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - services
-          verbs:
-          - create
-          - get
-          - list
-          - watch
-          - patch
-          - update
-        - apiGroups:
-          - ""
-          resources:
-          - events
-          verbs:
-          - patch
-          - update
-        - apiGroups:
-          - ""
-          resources:
-          - configmaps
-          verbs:
-          - patch
-          - update
-        - apiGroups:
-          - apps
-          resources:
-          - deployments
-          - daemonsets
-          - replicasets
-          - statefulsets
-          verbs:
-          - create
-          - get
-          - list
-          - update
-          - watch
-        - apiGroups:
-          - apps
-          resourceNames:
-          - ibm-management-ingress-operator
-          resources:
-          - deployments/finalizers
-          verbs:
-          - update
-        - apiGroups:
-          - operator.ibm.com
-          resources:
-          - managementingresses
-          verbs:
-          - '*'
-        - apiGroups:
-          - operator.ibm.com
-          resources:
-          - managementingresses/finalizers
-          - managementingresses/status
-          verbs:
-          - update
         - apiGroups:
           - route.openshift.io
           resources:
@@ -429,26 +321,80 @@ spec:
           - list
           - watch
         - apiGroups:
+          - operator.ibm.com
+          resources:
+          - managementingresses
+          - managementingresses/finalizers
+          - managementingresses/status
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
           - monitoring.coreos.com
           resources:
           - servicemonitors
           verbs:
-          - '*'
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - services/finalizers
+          - serviceaccounts
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - apps
+          resourceNames:
+          - ibm-management-ingress-operator
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
         serviceAccountName: ibm-management-ingress-operator
       - rules:
         - apiGroups:
           - ""
           resources:
-          - services
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - ""
-          resources:
           - endpoints
-          - nodes
           - pods
           - secrets
           verbs:
@@ -457,6 +403,7 @@ spec:
         - apiGroups:
           - ""
           resources:
+          # the configmap contains custom configutration for managemet-ingress controller
           - configmaps
           verbs:
           - create
