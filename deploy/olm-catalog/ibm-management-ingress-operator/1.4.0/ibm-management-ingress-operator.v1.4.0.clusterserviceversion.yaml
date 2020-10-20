@@ -487,14 +487,6 @@ spec:
           - ingresses/status
           verbs:
           - update
-        - apiGroups:
-          - security.openshift.io
-          resourceNames:
-          - anyuid
-          resources:
-          - securitycontextconstraints
-          verbs:
-          - use
         serviceAccountName: management-ingress
     strategy: deployment
   installModes:
