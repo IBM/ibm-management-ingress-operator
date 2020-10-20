@@ -224,7 +224,12 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 
 	// get api server address and port from configmap console-config in namespace openshift-console
 	console := &core.ConfigMap{}
-	if err := ingressRequest.eClient.Get(context.TODO(), types.NamespacedName{Name: ConsoleCfg, Namespace: ConsoleNS}, console); err != nil {
+	clusterClient, err := createOrGetClusterClient()
+	if err != nil {
+		return fmt.Errorf("failure creating or getting cluster client: %v", err)
+	}
+	err = clusterClient.Get(context.TODO(), types.NamespacedName{Name: ConsoleCfg, Namespace: ConsoleNS}, console)
+	if err != nil {
 		return err
 	}
 

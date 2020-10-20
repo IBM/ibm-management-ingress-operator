@@ -117,9 +117,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = serveCRMetrics(cfg); err != nil {
-		klog.Errorf("Could not generate and serve custom resource metrics", "error", err.Error())
-	}
+	// if err = serveCRMetrics(cfg); err != nil {
+	// 	klog.Errorf("Could not generate and serve custom resource metrics", "error", err.Error())
+	// }
 
 	// Add to the below struct any other metrics ports you want to expose.
 	servicePorts := []v1.ServicePort{
@@ -156,6 +156,7 @@ func main() {
 
 // serveCRMetrics gets the Operator/CustomResource GVKs and generates metrics based on those types.
 // It serves those metrics on "http://metricsHost:operatorMetricsPort".
+// nolint
 func serveCRMetrics(cfg *rest.Config) error {
 	// Below function returns filtered operator/CustomResource specific GVKs.
 	// For more control override the below GVK list with your own custom logic.
