@@ -48,11 +48,11 @@ const (
 	ClusterEP         string = "cluster_endpoint"
 
 	RouteHTTPPort      string = "cluster_router_http_port"
-	RouteHTTPPortValue string = "8080"
+	RouteHTTPPortValue string = "80"
 	RouteHTTPPortEnv   string = "ROUTE_HTTP_PORT"
 
 	RouteHTTPSPort      string = "cluster_router_https_port"
-	RouteHTTPSPortValue string = "8443"
+	RouteHTTPSPortValue string = "443"
 	RouteHTTPSPortEnv   string = "ROUTE_HTTPS_PORT"
 
 	ClusterName      string = "cluster_name"

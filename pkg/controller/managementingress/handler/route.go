@@ -52,8 +52,8 @@ func NewRoute(name, namespace, serviceName, routeHost string, cert, key, caCert,
 			Host: routeHost,
 			Port: &route.RoutePort{
 				TargetPort: intstr.IntOrString{
-					Type:   intstr.Int,
-					IntVal: 8443,
+					Type:   intstr.String,
+					StrVal: "https",
 				},
 			},
 			To: route.RouteTargetReference{
