@@ -220,7 +220,7 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 	}
 
 	ns := os.Getenv(PODNAMESPACE)
-	ep := "https://" + ServiceName + "." + ns + ".svc:8443"
+	ep := "https://" + ServiceName + "." + ns + ".svc:443"
 
 	// get api server address and port from configmap console-config in namespace openshift-console
 	console := &core.ConfigMap{}
@@ -269,8 +269,8 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 			ClusterAPIServerHost: apiaddr[0:pos],
 			ClusterAPIServerPort: apiaddr[pos+1:],
 			ProxyAddress:         "cp-proxy." + baseDomain,
-			ProxyHTTPPort:        "8080",
-			ProxyHTTPSPort:       "8443",
+			ProxyHTTPPort:        "80",
+			ProxyHTTPSPort:       "443",
 		},
 	)
 
