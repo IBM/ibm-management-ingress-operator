@@ -16,8 +16,8 @@ metadata:
             "replicas": 1,
             "cert": {
               "issuer": {
-                "name": "cs-ca-clusterissuer",
-                "kind": "ClusterIssuer"
+                "name": "cs-ca-issuer",
+                "kind": "Issuer"
               }
             },
             "config": {
@@ -242,13 +242,6 @@ spec:
               serviceAccountName: ibm-management-ingress-operator
       clusterPermissions:
       - rules:
-        # TBD: may need to create own issuer instead of using existing clusterissuer
-        - apiGroups:
-          - certmanager.k8s.io
-          resources:
-          - clusterissuers
-          verbs:
-          - use
         # management-ingress operator needs to read dnses&ingresscontrollers from namespace openshift-ingress-operator to get router app domain
         - apiGroups:
           - operator.openshift.io
@@ -288,6 +281,12 @@ spec:
         serviceAccountName: management-ingress
       permissions:
       - rules:
+        - apiGroups:
+          - certmanager.k8s.io
+          resources:
+          - issuers
+          verbs:
+          - use
         - apiGroups:
           - certmanager.k8s.io
           resources:
