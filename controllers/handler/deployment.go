@@ -16,6 +16,7 @@
 package handler
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
@@ -26,6 +27,7 @@ import (
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -252,9 +254,19 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 	return podSpec
 }
 
+<<<<<<< HEAD
 func getClusterDomain(ingressRequest *IngressRequest) (string, error) {
+=======
+func getClusterDomain() (string, error) {
+	klog.Infof("Getting cluster domain from DNS config.")
+
+>>>>>>> register new 3rd-party apis.
 	dns := &operatorv1.DNS{}
-	if err := ingressRequest.Get("default", "", dns); err != nil {
+	clusterClient, err := createOrGetClusterClient()
+	if err != nil {
+		return "", fmt.Errorf("failure creating or getting cluster client: %v", err)
+	}
+	if err := clusterClient.Get(context.TODO(), types.NamespacedName{Name: "default", Namespace: ""}, dns); err != nil {
 		return "", err
 	}
 
@@ -281,7 +293,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 		strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace, "svc"}, "."),
 	}, " ")
 
-	clusterDomain, err := getClusterDomain(ingressRequest)
+	clusterDomain, err := getClusterDomain()
 	if err != nil {
 		return fmt.Errorf("failure getting cluster domain: %v", err)
 	}

@@ -44,6 +44,7 @@ func createOrGetClusterClient() (client.Client, error) {
 
 	scheme.AddKnownTypes(ConfigMapSchemeGroupVersion, &core.ConfigMap{}, &core.ConfigMapList{})
 	scheme.AddKnownTypes(OperatorSchemeGroupVersion, &operatorv1.IngressController{}, &operatorv1.IngressControllerList{})
+	scheme.AddKnownTypes(OperatorSchemeGroupVersion, &operatorv1.DNS{}, &operatorv1.DNSList{})
 
 	clusterClient, err = client.New(cfg, client.Options{Scheme: scheme})
 	if err != nil {
