@@ -1,0 +1,27 @@
+apiVersion: operator.ibm.com/v1alpha1
+kind: ManagementIngress
+metadata:
+  name: default
+  labels:
+    app.kubernetes.io/name: ibm-management-ingress-operator
+    app.kubernetes.io/instance: ibm-management-ingress-operator
+    app.kubernetes.io/managed-by: ibm-management-ingress-operator
+spec:
+  managementState: "managed"
+  imageRegistry: quay.io/opencloudio
+  replicas: 1
+  routeHost: ""
+  resources:
+    requests:
+      cpu: 50m
+      memory: 1024Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  allowedHostHeader: ""
+  cert:
+    issuer:
+      name: "cs-ca-issuer"
+      kind: "Issuer"
+  config:
+    disable-access-log: "true"

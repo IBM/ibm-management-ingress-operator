@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: ibm-management-ingress-operator
-  labels:
-    app.kubernetes.io/name: ibm-management-ingress-operator
-    app.kubernetes.io/instance: ibm-management-ingress-operator
-    app.kubernetes.io/managed-by: ibm-management-ingress-operator

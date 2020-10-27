@@ -31,26 +31,17 @@ LABEL org.label-schema.vendor="IBM" \
   summary="IBM Management Ingress Operator"
 
 ENV OPERATOR=/usr/local/bin/ibm-management-ingress-operator \
-  DEPLOY_DIR=/deploy \
-  USER_UID=1001 \
-  USER_NAME=ibm-management-ingress-operator
+  USER_UID=1001
 
-RUN microdnf update 
+RUN microdnf update
 
 # install operator binary
 COPY build/_output/bin/ibm-management-ingress-operator ${OPERATOR}
-COPY deploy/crds ${DEPLOY_DIR}
-
-COPY build/bin /usr/local/bin
-RUN  /usr/local/bin/user_setup
-
-COPY build/health_check.sh .
-RUN chmod 777 ./health_check.sh
 
 # copy licenses
 RUN mkdir /licenses
 COPY LICENSE /licenses
 
-ENTRYPOINT ["/usr/local/bin/entrypoint"]
-
 USER ${USER_UID}
+
+ENTRYPOINT ["/usr/local/bin/ibm-management-ingress-operator"]
