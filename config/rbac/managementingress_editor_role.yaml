@@ -1,0 +1,24 @@
+# permissions for end users to edit managementingresses.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: managementingress-editor-role
+rules:
+- apiGroups:
+  - operator.ibm.com
+  resources:
+  - managementingresses
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - operator.ibm.com
+  resources:
+  - managementingresses/status
+  verbs:
+  - get

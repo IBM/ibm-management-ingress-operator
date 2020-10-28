@@ -1,0 +1,11 @@
+domain: ibm.com
+layout: go.kubebuilder.io/v2
+projectName: ibm-management-ingress-operator
+repo: github.com/IBM/ibm-management-ingress-operator
+resources:
+- group: operator
+  kind: ManagementIngress
+  version: v1alpha1
+version: 3-alpha
+plugins:
+  go.sdk.operatorframework.io/v2-alpha: {}

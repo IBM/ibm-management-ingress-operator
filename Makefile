@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 # Copyright 2020 IBM Corporation
 #
@@ -14,36 +13,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.DEFAULT_GOAL:=help
 # Specify whether this repo is build locally or not, default values is '1';
 # If set to 1, then you need to also set 'DOCKER_USERNAME' and 'DOCKER_PASSWORD'
 # environment variables before build the repo.
 BUILD_LOCALLY ?= 1
-TARGET_GOOS=linux
 
-# The namespce that operator will be deployed in
-NAMESPACE=ibm-management-ingress-operator
-
-# Image URL to use all building/pushing image targets;
-# Use your own docker registry and image name for dev/test by overridding the IMG and REGISTRY environment variable.
-IMG ?= ibm-management-ingress-operator
-REGISTRY ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
-CSV_VERSION ?= 1.4.0
-
+# image version for each single arch
 VERSION ?= $(shell git describe --exact-match 2> /dev/null || \
                  git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)
+# image version for the multiarch
 RELEASE_VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ print $$3}' | tr -d '"')
 
-VCS_URL ?= https://github.com/IBM/go-repo-template
+# current CSV version
+CSV_VERSION ?= 1.4.0
+
+# used for make bundle
+CHANNELS ?= dev,beta,stable-v1
+DEFAULT_CHANNEL ?= stable-v1
+
+# unsed for build image
+VCS_URL ?= https://github.com/IBM/ibm-management-ingress-operator
 VCS_REF ?= $(shell git rev-parse HEAD)
 
-IMAGE_REPO ?= "hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom"
-IMAGE_NAME ?= ibm-management-ingress-operator
-
-QUAY_USERNAME ?=
-QUAY_PASSWORD ?=
-
+# used for skip markdown lint rule
 MARKDOWN_LINT_WHITELIST=https://quay.io/cnr
+
+# operator image repo and name
+REGISTRY ?= hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
+IMG ?= ibm-management-ingress-operator
 
 TESTARGS_DEFAULT := "-v"
 export TESTARGS ?= $(TESTARGS_DEFAULT)
@@ -61,7 +58,6 @@ else
     $(error "This system's ARCH $(ARCH) isn't recognized/supported")
 endif
 
-
 ifeq ($(LOCAL_OS),Linux)
     TARGET_OS ?= linux
     XARGS_FLAGS="-r"
@@ -76,111 +72,167 @@ endif
 
 include common/Makefile.common.mk
 
-##@ Application
+# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
+CRD_OPTIONS ?= "crd:trivialVersions=true"
 
-install: ## Install all resources (CR/CRD's, RBCA and Operator)
-	@echo ....... Set environment variables ......
-	- export WATCH_NAMESPACE=${NAMESPACE}
-	@echo ....... Creating CRDS .......
-	- kubectl apply -f deploy/crds/operator.ibm.com_managementingresses_crd.yaml
-	@echo ....... Creating RBAC .......
-	- kubectl apply -f deploy/service_account.yaml -n ${NAMESPACE}
-	- kubectl apply -f deploy/role.yaml
-	- kubectl apply -f deploy/role_binding.yaml
-	@echo ....... Creating Operator .......
-	- kubectl apply -f deploy/operator.yaml -n ${NAMESPACE}
-	@echo ....... Creating CR .......
-	- kubectl apply -f deploy/crds/operator.ibm.com_v1alpha1_managementingress_cr.yaml -n ${NAMESPACE}
+# Default bundle image tag
+BUNDLE_IMG ?= ibm-management-ingress-operator-bundle
+# Options for 'bundle-build'
+ifneq ($(origin CHANNELS), undefined)
+BUNDLE_CHANNELS := --channels=$(CHANNELS)
+endif
+ifneq ($(origin DEFAULT_CHANNEL), undefined)
+BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
+endif
+BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
-uninstall: ## Delete all that performed in $ make install
-	@echo ....... Deleting CR .......
-	- kubectl delete -f deploy/crds/operator.ibm.com_v1alpha1_managementingress_cr.yaml -n ${NAMESPACE}
-	@echo ....... Deleting Operator .......
-	- kubectl delete -f deploy/operator.yaml -n ${NAMESPACE}
-	@echo ....... Deleting CRDs .......
-	- kubectl delete -f deploy/crds/operator.ibm.com_managementingresses_crd.yaml
-	@echo ....... Deleting RBAC and Service Account .......
-	- kubectl delete -f deploy/role_binding.yaml
-	- kubectl delete -f deploy/service_account.yaml -n ${NAMESPACE}
-	- kubectl delete -f deploy/role.yaml
+# Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
+else
+GOBIN=$(shell go env GOBIN)
+endif
 
-##@ Development
+all: manager
 
 check: lint-all ## Check all files lint error
 
-code-dev: ## Run the default dev commands which are go tidy, fmt, vet then execute the $ make code-gen
-	@echo Running the common required commands for developments purposes
-	- make code-tidy
-	- make code-fmt
-	- make code-vet
-	- make code-gen
-	@echo Running the common required commands for code delivery
-	- make check
-	- make test
-	- make build
+# Run tests
+# ENVTEST_ASSETS_DIR = $(shell pwd)/testbin
+# test: generate fmt vet manifests
+# 	mkdir -p $(ENVTEST_ASSETS_DIR)
+# 	test -f $(ENVTEST_ASSETS_DIR)/setup-envtest.sh || curl -sSLo $(ENVTEST_ASSETS_DIR)/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.6.3/hack/setup-envtest.sh
+# 	source $(ENVTEST_ASSETS_DIR)/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
 
-run: ## Run against the configured Kubernetes cluster in ~/.kube/config
-	go run ./cmd/manager/main.go
+test:
+	@go test $(TESTARGS) ./...
+
+coverage: ## Run code coverage test
+	@common/scripts/codecov.sh $(BUILD_LOCALLY)
+
+# Build manager binary
+manager: generate fmt vet
+	go build -o bin/manager main.go
+
+build: generate fmt vet
+	@echo "Building ibm-management-ingress-operator binary for $(LOCAL_ARCH)..."
+	@GOARCH=$(LOCAL_ARCH) common/scripts/gobuild.sh build/_output/bin/$(IMG) ./
+	@strip $(STRIP_FLAGS) build/_output/bin/$(IMG)
+
+# Run against the configured Kubernetes cluster in ~/.kube/config
+run: generate fmt vet manifests
+	go run ./main.go
+
+# Install CRDs into a cluster
+install: manifests kustomize
+	$(KUSTOMIZE) build config/crd | kubectl apply -f -
+
+# Uninstall CRDs from a cluster
+uninstall: manifests kustomize
+	$(KUSTOMIZE) build config/crd | kubectl delete -f -
+
+# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
+deploy: manifests kustomize
+	cd config/manager && $(KUSTOMIZE) edit set image controller=$(REGISTRY)/$(IMG):$(VERSION)
+	$(KUSTOMIZE) build config/default | kubectl apply -f -
+
+# Generate manifests e.g. CRD, RBAC etc.
+manifests: controller-gen
+	# $(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	# @morvencao to add custimize labels for CRD
+	# cd config/crd && $(KUSTOMIZE) edit add label -f app.kubernetes.io/name:ibm-management-ingress-operator,app.kubernetes.io/instance:ibm-management-ingress-operator,app.kubernetes.io/managed-by:ibm-management-ingress-operator && cd ../..
+
+# Run go fmt against code
+fmt:
+	# go fmt ./...
+
+# Run go vet against code
+vet:
+	# go vet ./...
+
+# Generate code
+generate: controller-gen
+	# $(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+
+# Build the docker image
+docker-build: test
+	docker build -t $(REGISTRY)/$(IMG)-$(LOCAL_ARCH):$(VERSION) --build-arg VCS_REF=$(VCS_REF) --build-arg VCS_URL=$(VCS_URL) -f build/Dockerfile .
+
+# Push the docker image
+docker-push:
+	docker push $(REGISTRY)/$(IMG)-$(LOCAL_ARCH):$(VERSION)
 
 ifeq ($(BUILD_LOCALLY),0)
     export CONFIG_DOCKER_TARGET = config-docker
 endif
 
-##@ Build
-
-build:
-	@echo "Building ibm-management-ingress-operator binary for $(LOCAL_ARCH)..."
-	@GOARCH=$(LOCAL_ARCH) common/scripts/gobuild.sh build/_output/bin/$(IMG) ./cmd/manager
-	@strip $(STRIP_FLAGS) build/_output/bin/$(IMG)
-
 build-push-image: build-image push-image
 
 build-image: build
 	@echo "Building the $(IMG) docker image for $(LOCAL_ARCH)..."
-	@docker build -t $(REGISTRY)/$(IMG)-$(LOCAL_ARCH):$(VERSION) -f build/Dockerfile .
+	@docker build -t $(REGISTRY)/$(IMG)-$(LOCAL_ARCH):$(VERSION) --build-arg VCS_REF=$(VCS_REF) --build-arg VCS_URL=$(VCS_URL) -f build/Dockerfile .
 
 push-image: $(CONFIG_DOCKER_TARGET) build-image
 	@echo "Pushing the $(IMG) docker image for $(LOCAL_ARCH)..."
-	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
-
-##@ Test
-
-test: ## Run unit test
-	@go test ${TESTARGS} ./pkg/...
-
-test-e2e: ## Run integration e2e tests with different options.
-	@echo ... Running locally ...
-	- operator-sdk test local ./test/e2e --verbose --up-local --namespace=${NAMESPACE}
-
-coverage: ## Run code coverage test
-	@common/scripts/codecov.sh ${BUILD_LOCALLY}
-
-scorecard: ## Run scorecard test
-	@echo ... Running the scorecard test
-	- operator-sdk scorecard --verbose
-
-##@ Release
+	@docker push $(REGISTRY)/$(IMG)-$(LOCAL_ARCH):$(VERSION)
 
 # multiarch-image section
 multiarch-image: $(CONFIG_DOCKER_TARGET)
-	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(IMAGE_REPO) $(IMAGE_NAME) $(VERSION) $(RELEASE_VERSION)
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMG) $(VERSION) $(RELEASE_VERSION)
 
 csv: ## Push CSV package to the catalog
-	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
+	@RELEASE=$(CSV_VERSION) common/scripts/push-csv.sh
 
-all: check test coverage build images
+# find or download controller-gen
+# download controller-gen if necessary
+controller-gen:
+ifeq (, $(shell which controller-gen))
+	@{ \
+	set -e ;\
+	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$CONTROLLER_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.3.0 ;\
+	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
+	}
+CONTROLLER_GEN=$(GOBIN)/controller-gen
+else
+CONTROLLER_GEN=$(shell which controller-gen)
+endif
 
-##@ Cleanup
-clean: ## Clean build binary
-	rm -f build/_output/bin/$(IMG)
+kustomize:
+ifeq (, $(shell which kustomize))
+	@{ \
+	set -e ;\
+	KUSTOMIZE_GEN_TMP_DIR=$$(mktemp -d) ;\
+	cd $$KUSTOMIZE_GEN_TMP_DIR ;\
+	go mod init tmp ;\
+	go get sigs.k8s.io/kustomize/kustomize/v3@v3.5.4 ;\
+	rm -rf $$KUSTOMIZE_GEN_TMP_DIR ;\
+	}
+KUSTOMIZE=$(GOBIN)/kustomize
+else
+KUSTOMIZE=$(shell which kustomize)
+endif
 
-##@ Help
-help: ## Display this help
-	@echo "Usage:\n  make \033[36m<target>\033[0m"
-	@awk 'BEGIN {FS = ":.*##"}; \
-		/^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 } \
-		/^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+# Generate bundle manifests and metadata, then validate generated files.
+.PHONY: bundle
+bundle: manifests
+	# operator-sdk generate kustomize manifests -q
+	# cd config/manager && $(KUSTOMIZE) edit set image controller=$(REGISTRY)/$(IMG):$(VERSION)
+	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
+	cp config/manifests/bases/ibm-management-ingress-operator.clusterserviceversion.yaml bundle/manifests/ibm-management-ingress-operator.clusterserviceversion.yaml
+	cp config/crd/bases/operator.ibm.com_managementingresses.yaml bundle/manifests/operator.ibm.com_managementingresses.yaml
+ifeq ($(LOCAL_OS),Linux)
+	sed -i 's|bundle.package.v1=ibm-management-ingress-operator|bundle.package.v1=ibm-management-ingress-operator-app|g' bundle.Dockerfile
+	sed -i 's|bundle.package.v1: ibm-management-ingress-operator|bundle.package.v1: ibm-management-ingress-operator-app|g' bundle/metadata/annotations.yaml
+else ifeq ($(LOCAL_OS),Darwin)
+	sed -i "" 's|bundle.package.v1=ibm-management-ingress-operator|bundle.package.v1=ibm-management-ingress-operator-app|g' bundle.Dockerfile
+	sed -i "" 's|bundle.package.v1: ibm-management-ingress-operator|bundle.package.v1: ibm-management-ingress-operator-app|g' bundle/metadata/annotations.yaml
+endif
+	# operator-sdk bundle validate ./bundle
 
-.PHONY: all build run check install uninstall code-dev test test-e2e coverage images csv clean help multiarch-image
-
-.PHONY: all work fmt check coverage lint test build build-push-image multiarch-image clean
+# Build the bundle image.
+.PHONY: bundle-build
+bundle-build:
+	docker build -f bundle.Dockerfile -t $(REGISTRY)/$(BUNDLE_IMG):$(VERSION) .

@@ -195,20 +195,15 @@ spec:
                 productMetric: "FREE"
             spec:
               containers:
-              - name: ibm-management-ingress-operator
-                image: quay.io/opencloudio/ibm-management-ingress-operator:latest
-                imagePullPolicy: Always
-                command:
+              - command:
                 - ibm-management-ingress-operator
-                args:
-                - --enable-leader-election
                 resources:
                   limits:
-                    cpu: 160m
-                    memory: 512Mi
+                    cpu: 50m
+                    memory: 128Mi
                   requests:
-                    cpu: 100m
-                    memory: 320Mi
+                    cpu: 20m
+                    memory: 64Mi
                 env:
                 - name: POD_NAMESPACE
                   valueFrom:
@@ -228,6 +223,16 @@ spec:
                   value: ""
                 - name: VERSION
                   value: ""
+                image: quay.io/opencloudio/ibm-management-ingress-operator:latest
+                imagePullPolicy: Always
+                name: ibm-management-ingress-operator
+                resources:
+                  limits:
+                    cpu: 160m
+                    memory: 512Mi
+                  requests:
+                    cpu: 100m
+                    memory: 320Mi
               serviceAccountName: ibm-management-ingress-operator
       clusterPermissions:
       - rules:

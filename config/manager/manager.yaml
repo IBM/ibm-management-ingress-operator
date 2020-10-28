@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    name: ibm-management-ingress-operator
+  name: ibm-common-services
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ibm-management-ingress-operator
+  labels:
+    app.kubernetes.io/name: ibm-management-ingress-operator
+    app.kubernetes.io/instance: ibm-management-ingress-operator
+    app.kubernetes.io/managed-by: ibm-management-ingress-operator
+    name: ibm-management-ingress-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: ibm-management-ingress-operator
+  template:
+    metadata:
+      labels:
+        name: ibm-management-ingress-operator
+        app.kubernetes.io/managed-by: "ibm-management-ingress-operator"
+        app.kubernetes.io/name: "ibm-management-ingress-operator"
+        app.kubernetes.io/instance: ibm-management-ingress-operator
+      annotations:
+        productName: "IBM Cloud Platform Common Services"
+        productID: "068a62892a1e4db39641342e592daa25"
+        productMetric: "FREE"
+    spec:
+      serviceAccountName: ibm-management-ingress-operator
+      containers:
+        - name: ibm-management-ingress-operator
+          image: quay.io/opencloudio/ibm-management-ingress-operator:latest
+          imagePullPolicy: Always
+          command:
+          - ibm-management-ingress-operator
+          args:
+          - --enable-leader-election
+          resources:
+            limits:
+              cpu: 160m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 320Mi
+          env:
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: WATCH_NAMESPACE
+              value: ""
+            - name: OPERAND_IMAGE_DIGEST
+              value: quay.io/opencloudio/icp-management-ingress:@sha256:2390407b910d3e57d1a297470c97d2f00d74a9e26c03a4e30a86ef3d9814ed5a
+            - name: ROUTE_HTTPS_PORT
+              value: ""
+            - name: ROUTE_HTTP_PORT
+              value: ""
+            - name: CLUSTER_NAME
+              value: ""
+            - name: VERSION
+              value: ""
+
