@@ -300,10 +300,13 @@ spec:
           - route.openshift.io
           resources:
           - routes
+          - routes/finalizers
           verbs:
           - create
           - get
+          - delete
           - list
+          - update
           - watch
         - apiGroups:
           - route.openshift.io

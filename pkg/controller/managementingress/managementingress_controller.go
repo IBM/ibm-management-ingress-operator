@@ -57,12 +57,6 @@ var (
 		{Group: "route.openshift.io", Version: "v1", Kind: "Route"},
 	}
 
-	// watchedClusterResources = []schema.GroupVersionKind{
-	// 	{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRoleBinding"},
-	// 	{Group: "rbac.authorization.k8s.io", Version: "v1", Kind: "ClusterRole"},
-	// 	{Group: "security.openshift.io", Version: "v1", Kind: "SecurityContextConstraints"},
-	// }
-
 	ownedResourcePredicates = predicate.Funcs{
 		CreateFunc: func(e event.CreateEvent) bool {
 			return false
@@ -171,6 +165,7 @@ func (r *ReconcileManagementIngress) Reconcile(request reconcile.Request) (recon
 	if instance.Spec.ManagementState == v1alpha1.ManagementStateUnmanaged {
 		return reconcile.Result{}, nil
 	}
+
 	if !instance.ObjectMeta.DeletionTimestamp.IsZero() {
 		klog.Infof("Instance: %s/%s was deleted. Do nothing!", request.NamespacedName.Namespace, request.NamespacedName.Name)
 		return reconcile.Result{}, nil
@@ -178,41 +173,6 @@ func (r *ReconcileManagementIngress) Reconcile(request reconcile.Request) (recon
 
 	klog.Info("Reconciling ManagementIngress")
 	i := k8shandler.NewIngressHandler(instance, r.client, r.eClient, r.recorder, r.scheme)
-
-	// // examine DeletionTimestamp to determine if object is under deletion
-	// if instance.ObjectMeta.DeletionTimestamp.IsZero() {
-	// 	// The object is not being deleted, so if it does not have our finalizer,
-	// 	// then lets add the finalizer and update the object. This is equivalent
-	// 	// registering our finalizer.
-	// 	if !k8sutils.ContainsString(instance.ObjectMeta.Finalizers, finalizerName) {
-	// 		instance.ObjectMeta.Finalizers = append(instance.ObjectMeta.Finalizers, finalizerName)
-	// 		if err := r.client.Update(context.Background(), instance); err != nil {
-	// 			klog.Errorf("Failed to add finalizer: ", err)
-	// 			return reconcile.Result{}, err
-	// 		}
-	// 	}
-	// } else {
-	// 	// The object is being deleted
-	// 	if k8sutils.ContainsString(instance.ObjectMeta.Finalizers, finalizerName) {
-	// 		// our finalizer is present, so lets handle any external dependency
-	// 		if err := k8shandler.DeleteClusterResources(i); err != nil {
-	// 			// if fail to delete the external dependency here, return with error
-	// 			// so that it can be retried
-	// 			klog.Errorf("Failed to delete cluster resources: ", err)
-	// 			return reconcile.Result{}, err
-	// 		}
-
-	// 		// remove our finalizer from the list and update it.
-	// 		instance.ObjectMeta.Finalizers = k8sutils.RemoveString(instance.ObjectMeta.Finalizers, finalizerName)
-	// 		if err := r.client.Update(context.Background(), instance); err != nil {
-	// 			klog.Errorf("Failed to remove finalizer: ", err)
-	// 			return reconcile.Result{}, err
-	// 		}
-	// 	}
-
-	// 	// Stop reconciliation as the item is being deleted
-	// 	return reconcile.Result{}, nil
-	// }
 
 	err = k8shandler.Reconcile(i)
 	if err != nil {

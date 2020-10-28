@@ -254,8 +254,6 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 }
 
 func getClusterDomain(ingressRequest *IngressRequest) (string, error) {
-	klog.Infof("Getting cluster domain from DNS config.")
-
 	dns := &operatorv1.DNS{}
 	if err := ingressRequest.Get("default", "", dns); err != nil {
 		return "", err
@@ -272,10 +270,7 @@ func getClusterDomain(ingressRequest *IngressRequest) (string, error) {
 }
 
 func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
-
-	klog.Infof("Creating Deployment: %s for %q.", AppName, ingressRequest.managementIngress.Name)
 	image := os.Getenv("OPERAND_IMAGE_DIGEST")
-	klog.Infof("Creating Deployment with image: %s.", image)
 	hostHeader := strings.Join([]string{
 		ingressRequest.managementIngress.Spec.AllowedHostHeader,
 		ingressRequest.managementIngress.Status.Host,
@@ -320,11 +315,11 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 	err = ingressRequest.Create(ds)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
-			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedDeployment", "Failure creating deployment %q: %v", AppName, err)
+			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedDeployment", "Failed to create deployment %q", AppName)
 			return fmt.Errorf("failure creating Deployment: %v", err)
 		}
 
-		klog.Infof("Trying to update Deployment: %s for %q as it already existed.", AppName, ingressRequest.managementIngress.Name)
+		klog.Infof("Trying to update Deployment: %s as it already existed.", AppName)
 		current := &apps.Deployment{}
 		if err = ingressRequest.Get(AppName, ingressRequest.managementIngress.ObjectMeta.Namespace, current); err != nil {
 			return fmt.Errorf("failure getting %q Deployment for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
@@ -335,16 +330,20 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 			klog.Infof("No change found from the deployment: %s.", AppName)
 			return nil
 		}
+
 		klog.Infof("Found change for deployment: %s. Trying to update it.", AppName)
 		err = ingressRequest.Update(desired)
 		if err != nil {
-			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedDeployment", "Failure updating deployment %q: %v", AppName, err)
+			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedDeployment", "Failed to update deployment: %s", AppName)
 			return fmt.Errorf("failure updating %q Deployment for %q: %v", AppName, ingressRequest.managementIngress.Name, err)
 		}
+
 		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "UpdatedDeployment", "Successfully updated deployment %q", AppName)
-	} else {
-		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedDeployment", "Successfully created deployment %q", AppName)
+		return nil
 	}
+
+	klog.Infof("Created Deployment: %s.", AppName)
+	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedDeployment", "Successfully created deployment %q", AppName)
 
 	return nil
 }
