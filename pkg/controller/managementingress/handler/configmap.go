@@ -65,7 +65,7 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// create configmap
-			klog.Infof("Creating Configmap %s.", cm.ObjectMeta.Name)
+			klog.Infof("Creating configmap %s.", cm.ObjectMeta.Name)
 			err = ingr.Create(cm)
 			if err != nil {
 				ingr.recorder.Eventf(ingr.managementIngress, "Warning", "CreatedConfigmap", "Failure creating configmap %q: %v", cm.ObjectMeta.Name, err)
@@ -187,6 +187,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
 		return fmt.Errorf("failure creating bind info for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
+	// Create ibmcloud-cluster-info
 	if err := populateCloudClusterInfo(ingressRequest); err != nil {
 		return fmt.Errorf("failure populate cloud cluster info for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
@@ -268,7 +269,7 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 			CSVersion:            ver,
 			ClusterAPIServerHost: apiaddr[0:pos],
 			ClusterAPIServerPort: apiaddr[pos+1:],
-			ProxyAddress:         "cp-proxy." + baseDomain,
+			ProxyAddress:         ProxyRouteName + "." + baseDomain,
 			ProxyHTTPPort:        "80",
 			ProxyHTTPSPort:       "443",
 		},

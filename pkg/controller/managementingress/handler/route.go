@@ -38,7 +38,7 @@ func NewRoute(name, namespace, serviceName, routeHost string, cert, key, caCert,
 
 	labels := GetCommonLabels()
 
-	return &route.Route{
+	r := &route.Route{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Route",
 			APIVersion: route.SchemeGroupVersion.String(),
@@ -60,16 +60,28 @@ func NewRoute(name, namespace, serviceName, routeHost string, cert, key, caCert,
 				Name: serviceName,
 				Kind: "Service",
 			},
-			TLS: &route.TLSConfig{
-				Termination:                   route.TLSTerminationReencrypt,
-				InsecureEdgeTerminationPolicy: route.InsecureEdgeTerminationPolicyRedirect,
-				Certificate:                   string(cert),
-				Key:                           string(key),
-				CACertificate:                 string(caCert),
-				DestinationCACertificate:      string(destinationCAcert),
-			},
 		},
 	}
+
+	if len(cert) > 0 && len(key) > 0 && len(caCert) > 0 && len(destinationCAcert) > 0 {
+		// SSL termination is reencrypt
+		r.Spec.TLS = &route.TLSConfig{
+			Termination:                   route.TLSTerminationReencrypt,
+			InsecureEdgeTerminationPolicy: route.InsecureEdgeTerminationPolicyRedirect,
+			Certificate:                   string(cert),
+			Key:                           string(key),
+			CACertificate:                 string(caCert),
+			DestinationCACertificate:      string(destinationCAcert),
+		}
+	} else {
+		// SSL termination is passthrough
+		r.Spec.TLS = &route.TLSConfig{
+			Termination:                   route.TLSTerminationPassthrough,
+			InsecureEdgeTerminationPolicy: route.InsecureEdgeTerminationPolicyRedirect,
+		}
+	}
+
+	return r
 }
 
 func NewSecret(name, namespace string, caCert []byte) *core.Secret {
@@ -90,8 +102,8 @@ func NewSecret(name, namespace string, caCert []byte) *core.Secret {
 	}
 }
 
+// create ibmcloud-cluster-ca-cert
 func (ingressRequest *IngressRequest) createOrUpdateSecret(secretName, namespace string, caCert []byte) error {
-	// create ibmcloud-cluster-ca-cert
 	clusterSecret := NewSecret(secretName, namespace, caCert)
 
 	klog.Infof("create secret: %s for %q.", secretName, ingressRequest.managementIngress.ObjectMeta.Name)
@@ -148,7 +160,8 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	}
 	destinationCAcert := secret.Data["ca.crt"]
 
-	route := NewRoute(
+	// Create cp-console route
+	consoleRoute := NewRoute(
 		RouteName,
 		ingressRequest.managementIngress.ObjectMeta.Namespace,
 		ServiceName,
@@ -159,20 +172,57 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 		destinationCAcert,
 	)
 
-	// Create route resource
-	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, route, ingressRequest.scheme); err != nil {
-		klog.Errorf("Error setting controller reference on Route: %v", err)
+	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, consoleRoute, ingressRequest.scheme); err != nil {
+		klog.Errorf("Error setting owner reference on cp-console Route: %v", err)
 	}
 
-	klog.Infof("Creating route: %s for %q.", route.ObjectMeta.Name, ingressRequest.managementIngress.ObjectMeta.Name)
-	err = ingressRequest.Create(route)
+	klog.Infof("Creating route: %s.", RouteName)
+	err = ingressRequest.Create(consoleRoute)
 	if err != nil && !errors.IsAlreadyExists(err) {
-		return fmt.Errorf("failure constructing route for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
+		return fmt.Errorf("failure creating cp-console route for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
 	}
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedRoute", "Successfully created route %q", RouteName)
 
+	// Create cp-proxy route
+	baseDomain, err := ingressRequest.GetRouteAppDomain()
+	if err != nil {
+		return fmt.Errorf("failure getting route base domain: %v", err)
+	}
+
+	proxyRoute := NewRoute(
+		ProxyRouteName,
+		ingressRequest.managementIngress.ObjectMeta.Namespace,
+		ProxyServiceName,
+		ProxyRouteName+"."+baseDomain,
+		[]byte{},
+		[]byte{},
+		[]byte{},
+		[]byte{},
+	)
+
+	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, proxyRoute, ingressRequest.scheme); err != nil {
+		klog.Errorf("Error setting controller reference on cp-proxy Route: %v", err)
+	}
+
+	klog.Infof("Creating route: %s.", ProxyRouteName)
+	err = ingressRequest.Create(proxyRoute)
+	if err != nil {
+		// Update the route with owner reference, then when management ingress CR was removed the route resource will be GCed by k8s.
+		if errors.IsAlreadyExists(err) {
+			// klog.Infof("Route : %s exists. Trying to update it with owner reference", ProxyRouteName)
+			// if error := ingressRequest.Update(proxyRoute); error != nil {
+			// 	return fmt.Errorf("Failure updating cp-proxy Route for owner reference: %v", error)
+			// }
+			return nil
+		}
+
+		return fmt.Errorf("failure creating cp-proxy route: %v", err)
+	}
+	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedRoute", "Successfully created route %q", ProxyRouteName)
+
+	// Create or update secret ibmcloud-cluster-ca-cert
 	if err = ingressRequest.createOrUpdateSecret(ClusterSecretName, os.Getenv(PODNAMESPACE), caCert); err != nil {
-		return fmt.Errorf("unable  to create or update secret for %q: %v", ingressRequest.managementIngress.Name, err)
+		return fmt.Errorf("failure creating or updating secret for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
 	return nil
