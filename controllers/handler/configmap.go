@@ -70,7 +70,6 @@ func updateClusterInfo(ingr *IngressRequest, cm *core.ConfigMap) error {
 				ingr.recorder.Eventf(ingr.managementIngress, "Warning", "CreatedConfigmap", "Failed to create configmap: %s", cm.ObjectMeta.Name)
 				return fmt.Errorf("failure creating configmap: %v", err)
 			}
-
 			klog.Infof("Created configmap %s.", cm.ObjectMeta.Name)
 			ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created configmap: %s", cm.ObjectMeta.Name)
 			return nil
@@ -81,7 +80,6 @@ func updateClusterInfo(ingr *IngressRequest, cm *core.ConfigMap) error {
 			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failed to update configmap: %s", cm.ObjectMeta.Name)
 			return fmt.Errorf("failure updating Configmap %s: %v", cfg.ObjectMeta.Name, err)
 		}
-
 		ingr.recorder.Eventf(ingr.managementIngress, "Normal", "UpdatedConfigmap", "Successfully updated configmap: %s", cm.ObjectMeta.Name)
 	}
 
@@ -153,7 +151,7 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 		}
 	} else {
 		klog.Infof("Created Configmap: %s.", cm.ObjectMeta.Name)
-		ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created configmap %s", cm.ObjectMeta.Name)
+		ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created or updated configmap %q", cm.ObjectMeta.Name)
 	}
 
 	return nil

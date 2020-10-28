@@ -254,13 +254,9 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 	return podSpec
 }
 
-<<<<<<< HEAD
-func getClusterDomain(ingressRequest *IngressRequest) (string, error) {
-=======
 func getClusterDomain() (string, error) {
 	klog.Infof("Getting cluster domain from DNS config.")
 
->>>>>>> register new 3rd-party apis.
 	dns := &operatorv1.DNS{}
 	clusterClient, err := createOrGetClusterClient()
 	if err != nil {
@@ -341,7 +337,6 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 			klog.Infof("No change found from the deployment: %s.", AppName)
 			return nil
 		}
-
 		klog.Infof("Found change for deployment: %s. Trying to update it.", AppName)
 		err = ingressRequest.Update(desired)
 		if err != nil {
@@ -352,6 +347,8 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "UpdatedDeployment", "Successfully updated deployment %q", AppName)
 		return nil
 	}
+	klog.Infof("Created or updated Deployment: %s.", AppName)
+	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedDeployment", "Successfully created or updated deployment %q", AppName)
 
 	klog.Infof("Created Deployment: %s.", AppName)
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedDeployment", "Successfully created deployment %q", AppName)

@@ -74,7 +74,6 @@ func (ingressRequest *IngressRequest) CreateOrUpdateService() error {
 		if errors.IsAlreadyExists(err) {
 			return nil
 		}
-
 		return fmt.Errorf("failure constructing service for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 

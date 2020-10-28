@@ -96,9 +96,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 		&ingressRequest.managementIngress.Spec.Cert.Issuer,
 	)
 
-	err := ingressRequest.CreateCert(routeCert)
-
-	return err
+	return ingressRequest.CreateCert(routeCert)
 }
 
 func (ingressRequest *IngressRequest) CreateCert(cert *certmanager.Certificate) error {
@@ -106,14 +104,16 @@ func (ingressRequest *IngressRequest) CreateCert(cert *certmanager.Certificate) 
 		klog.Errorf("Error setting controller reference on Certificate: %v", err)
 	}
 
+	klog.Infof("Creating certificate: %s for %q.", cert.ObjectMeta.Name, ingressRequest.managementIngress.ObjectMeta.Name)
 	err := ingressRequest.Create(cert)
 	if err != nil {
 		if errors.IsAlreadyExists(err) {
+			// already exist, ignore the error and proceed
+			klog.Infof("Certificate: %s aleady exists, proceeding.", cert.ObjectMeta.Name)
 			return nil
 		}
-
 		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "CreatedCertificate", "Failed to create certificate %q", cert.ObjectMeta.Name)
-		return fmt.Errorf("failure creating certificate: %v", err)
+		return fmt.Errorf("failure creating certificate: %s %v", cert.ObjectMeta.Name, err)
 	}
 
 	klog.Infof("Created Certificate: %s.", cert.ObjectMeta.Name)

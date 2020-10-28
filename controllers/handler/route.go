@@ -104,6 +104,7 @@ func NewSecret(name, namespace string, caCert []byte) *core.Secret {
 
 // create ibmcloud-cluster-ca-cert
 func (ingressRequest *IngressRequest) createClusterCACert(secretName, namespace string, caCert []byte) error {
+	// create ibmcloud-cluster-ca-cert
 	clusterSecret := NewSecret(secretName, namespace, caCert)
 
 	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, clusterSecret, ingressRequest.scheme); err != nil {
@@ -138,8 +139,8 @@ func (ingressRequest *IngressRequest) createClusterCACert(secretName, namespace 
 		}
 	}
 
-	klog.Infof("Created secret: %s.", secretName)
-	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedSecret", "Successfully created secret %q", secretName)
+	klog.Infof("Created or updated secret: %s.", secretName)
+	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedSecret", "Successfully created or updated secret %q", secretName)
 
 	return nil
 }
@@ -182,16 +183,15 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 		klog.Errorf("Error setting owner reference on cp-console Route: %v", err)
 	}
 
+	klog.Infof("Creating route: %s.", RouteName)
 	err = ingressRequest.Create(consoleRoute)
-	if err != nil {
-		if !errors.IsAlreadyExists(err) {
-			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "CreatedRoute", "Failed to create route %q", RouteName)
-			return fmt.Errorf("failure creating cp-console route for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
-		}
-	} else {
-		klog.Infof("Created route: %s.", RouteName)
-		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedRoute", "Successfully created route %q", RouteName)
+
+	if err != nil && !errors.IsAlreadyExists(err) {
+		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "CreatedRoute", "Failed to create route %q", RouteName)
+		return fmt.Errorf("failure creating cp-console route for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
 	}
+	klog.Infof("Created route: %s.", RouteName)
+	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedRoute", "Successfully created route %q", RouteName)
 
 	// Create cp-proxy route
 	baseDomain, err := ingressRequest.GetRouteAppDomain()
@@ -214,6 +214,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 		klog.Errorf("Error setting controller reference on cp-proxy Route: %v", err)
 	}
 
+	klog.Infof("Creating route: %s.", ProxyRouteName)
 	err = ingressRequest.Create(proxyRoute)
 	if err != nil {
 		// Update the route with owner reference, then when management ingress CR was removed the route resource will be GCed by k8s.
@@ -238,11 +239,10 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "CreatedRoute", "Failed to create route %q", ProxyRouteName)
 			return fmt.Errorf("failure creating cp-proxy route: %v", err)
 		}
-	} else {
-		klog.Infof("Created route: %s.", ProxyRouteName)
-		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedRoute", "Successfully created route %q", ProxyRouteName)
 	}
 
+	klog.Infof("Created route: %s.", ProxyRouteName)
+	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedRoute", "Successfully created route %q", ProxyRouteName)
 	return nil
 }
 
