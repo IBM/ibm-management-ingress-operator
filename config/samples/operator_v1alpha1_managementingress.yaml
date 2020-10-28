@@ -14,10 +14,10 @@ spec:
   resources:
     requests:
       cpu: 50m
-      memory: 1024Mi
+      memory: 300Mi
     limits:
       cpu: 200m
-      memory: 256Mi
+      memory: 1024Mi
   allowedHostHeader: ""
   cert:
     issuer:
@@ -25,3 +25,4 @@ spec:
       kind: "Issuer"
   config:
     disable-access-log: "true"
+

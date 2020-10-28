@@ -18,20 +18,27 @@
 # environment variables before build the repo.
 BUILD_LOCALLY ?= 1
 
+# image version for each single arch
 VERSION ?= $(shell git describe --exact-match 2> /dev/null || \
                  git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)
+# image version for the multiarch
 RELEASE_VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ print $$3}' | tr -d '"')
 
+# current CSV version
 CSV_VERSION ?= 1.4.0
-FROM_VERSION ?= 1.3.3
-CHANNEL ?= dev
 
+# used for make bundle
+CHANNELS ?= dev,beta,stable-v1
+DEFAULT_CHANNEL ?= stable-v1
+
+# unsed for build image
 VCS_URL ?= https://github.com/IBM/ibm-management-ingress-operator
 VCS_REF ?= $(shell git rev-parse HEAD)
 
+# used for skip markdown lint rule
 MARKDOWN_LINT_WHITELIST=https://quay.io/cnr
 
-# Image URL to use all building/pushing image targets
+# operator image repo and name
 REGISTRY ?= hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
 IMG ?= ibm-management-ingress-operator
 
@@ -79,18 +86,6 @@ BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 endif
 BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
-# Options for "packagemanifests".
-ifneq ($(origin FROM_VERSION), undefined)
-PKG_FROM_VERSION := --from-version=$(FROM_VERSION)
-endif
-ifneq ($(origin CHANNEL), undefined)
-PKG_CHANNELS := --channel=$(CHANNEL)
-endif
-ifeq ($(IS_CHANNEL_DEFAULT), 1)
-PKG_IS_DEFAULT_CHANNEL := --default-channel
-endif
-PKG_MAN_OPTS ?= $(PKG_FROM_VERSION) $(PKG_CHANNELS) $(PKG_IS_DEFAULT_CHANNEL)
-
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -110,10 +105,10 @@ check: lint-all ## Check all files lint error
 # 	source $(ENVTEST_ASSETS_DIR)/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -coverprofile cover.out
 
 test:
-	@go test ${TESTARGS} ./...
+	@go test $(TESTARGS) ./...
 
 coverage: ## Run code coverage test
-	@common/scripts/codecov.sh ${BUILD_LOCALLY}
+	@common/scripts/codecov.sh $(BUILD_LOCALLY)
 
 # Build manager binary
 manager: generate fmt vet
@@ -143,9 +138,9 @@ deploy: manifests kustomize
 
 # Generate manifests e.g. CRD, RBAC etc.
 manifests: controller-gen
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+	# $(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	# @morvencao to add custimize labels for CRD
-	cd config/crd && $(KUSTOMIZE) edit add label -f app.kubernetes.io/name:ibm-management-ingress-operator,app.kubernetes.io/instance:ibm-management-ingress-operator,app.kubernetes.io/managed-by:ibm-management-ingress-operator && cd ../..
+	# cd config/crd && $(KUSTOMIZE) edit add label -f app.kubernetes.io/name:ibm-management-ingress-operator,app.kubernetes.io/instance:ibm-management-ingress-operator,app.kubernetes.io/managed-by:ibm-management-ingress-operator && cd ../..
 
 # Run go fmt against code
 fmt:
@@ -157,15 +152,15 @@ vet:
 
 # Generate code
 generate: controller-gen
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+	# $(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 # Build the docker image
 docker-build: test
-	docker build -t $(REGISTRY)/$(IMG)-$(LOCAL_ARCH):$(VERSION) -f build/Dockerfile .
+	docker build -t $(REGISTRY)/$(IMG)-$(LOCAL_ARCH):$(VERSION) --build-arg VCS_REF=$(VCS_REF) --build-arg VCS_URL=$(VCS_URL) -f build/Dockerfile .
 
 # Push the docker image
 docker-push:
-	docker push $(REGISTRY)/$(IMG):$(VERSION)
+	docker push $(REGISTRY)/$(IMG)-$(LOCAL_ARCH):$(VERSION)
 
 ifeq ($(BUILD_LOCALLY),0)
     export CONFIG_DOCKER_TARGET = config-docker
@@ -175,18 +170,18 @@ build-push-image: build-image push-image
 
 build-image: build
 	@echo "Building the $(IMG) docker image for $(LOCAL_ARCH)..."
-	@docker build -t $(REGISTRY)/$(IMG)-$(LOCAL_ARCH):$(VERSION) -f build/Dockerfile .
+	@docker build -t $(REGISTRY)/$(IMG)-$(LOCAL_ARCH):$(VERSION) --build-arg VCS_REF=$(VCS_REF) --build-arg VCS_URL=$(VCS_URL) -f build/Dockerfile .
 
 push-image: $(CONFIG_DOCKER_TARGET) build-image
 	@echo "Pushing the $(IMG) docker image for $(LOCAL_ARCH)..."
-	@docker push $(REGISTRY)/$(IMAGE_NAME)-$(LOCAL_ARCH):$(VERSION)
+	@docker push $(REGISTRY)/$(IMG)-$(LOCAL_ARCH):$(VERSION)
 
 # multiarch-image section
 multiarch-image: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMG) $(VERSION) $(RELEASE_VERSION)
 
 csv: ## Push CSV package to the catalog
-	@RELEASE=${CSV_VERSION} common/scripts/push-csv.sh
+	@RELEASE=$(CSV_VERSION) common/scripts/push-csv.sh
 
 # find or download controller-gen
 # download controller-gen if necessary
@@ -223,18 +218,21 @@ endif
 # Generate bundle manifests and metadata, then validate generated files.
 .PHONY: bundle
 bundle: manifests
-	operator-sdk generate kustomize manifests -q
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(REGISTRY)/$(IMG):$(VERSION)
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
-	operator-sdk bundle validate ./bundle
+	# operator-sdk generate kustomize manifests -q
+	# cd config/manager && $(KUSTOMIZE) edit set image controller=$(REGISTRY)/$(IMG):$(VERSION)
+	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle -q --overwrite --version $(CSV_VERSION) $(BUNDLE_METADATA_OPTS)
+	cp config/manifests/bases/ibm-management-ingress-operator.clusterserviceversion.yaml bundle/manifests/ibm-management-ingress-operator.clusterserviceversion.yaml
+	cp config/crd/bases/operator.ibm.com_managementingresses.yaml bundle/manifests/operator.ibm.com_managementingresses.yaml
+ifeq ($(LOCAL_OS),Linux)
+	sed -i 's|bundle.package.v1=ibm-management-ingress-operator|bundle.package.v1=ibm-management-ingress-operator-app|g' bundle.Dockerfile
+	sed -i 's|bundle.package.v1: ibm-management-ingress-operator|bundle.package.v1: ibm-management-ingress-operator-app|g' bundle/metadata/annotations.yaml
+else ifeq ($(LOCAL_OS),Darwin)
+	sed -i "" 's|bundle.package.v1=ibm-management-ingress-operator|bundle.package.v1=ibm-management-ingress-operator-app|g' bundle.Dockerfile
+	sed -i "" 's|bundle.package.v1: ibm-management-ingress-operator|bundle.package.v1: ibm-management-ingress-operator-app|g' bundle/metadata/annotations.yaml
+endif
+	# operator-sdk bundle validate ./bundle
 
 # Build the bundle image.
 .PHONY: bundle-build
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(REGISTRY)/$(BUNDLE_IMG):$(VERSION) .
-
-# Generate package manifests.
-packagemanifests: kustomize
-	operator-sdk generate kustomize manifests -q
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(REGISTRY)/$(IMG):$(VERSION)
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate packagemanifests -q --version $(VERSION) $(PKG_MAN_OPTS)
