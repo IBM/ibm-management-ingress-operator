@@ -195,32 +195,31 @@ spec:
                 productMetric: "FREE"
             spec:
               containers:
-              - command:
+              - name: ibm-management-ingress-operator
+                image: quay.io/opencloudio/ibm-management-ingress-operator:latest
+                imagePullPolicy: Always
+                command:
                 - ibm-management-ingress-operator
+                args:
+                - --enable-leader-election
                 resources:
                   limits:
-                    cpu: 50m
-                    memory: 128Mi
+                    cpu: 160m
+                    memory: 512Mi
                   requests:
-                    cpu: 20m
-                    memory: 64Mi
+                    cpu: 100m
+                    memory: 320Mi
                 env:
-                - name: WATCH_NAMESPACE
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.annotations['olm.targetNamespaces']
-                - name: POD_NAME
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.name
-                - name: OPERATOR_NAME
-                  value: ibm-management-ingress-operator
-                - name: OPERAND_IMAGE_DIGEST
-                  value: quay.io/opencloudio/icp-management-ingress@sha256:2390407b910d3e57d1a297470c97d2f00d74a9e26c03a4e30a86ef3d9814ed5a
                 - name: POD_NAMESPACE
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.namespace
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
+                - name: OPERAND_IMAGE_DIGEST
+                  value: quay.io/opencloudio/icp-management-ingress@sha256:2390407b910d3e57d1a297470c97d2f00d74a9e26c03a4e30a86ef3d9814ed5a
                 - name: ROUTE_HTTPS_PORT
                   value: ""
                 - name: ROUTE_HTTP_PORT
@@ -229,16 +228,6 @@ spec:
                   value: ""
                 - name: VERSION
                   value: ""
-                image: quay.io/opencloudio/ibm-management-ingress-operator:latest
-                imagePullPolicy: Always
-                name: ibm-management-ingress-operator
-                resources:
-                  limits:
-                    cpu: 160m
-                    memory: 512Mi
-                  requests:
-                    cpu: 100m
-                    memory: 320Mi
               serviceAccountName: ibm-management-ingress-operator
       clusterPermissions:
       - rules:

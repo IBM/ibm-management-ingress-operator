@@ -40,10 +40,6 @@ spec:
           - ibm-management-ingress-operator
           args:
           - --enable-leader-election
-          securityContext:
-            capabilities:
-              drop:
-              - ALL
           resources:
             limits:
               cpu: 160m

@@ -77,6 +77,6 @@ const (
 	ProxyAddress         string = "proxy_address"
 	ProxyHTTPPort        string = "proxy_ingress_http_port"
 	ProxyHTTPSPort       string = "proxy_ingress_https_port"
-	ProxyRouteName   string = "cp-proxy"
-	ProxyServiceName string = "nginx-ingress-controller"
+	ProxyRouteName       string = "cp-proxy"
+	ProxyServiceName     string = "nginx-ingress-controller"
 )
