@@ -39,7 +39,9 @@ var (
 
 func init() {
 	CertSchemeBuilder.Register(&certmanager.Certificate{})
+	CertSchemeBuilder.Register(&certmanager.CertificateList{})
 	RouteSchemeBuilder.Register(&route.Route{})
+	RouteSchemeBuilder.Register(&route.RouteList{})
 	OperatorSchemeBuilder.Register(&operator.IngressController{})
 	OperatorSchemeBuilder.Register(&operator.IngressControllerList{})
 	OperatorSchemeBuilder.Register(&operator.DNS{})

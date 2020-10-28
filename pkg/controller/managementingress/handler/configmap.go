@@ -56,7 +56,7 @@ func NewConfigMap(name string, namespace string, data map[string]string) *core.C
 }
 
 // for configmap ibmcloud-cluster-info, need to check whether it's already existed, if so, update it, else create it
-func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
+func updateClusterInfo(ingr *IngressRequest, cm *core.ConfigMap) error {
 	if err := controllerutil.SetControllerReference(ingr.managementIngress, cm, ingr.scheme); err != nil {
 		klog.Errorf("Error setting controller reference on Configmap: %v", err)
 	}
@@ -65,26 +65,27 @@ func patchOrCreateConfigmap(ingr *IngressRequest, cm *core.ConfigMap) error {
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// create configmap
-			klog.Infof("Creating configmap %s.", cm.ObjectMeta.Name)
 			err = ingr.Create(cm)
 			if err != nil {
-				ingr.recorder.Eventf(ingr.managementIngress, "Warning", "CreatedConfigmap", "Failure creating configmap %q: %v", cm.ObjectMeta.Name, err)
+				ingr.recorder.Eventf(ingr.managementIngress, "Warning", "CreatedConfigmap", "Failed to create configmap: %s", cm.ObjectMeta.Name)
 				return fmt.Errorf("failure creating configmap: %v", err)
 			}
-		} else {
-			return err
+
+			klog.Infof("Created configmap %s.", cm.ObjectMeta.Name)
+			ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created configmap: %s", cm.ObjectMeta.Name)
+			return nil
 		}
 	} else {
-		klog.Infof("Updating Configmap: %s.", cfg.ObjectMeta.Name)
+		klog.Infof("Trying to update configmap: %s as it already existed.", cfg.ObjectMeta.Name)
 		if err := ingr.Update(cm); err != nil {
-			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdateConfigmap", "Failure updating configmap %s: %v", cm.ObjectMeta.Name, err)
+			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failed to update configmap: %s", cm.ObjectMeta.Name)
 			return fmt.Errorf("failure updating Configmap %s: %v", cfg.ObjectMeta.Name, err)
 		}
+
+		ingr.recorder.Eventf(ingr.managementIngress, "Normal", "UpdatedConfigmap", "Successfully updated configmap: %s", cm.ObjectMeta.Name)
 	}
 
-	klog.Infof("Creating or updating configmap succeeded: %v for %q", cm.ObjectMeta.Name, ingr.managementIngress.Name)
-	ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created or updating configmap %q", cm.ObjectMeta.Name)
-	return nil
+	return err
 }
 
 func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool) error {
@@ -92,11 +93,10 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 		klog.Errorf("Error setting controller reference on Configmap: %v", err)
 	}
 
-	klog.Infof("Creating Configmap: %s for %q.", cm.ObjectMeta.Name, ingr.managementIngress.Name)
 	err := ingr.Create(cm)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
-			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failure creating configmap %q: %v", cm.ObjectMeta.Name, err)
+			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "CreatedConfigmap", "Failed to create configmap: %s", cm.ObjectMeta.Name)
 			return fmt.Errorf("failure creating configmap: %v", err)
 		}
 
@@ -104,11 +104,11 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 			return nil
 		}
 
-		klog.Infof("Trying to update Configmap: %s for %q as it already existed.", cm.ObjectMeta.Name, ingr.managementIngress.Name)
+		klog.Infof("Trying to update configmap: %s as it already existed.", cm.ObjectMeta.Name)
 		current := &core.ConfigMap{}
 		// Update config
 		if err = ingr.Get(cm.ObjectMeta.Name, ingr.managementIngress.ObjectMeta.Namespace, current); err != nil {
-			return fmt.Errorf("failure getting Configmap: %q  for %q: %v", cm.ObjectMeta.Name, ingr.managementIngress.Name, err)
+			return fmt.Errorf("failure getting Configmap: %q: %v", cm.ObjectMeta.Name, err)
 		}
 
 		// no data change, just return
@@ -123,7 +123,7 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 
 		// Apply the latest change to configmap
 		if err = ingr.Update(current); err != nil {
-			return fmt.Errorf("failure updating Configmap: %v for %q: %v", cm.ObjectMeta.Name, ingr.managementIngress.Name, err)
+			return fmt.Errorf("failure updating Configmap: %v: %v", cm.ObjectMeta.Name, err)
 		}
 
 		// Restart Deployment because config is updated.
@@ -131,7 +131,6 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 			ds := &apps.Deployment{}
 			if err = ingr.Get(AppName, ingr.managementIngress.ObjectMeta.Namespace, ds); err != nil {
 				if !errors.IsNotFound(err) {
-					ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failure getting Deployment: %v", err)
 					klog.Errorf("Failure getting Deployment: %q for %q after config change: %v ", AppName, ingr.managementIngress.Name, err)
 				}
 				return nil
@@ -149,12 +148,12 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 			klog.Infof("Restarting management ingress Deployment after config change.")
 			ds.Spec.Template.ObjectMeta.Annotations = annotations
 			if err := ingr.Update(ds); err != nil {
-				ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failure updating damonset to make it restarted: %v", err)
-				klog.Errorf("Failure updating Deployment: %q for %q after config change: %v ", AppName, ingr.managementIngress.Name, err)
+				klog.Errorf("Failure updating Deployment: %q after config change: %v ", AppName, err)
 			}
 		}
 	} else {
-		ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created or updated configmap %q", cm.ObjectMeta.Name)
+		klog.Infof("Created Configmap: %s.", cm.ObjectMeta.Name)
+		ingr.recorder.Eventf(ingr.managementIngress, "Normal", "CreatedConfigmap", "Successfully created configmap %s", cm.ObjectMeta.Name)
 	}
 
 	return nil
@@ -275,7 +274,7 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 		},
 	)
 
-	if err := patchOrCreateConfigmap(ingressRequest, clustercfg); err != nil {
+	if err := updateClusterInfo(ingressRequest, clustercfg); err != nil {
 		return fmt.Errorf("failure creating cluster info for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
