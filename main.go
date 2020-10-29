@@ -93,7 +93,7 @@ func main() {
 			LabelSelector: labelSelector,
 		},
 		corev1.SchemeGroupVersion.WithKind("Secret"): {
-			LabelSelector: handler.CertManagerSecretLabelKey,
+			LabelSelector: labelSelector,
 		},
 	}
 

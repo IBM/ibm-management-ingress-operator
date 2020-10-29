@@ -79,6 +79,4 @@ const (
 	ProxyHTTPSPort       string = "proxy_ingress_https_port"
 	ProxyRouteName       string = "cp-proxy"
 	ProxyServiceName     string = "nginx-ingress-controller"
-
-	CertManagerSecretLabelKey string = "certmanager.k8s.io/certificate-name"
 )
