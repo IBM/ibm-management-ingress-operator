@@ -224,9 +224,11 @@ bundle: manifests
 	cp config/manifests/bases/ibm-management-ingress-operator.clusterserviceversion.yaml bundle/manifests/ibm-management-ingress-operator.clusterserviceversion.yaml
 	cp config/crd/bases/operator.ibm.com_managementingresses.yaml bundle/manifests/operator.ibm.com_managementingresses.yaml
 ifeq ($(LOCAL_OS),Linux)
+	# add -app suffix for operators.operatorframework.io.bundle.package.v1
 	sed -i 's|bundle.package.v1=ibm-management-ingress-operator|bundle.package.v1=ibm-management-ingress-operator-app|g' bundle.Dockerfile
 	sed -i 's|bundle.package.v1: ibm-management-ingress-operator|bundle.package.v1: ibm-management-ingress-operator-app|g' bundle/metadata/annotations.yaml
 else ifeq ($(LOCAL_OS),Darwin)
+	# add -app suffix for operators.operatorframework.io.bundle.package.v1
 	sed -i "" 's|bundle.package.v1=ibm-management-ingress-operator|bundle.package.v1=ibm-management-ingress-operator-app|g' bundle.Dockerfile
 	sed -i "" 's|bundle.package.v1: ibm-management-ingress-operator|bundle.package.v1: ibm-management-ingress-operator-app|g' bundle/metadata/annotations.yaml
 endif
