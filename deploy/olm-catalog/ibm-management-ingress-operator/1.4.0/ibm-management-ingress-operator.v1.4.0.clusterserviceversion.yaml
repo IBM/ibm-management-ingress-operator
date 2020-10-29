@@ -219,7 +219,7 @@ spec:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
                 - name: OPERAND_IMAGE_DIGEST
-                  value: quay.io/opencloudio/icp-management-ingress@sha256:2390407b910d3e57d1a297470c97d2f00d74a9e26c03a4e30a86ef3d9814ed5a
+                  value: quay.io/opencloudio/icp-management-ingress@sha256:5863fd88e4a7779615248404b3d013024b25dd8378502c5ff7888122eda423d0
                 - name: ROUTE_HTTPS_PORT
                   value: ""
                 - name: ROUTE_HTTP_PORT
