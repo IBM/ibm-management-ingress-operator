@@ -87,6 +87,10 @@ func NewRoute(name, namespace, serviceName, routeHost string, cert, key, caCert,
 func NewSecret(name, namespace string, caCert []byte) *core.Secret {
 
 	labels := GetCommonLabels()
+
+	// add faked label so that cache client can filter the secret
+	labels[CertManagerSecretLabelKey] = "faked-certificate-for-management-ingress"
+
 	return &core.Secret{
 		TypeMeta: metav1.TypeMeta{
 			Kind: "Secret",

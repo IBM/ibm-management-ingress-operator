@@ -20,18 +20,25 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"strings"
 
 	certmanagerv1alpha1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
 	routev1 "github.com/openshift/api/route/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	labels "k8s.io/apimachinery/pkg/labels"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
+	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
 
+	"github.com/IBM/controller-filtered-cache/filteredcache"
 	operatorv1alpha1 "github.com/IBM/ibm-management-ingress-operator/api/v1alpha1"
 	"github.com/IBM/ibm-management-ingress-operator/controllers"
+	"github.com/IBM/ibm-management-ingress-operator/controllers/handler"
 	"github.com/IBM/ibm-management-ingress-operator/version"
 )
 
@@ -66,19 +73,54 @@ func main() {
 
 	printVersion()
 
-	ns, found := os.LookupEnv("WATCH_NAMESPACE")
+	watchNS, found := os.LookupEnv("WATCH_NAMESPACE")
 	if !found {
 		klog.Error("failure getting watch namespace")
 		os.Exit(1)
 	}
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:             scheme,
-		Namespace:          ns,
-		MetricsBindAddress: metricsAddr,
-		LeaderElection:     enableLeaderElection,
-		LeaderElectionID:   operatorName,
-	})
+	commonLabels := handler.GetCommonLabels()
+	labelSelector := labels.SelectorFromSet(commonLabels).String()
+
+	gvkLabelMap := map[schema.GroupVersionKind]filteredcache.Selector{
+		corev1.SchemeGroupVersion.WithKind("ConfigMap"): {
+			LabelSelector: labelSelector,
+		},
+		appsv1.SchemeGroupVersion.WithKind("Deployment"): {
+			LabelSelector: labelSelector,
+		},
+		corev1.SchemeGroupVersion.WithKind("Service"): {
+			LabelSelector: labelSelector,
+		},
+		corev1.SchemeGroupVersion.WithKind("Secret"): {
+			LabelSelector: handler.CertManagerSecretLabelKey,
+		},
+	}
+
+	var ctrlOpt ctrl.Options
+	if strings.Contains(watchNS, ",") {
+		namespaces := strings.Split(watchNS, ",")
+		// Create MultiNamespacedCache with watched namespaces if the watch namespace string contains comma
+		ctrlOpt = ctrl.Options{
+			Scheme:             scheme,
+			MetricsBindAddress: metricsAddr,
+			LeaderElection:     enableLeaderElection,
+			LeaderElectionID:   operatorName,
+			NewCache:           filteredcache.MultiNamespacedFilteredCacheBuilder(gvkLabelMap, namespaces),
+		}
+	} else {
+		// Create manager option for watching all namespaces.
+		ctrlOpt = ctrl.Options{
+			Scheme:             scheme,
+			Namespace:          watchNS,
+			MetricsBindAddress: metricsAddr,
+			LeaderElection:     enableLeaderElection,
+			LeaderElectionID:   operatorName,
+			NewCache:           filteredcache.NewFilteredCacheBuilder(gvkLabelMap),
+		}
+	}
+
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrlOpt)
 
 	if err != nil {
 		klog.Errorf("unable to start manager: %v", err)
