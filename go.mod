@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6 // indirect
 	github.com/jetstack/cert-manager v0.10.0
+	github.com/IBM/controller-filtered-cache v0.2.0
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible

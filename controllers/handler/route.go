@@ -151,6 +151,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	if err != nil {
 		return err
 	}
+	klog.Infof("Successfully get the RouteSecret: %s", secret.Name)
 	cert := secret.Data[core.TLSCertKey]
 	key := secret.Data[core.TLSPrivateKeyKey]
 	caCert := secret.Data["ca.crt"]
@@ -160,6 +161,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	if err != nil {
 		return err
 	}
+	klog.Infof("Successfully get the TLSSecretName: %s", secret.Name)
 	destinationCAcert := secret.Data["ca.crt"]
 
 	// Create or update secret ibmcloud-cluster-ca-cert
