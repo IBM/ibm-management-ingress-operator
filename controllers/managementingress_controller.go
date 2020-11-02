@@ -79,40 +79,6 @@ func (r *ManagementIngressReconciler) Reconcile(request ctrl.Request) (ctrl.Resu
 	klog.Infof("reconciling managementingress: %s/%s", request.NamespacedName.Namespace, request.NamespacedName.Name)
 	ingresshandler := k8shandler.NewIngressHandler(managementingress, r.Client, r.Recorder, r.Scheme)
 
-	// // examine DeletionTimestamp to determine if object is under deletion
-	// if managementingress.ObjectMeta.DeletionTimestamp.IsZero() {
-	// 	// The object is not being deleted, so if it does not have our finalizer,
-	// 	// then lets add the finalizer and update the object. This is equivalent
-	// 	// registering our finalizer.
-	// 	if !k8sutils.ContainsString(managementingress.ObjectMeta.Finalizers, finalizerName) {
-	// 		managementingress.ObjectMeta.Finalizers = append(managementingress.ObjectMeta.Finalizers, finalizerName)
-	// 		if err := r.Update(ctx, managementingress); err != nil {
-	// 			klog.Errorf("failed to add finalizer to managementingress: %s/%s with error: %v", request.NamespacedName.Namespace, request.NamespacedName.Name, err)
-	// 			return ctrl.Result{}, err
-	// 		}
-	// 	}
-	// } else {
-	// 	// The object is being deleted
-	// 	if k8sutils.ContainsString(managementingress.ObjectMeta.Finalizers, finalizerName) {
-	// 		// our finalizer is present, so lets handle any external dependency
-	// 		if err := k8shandler.DeleteClusterResources(i); err != nil {
-	// 			// if fail to delete the external dependency here, return with error
-	// 			// so that it can be retried
-	// 			klog.Errorf("failed to delete cluster resources with error: %v", err)
-	// 			return ctrl.Result{}, err
-	// 		}
-
-	// 		// remove our finalizer from the list and update it.
-	// 		managementingress.ObjectMeta.Finalizers = k8sutils.RemoveString(managementingress.ObjectMeta.Finalizers, finalizerName)
-	// 		if err := r.Update(ctx, managementingress); err != nil {
-	// 			klog.Errorf("failed to remove finalizer from managementingress: %s/%s with error: %v", request.NamespacedName.Namespace, request.NamespacedName.Name, err)
-	// 			return ctrl.Result{}, err
-	// 		}
-	// 	}
-	// 	// Stop reconciliation as the item is being deleted
-	// 	return ctrl.Result{}, nil
-	// }
-
 	err = k8shandler.Reconcile(ingresshandler)
 	if err != nil {
 		klog.Errorf("failed to reconcile managementingress: %s/%s with error: %v", request.NamespacedName.Namespace, request.NamespacedName.Name, err)

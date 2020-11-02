@@ -255,8 +255,6 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 }
 
 func getClusterDomain() (string, error) {
-	klog.Infof("Getting cluster domain from DNS config.")
-
 	dns := &operatorv1.DNS{}
 	clusterClient, err := createOrGetClusterClient()
 	if err != nil {
@@ -347,8 +345,6 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "UpdatedDeployment", "Successfully updated deployment %q", AppName)
 		return nil
 	}
-	klog.Infof("Created or updated Deployment: %s.", AppName)
-	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedDeployment", "Successfully created or updated deployment %q", AppName)
 
 	klog.Infof("Created Deployment: %s.", AppName)
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedDeployment", "Successfully created deployment %q", AppName)
@@ -388,28 +384,3 @@ func (ingressRequest *IngressRequest) GetDeploymentPods(selector map[string]stri
 
 	return list, err
 }
-
-// func (ingressRequest *IngressRequest) waitForDeploymentReady(ds *apps.Deployment) error {
-
-// 	err := wait.Poll(5*time.Second, 2*time.Second, func() (done bool, err error) {
-// 		err = ingressRequest.Get(ds.Name, ingressRequest.managementIngress.ObjectMeta.Namespace, ds)
-// 		if err != nil {
-// 			if errors.IsNotFound(err) {
-// 				return false, fmt.Errorf("failed to get Fluentd deployment: %v", err)
-// 			}
-// 			return false, err
-// 		}
-
-// 		if int(ds.Status.ReadyReplicas) == int(ds.Status.Replicas) {
-// 			return true, nil
-// 		}
-
-// 		return false, nil
-// 	})
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }

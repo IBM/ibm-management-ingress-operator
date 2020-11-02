@@ -23,6 +23,7 @@ import (
 	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -104,14 +105,8 @@ func (ingressRequest *IngressRequest) CreateCert(cert *certmanager.Certificate) 
 		klog.Errorf("Error setting controller reference on Certificate: %v", err)
 	}
 
-	klog.Infof("Creating certificate: %s for %q.", cert.ObjectMeta.Name, ingressRequest.managementIngress.ObjectMeta.Name)
-	err := ingressRequest.Create(cert)
-	if err != nil {
-		if errors.IsAlreadyExists(err) {
-			// already exist, ignore the error and proceed
-			klog.Infof("Certificate: %s aleady exists, proceeding.", cert.ObjectMeta.Name)
-			return nil
-		}
+	stop := WaitForTimeout(10 * time.Minute)
+	if err := waitForCert(ingressRequest, cert, stop); err != nil {
 		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "CreatedCertificate", "Failed to create certificate %q", cert.ObjectMeta.Name)
 		return fmt.Errorf("failure creating certificate: %s %v", cert.ObjectMeta.Name, err)
 	}
@@ -120,4 +115,24 @@ func (ingressRequest *IngressRequest) CreateCert(cert *certmanager.Certificate) 
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedCertificate", "Successfully created certificate %q", cert.ObjectMeta.Name)
 
 	return nil
+}
+
+func waitForCert(r *IngressRequest, cert *certmanager.Certificate, stopCh <-chan struct{}) error {
+
+	err := wait.PollImmediateUntil(2*time.Second, func() (done bool, err error) {
+		klog.V(4).Infof("Try to create certificate: %v", cert)
+		if err := r.Create(cert); err != nil {
+			if errors.IsAlreadyExists(err) {
+				klog.Infof("Certificate: %s aleady exists, proceeding.", cert.ObjectMeta.Name)
+				return true, nil
+			}
+
+			klog.V(4).Infof("Failed to create certificate: %+v, retrying again ...", err)
+			return false, nil
+		}
+
+		return true, nil
+	}, stopCh)
+
+	return err
 }
