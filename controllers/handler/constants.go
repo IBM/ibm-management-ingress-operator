@@ -31,6 +31,9 @@ const (
 	SCCName                   string = "management-ingress-scc"
 	BindInfoConfigMap         string = "management-ingress-info"
 
+	// name for namespace scope configmap
+	NamespaceScopeConfigMap string = "namespace-scope"
+
 	// Dependency from IAM service
 	PlatformAuthConfigmap string = "platform-auth-idp"
 	PlatformAuthSecret    string = "platform-oidc-credentials"
