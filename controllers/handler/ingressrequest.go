@@ -94,25 +94,6 @@ func (ingressRequest *IngressRequest) List(selector map[string]string, object ru
 	)
 }
 
-func (ingressRequest *IngressRequest) GetSecret(name string) (*core.Secret, error) {
-	secret := &core.Secret{}
-
-	err := wait.Poll(3*time.Second, 2*time.Second, func() (done bool, err error) {
-		err = ingressRequest.Get(name, ingressRequest.managementIngress.ObjectMeta.Namespace, secret)
-		if err != nil {
-			return false, err
-		}
-
-		return true, nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return secret, nil
-}
-
 func (ingressRequest *IngressRequest) GetConfigmap(name, namespace string) (*core.ConfigMap, error) {
 	cfg := &core.ConfigMap{}
 
@@ -172,4 +153,16 @@ func GetCommonAnnotations() map[string]string {
 		"productID":     ProductID,
 		"productMetric": ProductMetric,
 	}
+}
+
+// waitForTimeout returns a stop channel that closes when the specified timeout is reached
+func WaitForTimeout(timeout time.Duration) <-chan struct{} {
+	stopChWithTimeout := make(chan struct{})
+	go func() {
+		select {
+		case <-time.After(timeout):
+		}
+		close(stopChWithTimeout)
+	}()
+	return stopChWithTimeout
 }
