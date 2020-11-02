@@ -55,6 +55,9 @@ func NewDeployment(name string, namespace string, replicas int32, podSpec core.P
 		podAnnotations[k] = v
 	}
 
+	// add label for namespace operator
+	labels["intent"] = "projected"
+
 	return &apps.Deployment{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Deployment",
@@ -132,10 +135,15 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 	}
 
 	if len(namespace) > 0 {
-		container.Command = append(container.Command, "--watch-namespace="+namespace)
+		container.Command = append(container.Command, "--watch-namespace=$(WATCH_NAMESPACE)")
 	}
 
 	container.Env = []core.EnvVar{
+		{Name: "WATCH_NAMESPACE", ValueFrom: &core.EnvVarSource{
+			ConfigMapKeyRef: &core.ConfigMapKeySelector{
+				Key: "namespaces",
+				LocalObjectReference: core.LocalObjectReference{
+					Name: NamespaceScopeConfigMap}}}},
 		{Name: "ENABLE_IMPERSONATION", Value: "false"},
 		{Name: "APISERVER_SECURE_PORT", Value: "6443"},
 		{Name: "CLUSTER_DOMAIN", Value: clusterDomain},

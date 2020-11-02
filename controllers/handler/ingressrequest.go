@@ -159,8 +159,7 @@ func GetCommonAnnotations() map[string]string {
 func WaitForTimeout(timeout time.Duration) <-chan struct{} {
 	stopChWithTimeout := make(chan struct{})
 	go func() {
-		select {
-		case <-time.After(timeout):
+		for range time.After(timeout) {
 		}
 		close(stopChWithTimeout)
 	}()
