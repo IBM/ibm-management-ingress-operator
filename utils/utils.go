@@ -316,6 +316,12 @@ func IsDeploymentDifferent(current *apps.Deployment, desired *apps.Deployment) (
 		different = true
 	}
 
+	if isCommandDifference(&current.Spec.Template.Spec, &desired.Spec.Template.Spec) {
+		podSpec := updateCurrentCommand(&current.Spec.Template.Spec, &desired.Spec.Template.Spec)
+		current.Spec.Template.Spec = *podSpec
+		different = true
+	}
+
 	return current, different
 }
 
@@ -356,6 +362,12 @@ func IsDaemonsetDifferent(current *apps.DaemonSet, desired *apps.DaemonSet) (*ap
 		different = true
 	}
 
+	if isCommandDifference(&current.Spec.Template.Spec, &desired.Spec.Template.Spec) {
+		podSpec := updateCurrentCommand(&current.Spec.Template.Spec, &desired.Spec.Template.Spec)
+		current.Spec.Template.Spec = *podSpec
+		different = true
+	}
+
 	return current, different
 }
 
@@ -389,4 +401,48 @@ func updateCurrentImages(current *core.PodSpec, desired *core.PodSpec) *core.Pod
 	}
 
 	return current
+}
+
+func isCommandDifference(current *core.PodSpec, desired *core.PodSpec) bool {
+	for _, curr := range current.Containers {
+		for _, des := range desired.Containers {
+			// Only compare the command of containers with the same name
+			if curr.Name == des.Name {
+				if !isStringSliceEqual(curr.Command, des.Command) {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
+func updateCurrentCommand(current *core.PodSpec, desired *core.PodSpec) *core.PodSpec {
+	containers := current.Containers
+
+	for index, curr := range current.Containers {
+		for _, des := range desired.Containers {
+			// Only update the command of containers with the same name
+			if curr.Name == des.Name {
+				if !isStringSliceEqual(curr.Command, des.Command) {
+					containers[index].Command = des.Command
+				}
+			}
+		}
+	}
+
+	return current
+}
+
+func isStringSliceEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
 }
