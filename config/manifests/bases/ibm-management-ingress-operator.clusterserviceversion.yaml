@@ -290,6 +290,7 @@ spec:
           - create
           - get
           - list
+          - update
           - watch
         - apiGroups:
           - route.openshift.io
@@ -297,6 +298,7 @@ spec:
           - routes
           verbs:
           - create
+          - delete
           - get
           - list
           - update
