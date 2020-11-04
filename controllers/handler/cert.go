@@ -17,6 +17,7 @@ package handler
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"time"
 
@@ -70,9 +71,19 @@ func getDefaultDNSNames(service, namespace string) []string {
 }
 
 func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
+	klog.Info("starting CreateOrUpdateCertificates...")
 	// Create certificate for management ingress
 	defaultDNS := getDefaultDNSNames(ServiceName, ingressRequest.managementIngress.ObjectMeta.Namespace)
 	DNS := ingressRequest.managementIngress.Spec.Cert.DNSNames
+
+	issuer := ingressRequest.managementIngress.Spec.Cert.NamespacedIssuer
+	if issuer == (operatorv1alpha1.CertIssuer{}) {
+		klog.Info("empty issuer in managementIngress CR, using default issuer name and kind to create the certificate...")
+		issuer = operatorv1alpha1.CertIssuer{
+			Name: DefaultCAIssuerName,
+			Kind: operatorv1alpha1.IssuerKind(DefaultCAIssuerKind),
+		}
+	}
 
 	cert := NewCertificate(
 		CertName,
@@ -80,10 +91,10 @@ func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 		TLSSecretName,
 		append(defaultDNS, DNS...),
 		ingressRequest.managementIngress.Spec.Cert.IPAddresses,
-		&ingressRequest.managementIngress.Spec.Cert.Issuer,
+		&issuer,
 	)
 
-	if err := ingressRequest.CreateCert(cert); err != nil {
+	if err := ingressRequest.CreateOrUpdateCert(cert); err != nil {
 		return err
 	}
 
@@ -94,24 +105,25 @@ func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 		RouteSecret,
 		[]string{ingressRequest.managementIngress.Status.Host},
 		[]string{},
-		&ingressRequest.managementIngress.Spec.Cert.Issuer,
+		&issuer,
 	)
 
-	return ingressRequest.CreateCert(routeCert)
+	return ingressRequest.CreateOrUpdateCert(routeCert)
 }
 
-func (ingressRequest *IngressRequest) CreateCert(cert *certmanager.Certificate) error {
+func (ingressRequest *IngressRequest) CreateOrUpdateCert(cert *certmanager.Certificate) error {
+	klog.Info("starting CreateOrUpdateCert poll...")
 	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, cert, ingressRequest.scheme); err != nil {
 		klog.Errorf("Error setting controller reference on Certificate: %v", err)
 	}
 
 	stop := WaitForTimeout(10 * time.Minute)
 	if err := waitForCert(ingressRequest, cert, stop); err != nil {
-		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "CreatedCertificate", "Failed to create certificate %q", cert.ObjectMeta.Name)
+		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "CreatedOrUpdateCertificate", "Failed to create or update certificate %q", cert.ObjectMeta.Name)
 		return fmt.Errorf("failure creating certificate: %s %v", cert.ObjectMeta.Name, err)
 	}
 
-	klog.Infof("Created Certificate: %s.", cert.ObjectMeta.Name)
+	klog.Infof("Created or update certificate: %s.", cert.ObjectMeta.Name)
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedCertificate", "Successfully created certificate %q", cert.ObjectMeta.Name)
 
 	return nil
@@ -123,11 +135,27 @@ func waitForCert(r *IngressRequest, cert *certmanager.Certificate, stopCh <-chan
 		klog.V(4).Infof("Try to create certificate: %v", cert)
 		if err := r.Create(cert); err != nil {
 			if errors.IsAlreadyExists(err) {
-				klog.Infof("Certificate: %s aleady exists, proceeding.", cert.ObjectMeta.Name)
+				klog.Infof("Trying to update certificate: %s as it already existed.", cert.ObjectMeta.Name)
+				current := &certmanager.Certificate{}
+				if err = r.Get(cert.ObjectMeta.Name, r.managementIngress.ObjectMeta.Namespace, current); err != nil {
+					return false, fmt.Errorf("failure getting certificate: %q for %q: %v", cert.ObjectMeta.Name, r.managementIngress.Name, err)
+				}
+				if equal := reflect.DeepEqual(current.Spec, cert.Spec); equal {
+					klog.Infof("No change found from certificate: %s.", cert.ObjectMeta.Name)
+					return true, nil
+				}
+				klog.Infof("Found change for certificate: %s. Trying to update it.", cert.ObjectMeta.Name)
+				current.Spec = cert.Spec
+				err = r.Update(current)
+				if err != nil {
+					r.recorder.Eventf(r.managementIngress, "Warning", "UpdatedCertificate", "Failed to update certificate: %s", cert.ObjectMeta.Name)
+					return false, fmt.Errorf("failure updating certificate: %q for %q: %v", cert.ObjectMeta.Name, r.managementIngress.Name, err)
+				}
+				r.recorder.Eventf(r.managementIngress, "Normal", "UpdatedCertificate", "Successfully updated certificate %q", cert.ObjectMeta.Name)
 				return true, nil
 			}
 
-			klog.V(4).Infof("Failed to create certificate: %+v, retrying again ...", err)
+			klog.V(4).Infof("Failed to create or update certificate: %+v, retrying again ...", err)
 			return false, nil
 		}
 

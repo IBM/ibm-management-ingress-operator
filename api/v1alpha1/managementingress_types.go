@@ -42,10 +42,13 @@ type OperandImage struct {
 }
 
 type Cert struct {
-	Issuer      CertIssuer `json:"issuer"`
-	CommonName  string     `json:"repository,omitempty"`
-	DNSNames    []string   `json:"dnsNames,omitempty"`
-	IPAddresses []string   `json:"ipAddresses,omitempty"`
+	// +kubebuilder:validation:Optional
+	Issuer CertIssuer `json:"issuer"`
+	// +kubebuilder:validation:Optional
+	NamespacedIssuer CertIssuer `json:"namespacedIssuer"`
+	CommonName       string     `json:"repository,omitempty"`
+	DNSNames         []string   `json:"dnsNames,omitempty"`
+	IPAddresses      []string   `json:"ipAddresses,omitempty"`
 }
 
 type CertIssuer struct {
