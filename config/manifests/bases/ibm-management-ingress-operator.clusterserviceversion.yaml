@@ -299,6 +299,7 @@ spec:
           - create
           - get
           - list
+          - update
           - watch
         - apiGroups:
           - route.openshift.io
