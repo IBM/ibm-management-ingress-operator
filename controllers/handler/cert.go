@@ -36,7 +36,7 @@ func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer 
 
 	labels := GetCommonLabels()
 
-	return &certmanager.Certificate{
+	certificate := &certmanager.Certificate{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Certificate",
 			APIVersion: "certmanager.k8s.io/v1alpha1",
@@ -55,11 +55,16 @@ func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer 
 				Kind: string(issuer.Kind),
 				Name: issuer.Name,
 			},
-			DNSNames:    hosts,
-			IPAddresses: ips,
-			Usages:      []certmanager.KeyUsage{certmanager.UsageDigitalSignature, certmanager.UsageKeyEncipherment, certmanager.UsageServerAuth},
+			DNSNames: hosts,
+			Usages:   []certmanager.KeyUsage{certmanager.UsageDigitalSignature, certmanager.UsageKeyEncipherment, certmanager.UsageServerAuth},
 		},
 	}
+
+	if len(ips) > 0 {
+		certificate.Spec.IPAddresses = ips
+	}
+
+	return certificate
 }
 
 func getDefaultDNSNames(service, namespace string) []string {
