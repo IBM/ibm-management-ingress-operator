@@ -31,6 +31,9 @@ const (
 	SCCName                   string = "management-ingress-scc"
 	BindInfoConfigMap         string = "management-ingress-info"
 
+	DefaultCAIssuerName string = "cs-ca-issuer"
+	DefaultCAIssuerKind string = "Issuer"
+
 	// name for namespace scope configmap
 	NamespaceScopeConfigMap string = "namespace-scope"
 

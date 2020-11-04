@@ -60,10 +60,18 @@ spec:
                   - kind
                   - name
                   type: object
+                namespacedIssuer:
+                  properties:
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                  - kind
+                  - name
+                  type: object
                 repository:
                   type: string
-              required:
-              - issuer
               type: object
             config:
               additionalProperties:

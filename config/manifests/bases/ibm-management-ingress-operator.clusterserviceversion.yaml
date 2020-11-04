@@ -18,6 +18,10 @@ metadata:
               "issuer": {
                 "name": "cs-ca-issuer",
                 "kind": "Issuer"
+              },
+              "namespacedIssuer": {
+                "name": "cs-ca-issuer",
+                "kind": "Issuer"
               }
             },
             "config": {
@@ -295,6 +299,7 @@ spec:
           - create
           - get
           - list
+          - update
           - watch
         - apiGroups:
           - route.openshift.io
