@@ -340,10 +340,10 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 
 		desired, different := utils.IsDeploymentDifferent(current, ds)
 		if !different {
-			klog.Infof("No change found from the deployment: %s.", AppName)
+			klog.Infof("No change found from the deployment: %s, skip updating current deployment.", AppName)
 			return nil
 		}
-		klog.Infof("Found change for deployment: %s. Trying to update it.", AppName)
+		klog.Infof("Found change for deployment: %s, trying to update it.", AppName)
 		err = ingressRequest.Update(desired)
 		if err != nil {
 			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdatedDeployment", "Failed to update deployment: %s", AppName)
