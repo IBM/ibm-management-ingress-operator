@@ -76,7 +76,6 @@ func getDefaultDNSNames(service, namespace string) []string {
 }
 
 func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
-	klog.Info("starting CreateOrUpdateCertificates...")
 	// Create certificate for management ingress
 	defaultDNS := getDefaultDNSNames(ServiceName, ingressRequest.managementIngress.ObjectMeta.Namespace)
 	DNS := ingressRequest.managementIngress.Spec.Cert.DNSNames
@@ -117,18 +116,17 @@ func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 }
 
 func (ingressRequest *IngressRequest) CreateOrUpdateCert(cert *certmanager.Certificate) error {
-	klog.Info("starting CreateOrUpdateCert poll...")
 	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, cert, ingressRequest.scheme); err != nil {
 		klog.Errorf("Error setting controller reference on Certificate: %v", err)
 	}
 
 	stop := WaitForTimeout(10 * time.Minute)
 	if err := waitForCert(ingressRequest, cert, stop); err != nil {
-		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "CreatedOrUpdateCertificate", "Failed to create or update certificate %q", cert.ObjectMeta.Name)
+		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "CreatedOrUpdatedCertificate", "Failed to create or update certificate %q", cert.ObjectMeta.Name)
 		return fmt.Errorf("failure creating certificate: %s %v", cert.ObjectMeta.Name, err)
 	}
 
-	klog.Infof("Created or update certificate: %s.", cert.ObjectMeta.Name)
+	klog.Infof("Created or updated certificate: %s.", cert.ObjectMeta.Name)
 	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedCertificate", "Successfully created certificate %q", cert.ObjectMeta.Name)
 
 	return nil
@@ -146,10 +144,10 @@ func waitForCert(r *IngressRequest, cert *certmanager.Certificate, stopCh <-chan
 					return false, fmt.Errorf("failure getting certificate: %q for %q: %v", cert.ObjectMeta.Name, r.managementIngress.Name, err)
 				}
 				if equal := reflect.DeepEqual(current.Spec, cert.Spec); equal {
-					klog.Infof("No change found from certificate: %s.", cert.ObjectMeta.Name)
+					klog.Infof("No change found from certificate: %s, skip updating current certificate.", cert.ObjectMeta.Name)
 					return true, nil
 				}
-				klog.Infof("Found change for certificate: %s. Trying to update it.", cert.ObjectMeta.Name)
+				klog.Infof("Found change for certificate: %s, trying to update it.", cert.ObjectMeta.Name)
 				current.Spec = cert.Spec
 				err = r.Update(current)
 				if err != nil {

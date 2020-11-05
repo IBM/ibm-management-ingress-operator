@@ -111,12 +111,12 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 
 		// no data change, just return
 		if reflect.DeepEqual(cm.Data, current.Data) {
-			klog.Infof("No change found from the configmap: %s.", cm.ObjectMeta.Name)
+			klog.Infof("No change found from the configmap: %s, skip updating current configmap.", cm.ObjectMeta.Name)
 			return nil
 		}
 
 		json, _ := json.Marshal(cm)
-		klog.Infof("Found change from Configmap %s. Trying to update it.", json)
+		klog.Infof("Found change from Configmap %s, trying to update it.", json)
 		current.Data = cm.Data
 
 		// Apply the latest change to configmap
