@@ -24,6 +24,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/klog"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	"github.com/IBM/ibm-management-ingress-operator/utils"
 )
 
 //NewService stubs an instance of a Service
@@ -56,8 +58,9 @@ func (ingressRequest *IngressRequest) CreateOrUpdateService() error {
 		ingressRequest.managementIngress.Namespace,
 		[]core.ServicePort{
 			{
-				Name: "https",
-				Port: 443,
+				Name:     "https",
+				Port:     443,
+				Protocol: core.ProtocolTCP,
 				TargetPort: intstr.IntOrString{
 					Type:   intstr.String,
 					StrVal: "https",
@@ -71,14 +74,35 @@ func (ingressRequest *IngressRequest) CreateOrUpdateService() error {
 
 	err := ingressRequest.Create(service)
 	if err != nil {
-		if errors.IsAlreadyExists(err) {
+		if !errors.IsAlreadyExists(err) {
+			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "CreateService", "Failed to create service %q", ServiceName)
+			return fmt.Errorf("failure creating service: %v", err)
+		}
+
+		klog.Infof("Trying to update service: %s as it already existed.", ServiceName)
+		current := &core.Service{}
+		if err = ingressRequest.Get(ServiceName, ingressRequest.managementIngress.ObjectMeta.Namespace, current); err != nil {
+			return fmt.Errorf("failure getting %q service for %q: %v", ServiceName, ingressRequest.managementIngress.Name, err)
+		}
+
+		desired, different := utils.IsServiceDifferent(current, service)
+		if !different {
+			klog.Infof("No change found from the service: %s, skip updating current service.", ServiceName)
 			return nil
 		}
-		return fmt.Errorf("failure constructing service for %q: %v", ingressRequest.managementIngress.Name, err)
+		klog.Infof("Found change for service: %s, trying to update it.", ServiceName)
+		err = ingressRequest.Update(desired)
+		if err != nil {
+			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdateService", "Failed to update service: %s", ServiceName)
+			return fmt.Errorf("failure updating %q service for %q: %v", ServiceName, ingressRequest.managementIngress.Name, err)
+		}
+
+		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "UpdateService", "Successfully updated service %q", ServiceName)
+		return nil
 	}
 
 	klog.Infof("Created Service: %q.", ServiceName)
-	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedService", "Successfully created service %q", ServiceName)
+	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreateService", "Successfully created service %q", ServiceName)
 
 	return nil
 }

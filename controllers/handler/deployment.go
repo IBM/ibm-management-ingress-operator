@@ -44,6 +44,7 @@ const (
 func NewDeployment(name string, namespace string, replicas int32, podSpec core.PodSpec) *apps.Deployment {
 
 	labels := GetCommonLabels()
+	podLabels := GetCommonLabels()
 	commAnnotations := GetCommonAnnotations()
 	podAnnotations := map[string]string{
 		"scheduler.alpha.kubernetes.io/critical-pod": "",
@@ -56,7 +57,7 @@ func NewDeployment(name string, namespace string, replicas int32, podSpec core.P
 	}
 
 	// add label for namespace operator
-	labels["intent"] = "projected"
+	podLabels["intent"] = "projected"
 
 	return &apps.Deployment{
 		TypeMeta: metav1.TypeMeta{
@@ -77,7 +78,7 @@ func NewDeployment(name string, namespace string, replicas int32, podSpec core.P
 			Template: core.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        name,
-					Labels:      labels,
+					Labels:      podLabels,
 					Annotations: podAnnotations,
 				},
 				Spec: podSpec,
