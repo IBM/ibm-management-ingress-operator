@@ -294,6 +294,11 @@ func IsDeploymentDifferent(current *apps.Deployment, desired *apps.Deployment) (
 		different = true
 	}
 
+	if !reflect.DeepEqual(current.Spec.Template.ObjectMeta.Labels, desired.Spec.Template.ObjectMeta.Labels) {
+		current.Spec.Template.ObjectMeta.Labels = desired.Spec.Template.ObjectMeta.Labels
+		different = true
+	}
+
 	if *current.Spec.Replicas != *desired.Spec.Replicas {
 		current.Spec.Replicas = desired.Spec.Replicas
 		different = true
@@ -315,7 +320,10 @@ func IsDeploymentDifferent(current *apps.Deployment, desired *apps.Deployment) (
 		current.Spec.Template.Spec.Containers[0].VolumeMounts = desired.Spec.Template.Spec.Containers[0].VolumeMounts
 		different = true
 	}
-
+	if !reflect.DeepEqual(current.Spec.Template.Spec.Containers[0].Ports, desired.Spec.Template.Spec.Containers[0].Ports) {
+		current.Spec.Template.Spec.Containers[0].Ports = desired.Spec.Template.Spec.Containers[0].Ports
+		different = true
+	}
 	if isCommandDifference(&current.Spec.Template.Spec, &desired.Spec.Template.Spec) {
 		podSpec := updateCurrentCommand(&current.Spec.Template.Spec, &desired.Spec.Template.Spec)
 		current.Spec.Template.Spec = *podSpec
@@ -345,6 +353,11 @@ func IsDaemonsetDifferent(current *apps.DaemonSet, desired *apps.DaemonSet) (*ap
 		different = true
 	}
 
+	if !reflect.DeepEqual(current.Spec.Template.ObjectMeta.Labels, desired.Spec.Template.ObjectMeta.Labels) {
+		current.Spec.Template.ObjectMeta.Labels = desired.Spec.Template.ObjectMeta.Labels
+		different = true
+	}
+
 	if AreResourcesDifferent(current, desired) {
 		different = true
 	}
@@ -361,7 +374,10 @@ func IsDaemonsetDifferent(current *apps.DaemonSet, desired *apps.DaemonSet) (*ap
 		current.Spec.Template.Spec.Containers[0].VolumeMounts = desired.Spec.Template.Spec.Containers[0].VolumeMounts
 		different = true
 	}
-
+	if !reflect.DeepEqual(current.Spec.Template.Spec.Containers[0].Ports, desired.Spec.Template.Spec.Containers[0].Ports) {
+		current.Spec.Template.Spec.Containers[0].Ports = desired.Spec.Template.Spec.Containers[0].Ports
+		different = true
+	}
 	if isCommandDifference(&current.Spec.Template.Spec, &desired.Spec.Template.Spec) {
 		podSpec := updateCurrentCommand(&current.Spec.Template.Spec, &desired.Spec.Template.Spec)
 		current.Spec.Template.Spec = *podSpec
@@ -441,6 +457,53 @@ func isStringSliceEqual(a, b []string) bool {
 	}
 	for i, v := range a {
 		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func IsServiceDifferent(current *core.Service, desired *core.Service) (*core.Service, bool) {
+
+	different := false
+
+	if !reflect.DeepEqual(current.Spec.Selector, desired.Spec.Selector) {
+		current.Spec.Selector = desired.Spec.Selector
+		different = true
+	}
+
+	if !isServicePortEqual(current.Spec.Ports, desired.Spec.Ports) {
+		current.Spec.Ports = desired.Spec.Ports
+		different = true
+	}
+
+	return current, different
+}
+
+func isServicePortEqual(a []core.ServicePort, b []core.ServicePort) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if v.Name != b[i].Name {
+			return false
+		}
+		if string(v.Protocol) != string(b[i].Protocol) {
+			return false
+		}
+		if v.Port != b[i].Port {
+			return false
+		}
+		if v.NodePort != b[i].NodePort {
+			return false
+		}
+		if v.TargetPort.Type != b[i].TargetPort.Type {
+			return false
+		}
+		if v.TargetPort.IntVal != b[i].TargetPort.IntVal {
+			return false
+		}
+		if v.TargetPort.StrVal != b[i].TargetPort.StrVal {
 			return false
 		}
 	}
