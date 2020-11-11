@@ -55,7 +55,7 @@ spec:
             - name: WATCH_NAMESPACE
               value: ""
             - name: OPERAND_IMAGE_DIGEST
-              value: quay.io/opencloudio/icp-management-ingress:@sha256:a1e9f272239a98629efc836c3f21edd3a6616c739bdcc5b9ced3214fb8702880
+              value: quay.io/opencloudio/icp-management-ingress:@sha256:692dc5ad8b68d3445e787bdcc9a28fdfb50c82d93d1b990cc3378f35f516b78c
             - name: ROUTE_HTTPS_PORT
               value: ""
             - name: ROUTE_HTTP_PORT
