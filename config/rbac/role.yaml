@@ -1,0 +1,226 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ibm-management-ingress-operator-clusterrole
+  labels:
+    app.kubernetes.io/name: ibm-management-ingress-operator
+    app.kubernetes.io/instance: ibm-management-ingress-operator
+    app.kubernetes.io/managed-by: ibm-management-ingress-operator
+    name: ibm-management-ingress-operator
+rules:
+- apiGroups:
+  - operator.openshift.io
+  resources:
+  - dnses
+  - ingresscontrollers
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resourceNames:
+  - console-config
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ibm-management-ingress-operator-role
+  labels:
+    app.kubernetes.io/name: ibm-management-ingress-operator
+    app.kubernetes.io/instance: ibm-management-ingress-operator
+    app.kubernetes.io/managed-by: ibm-management-ingress-operator
+    name: ibm-management-ingress-operator
+rules:
+- apiGroups:
+  - certmanager.k8s.io
+  resources:
+  - issuers
+  verbs:
+  - use
+- apiGroups:
+  - certmanager.k8s.io
+  resources:
+  - certificates
+  verbs:
+  - create
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes/custom-host
+  verbs:
+  - create
+- apiGroups:
+  - route.openshift.io
+  resources:
+  - routes/status
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - operator.ibm.com
+  resources:
+  - managementingresses
+  - managementingresses/finalizers
+  - managementingresses/status
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - services
+  - services/finalizers
+  - serviceaccounts
+  - endpoints
+  - persistentvolumeclaims
+  - events
+  - configmaps
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - daemonsets
+  - replicasets
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resourceNames:
+  - ibm-management-ingress-operator
+  resources:
+  - deployments/finalizers
+  verbs:
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ibm-management-ingress-clusterrole
+  labels:
+    app.kubernetes.io/name: ibm-management-ingress
+    app.kubernetes.io/instance: ibm-management-ingress
+    app.kubernetes.io/managed-by: ibm-management-ingress
+    name: ibm-management-ingress
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  - namespaces
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ibm-management-ingress-role
+  labels:
+    app.kubernetes.io/name: ibm-management-ingress
+    app.kubernetes.io/instance: ibm-management-ingress
+    app.kubernetes.io/managed-by: ibm-management-ingress
+    name: ibm-management-ingress
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  - pods
+  - secrets
+  verbs:
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - get
+  - list
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+- apiGroups:
+  - extensions
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - extensions
+  - networking.k8s.io
+  resources:
+  - ingresses/status
+  verbs:
+  - update
+---
