@@ -22,7 +22,7 @@ BUILD_LOCALLY ?= 1
 VERSION ?= $(shell git describe --exact-match 2> /dev/null || \
                  git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)
 # image version for the multiarch
-RELEASE_VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ print $3}' | tr -d '"')
+RELEASE_VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ print $$3}' | tr -d '"')
 
 # current CSV version
 CSV_VERSION ?= 1.4.1
