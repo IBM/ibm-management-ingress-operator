@@ -130,7 +130,7 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 	container.Command = []string{
 		"/icp-management-ingress",
 		"--default-ssl-certificate=$(POD_NAMESPACE)/icp-management-ingress-tls-secret",
-		"--configmap=$(POD_NAMESPACE)/management-ingress",
+		"--configmap=$(POD_NAMESPACE)/" + ConfigName,
 		"--http-port=8080",
 		"--https-port=8443",
 	}
