@@ -22,7 +22,8 @@ BUILD_LOCALLY ?= 1
 VERSION ?= $(shell git describe --exact-match 2> /dev/null || \
                  git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)
 # image version for the multiarch
-RELEASE_VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ print $$3}' | tr -d '"')
+RELEASE_VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ print $3}' | tr -d '"')
+LATEST_VERSION ?= latest
 
 # current CSV version
 CSV_VERSION ?= 1.4.1
@@ -179,6 +180,7 @@ push-image: $(CONFIG_DOCKER_TARGET) build-image
 # multiarch-image section
 multiarch-image: $(CONFIG_DOCKER_TARGET)
 	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMG) $(VERSION) $(RELEASE_VERSION)
+	@MAX_PULLING_RETRY=20 RETRY_INTERVAL=30 common/scripts/multiarch_image.sh $(REGISTRY) $(IMG) $(VERSION) $(LATEST_VERSION)
 
 csv: ## Push CSV package to the catalog
 	@RELEASE=$(CSV_VERSION) common/scripts/push-csv.sh
