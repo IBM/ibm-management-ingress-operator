@@ -205,8 +205,6 @@ spec:
                 imagePullPolicy: Always
                 command:
                 - ibm-management-ingress-operator
-                args:
-                - --enable-leader-election
                 resources:
                   limits:
                     cpu: 160m
