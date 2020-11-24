@@ -294,10 +294,10 @@ func IsDeploymentDifferent(current *apps.Deployment, desired *apps.Deployment) (
 		different = true
 	}
 
-	if !reflect.DeepEqual(current.Spec.Template.ObjectMeta.Labels, desired.Spec.Template.ObjectMeta.Labels) {
-		current.Spec.Template.ObjectMeta.Labels = desired.Spec.Template.ObjectMeta.Labels
-		different = true
-	}
+	// if !reflect.DeepEqual(current.Spec.Template.ObjectMeta.Labels, desired.Spec.Template.ObjectMeta.Labels) {
+	// 	current.Spec.Template.ObjectMeta.Labels = desired.Spec.Template.ObjectMeta.Labels
+	// 	different = true
+	// }
 
 	if *current.Spec.Replicas != *desired.Spec.Replicas {
 		current.Spec.Replicas = desired.Spec.Replicas
