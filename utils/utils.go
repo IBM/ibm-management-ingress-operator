@@ -25,6 +25,10 @@ import (
 	operatorv1alpha1 "github.com/IBM/ibm-management-ingress-operator/api/v1alpha1"
 )
 
+const (
+	CertManagerTimeRestartLabel string = "certmanager.k8s.io/time-restarted"
+)
+
 // GetAnnotation returns the value of an annoation for a given key and true if the key was found
 func GetAnnotation(key string, meta metav1.ObjectMeta) (string, bool) {
 	for k, value := range meta.Annotations {
@@ -294,10 +298,14 @@ func IsDeploymentDifferent(current *apps.Deployment, desired *apps.Deployment) (
 		different = true
 	}
 
-	// if !reflect.DeepEqual(current.Spec.Template.ObjectMeta.Labels, desired.Spec.Template.ObjectMeta.Labels) {
-	// 	current.Spec.Template.ObjectMeta.Labels = desired.Spec.Template.ObjectMeta.Labels
-	// 	different = true
-	// }
+	// Ignore cert manager label 'certmanager.k8s.io/time-restarted: 2020-11-24.2045' which was used to restart the pod when certificate was renewed.
+	if val, ok := current.Spec.Template.ObjectMeta.Labels[CertManagerTimeRestartLabel]; ok {
+		desired.Spec.Template.ObjectMeta.Labels[CertManagerTimeRestartLabel] = val
+	}
+	if !reflect.DeepEqual(current.Spec.Template.ObjectMeta.Labels, desired.Spec.Template.ObjectMeta.Labels) {
+		current.Spec.Template.ObjectMeta.Labels = desired.Spec.Template.ObjectMeta.Labels
+		different = true
+	}
 
 	if *current.Spec.Replicas != *desired.Spec.Replicas {
 		current.Spec.Replicas = desired.Spec.Replicas
