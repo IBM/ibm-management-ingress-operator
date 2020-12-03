@@ -123,25 +123,25 @@ func waitForRouteSecret(r *IngressRequest, name string, stopCh <-chan struct{}) 
 }
 
 // create ibmcloud-cluster-ca-cert
-func (ingressRequest *IngressRequest) createClusterCACert(secretName, namespace string, caCert []byte) error {
+func createClusterCACert(i *IngressRequest, secretName, ns string, caCert []byte) error {
 	// create ibmcloud-cluster-ca-cert
-	clusterSecret := NewSecret(secretName, namespace, caCert)
+	clusterSecret := NewSecret(secretName, ns, caCert)
 
-	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, clusterSecret, ingressRequest.scheme); err != nil {
+	if err := controllerutil.SetControllerReference(i.managementIngress, clusterSecret, i.scheme); err != nil {
 		klog.Errorf("Error setting controller reference on secret: %v", err)
 	}
-	err := ingressRequest.Create(clusterSecret)
+	err := i.Create(clusterSecret)
 	if err != nil {
 		if !errors.IsAlreadyExists(err) {
-			return fmt.Errorf("failure creating secret for %q: %v", ingressRequest.managementIngress.ObjectMeta.Name, err)
+			return fmt.Errorf("failure creating secret for %q: %v", i.managementIngress.ObjectMeta.Name, err)
 		}
 
 		klog.Infof("Trying to update secret: %s as it already existed.", secretName)
 		// Update config
 		current := &core.Secret{}
-		err := ingressRequest.Get(secretName, namespace, current)
+		err := i.Get(secretName, ns, current)
 		if err != nil {
-			return fmt.Errorf("failure getting secret: %q  for %q: %v", secretName, ingressRequest.managementIngress.Name, err)
+			return fmt.Errorf("failure getting secret: %q  for %q: %v", secretName, i.managementIngress.Name, err)
 		}
 
 		// no data change, just return
@@ -155,92 +155,155 @@ func (ingressRequest *IngressRequest) createClusterCACert(secretName, namespace 
 		current.Data = clusterSecret.Data
 
 		// Apply the latest change to configmap
-		if err = ingressRequest.Update(current); err != nil {
-			return fmt.Errorf("failure updating secret: %v for %q: %v", secretName, ingressRequest.managementIngress.Name, err)
+		if err = i.Update(current); err != nil {
+			return fmt.Errorf("failure updating secret: %v for %q: %v", secretName, i.managementIngress.Name, err)
 		}
 	}
 
 	klog.Infof("Created secret: %s.", secretName)
-	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreatedSecret", "Successfully created or updated secret %q", secretName)
+	i.recorder.Eventf(i.managementIngress, "Normal", "CreatedSecret", "Successfully created or updated secret %q", secretName)
 
 	return nil
 }
 
-func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
-	// Wait for route secret before creating route. Just avoid the case reconciling failed many times.
-	stop := WaitForTimeout(10 * time.Minute)
-	secret, err := waitForRouteSecret(ingressRequest, RouteSecret, stop)
+func handleUpdate(i *IngressRequest, current *route.Route, src *route.Route) error {
+	isChange := false
+	name := src.ObjectMeta.Name
+
+	// Check owner reference
+	err := controllerutil.SetControllerReference(i.managementIngress, current, i.scheme)
 	if err != nil {
+		if _, ok := err.(*controllerutil.AlreadyOwnedError); !ok {
+			klog.Errorf("Error updating owner reference for route: %v", err)
+			return err
+		}
+	} else {
+		// Successfully set owner reference.
+		isChange = true
+	}
+
+	if equal := reflect.DeepEqual(current.Spec, src.Spec); !equal {
+		klog.Infof("Found change for route: %s, trying to update it ...", name)
+		current.Spec = src.Spec
+		isChange = true
+	}
+
+	if isChange {
+		err := i.Update(current)
+		if err != nil {
+			i.recorder.Eventf(i.managementIngress, "Warning", "UpdateRoute", "Failed to update route %q", name)
+			return fmt.Errorf("failure updating route: %v", err)
+		}
+
+		klog.Infof("Updated route: %s.", name)
+		i.recorder.Eventf(i.managementIngress, "Normal", "UpdateRoute", "Successfully updated route %q", name)
+	}
+
+	return nil
+}
+
+func handleCreate(i *IngressRequest, r *route.Route) error {
+	name := r.ObjectMeta.Name
+
+	if err := controllerutil.SetControllerReference(i.managementIngress, r, i.scheme); err != nil {
+		klog.Errorf("Error setting owner reference for route: %v", err)
 		return err
 	}
-	cert := secret.Data[core.TLSCertKey]
-	key := secret.Data[core.TLSPrivateKeyKey]
-	caCert := secret.Data["ca.crt"]
+
+	// Try to create the route resource
+	err := i.Create(r)
+	if err != nil {
+		i.recorder.Eventf(i.managementIngress, "Warning", "CreateRoute", "Failed to create route %q", name)
+		return fmt.Errorf("failure creating %s route: %v", name, err)
+	}
+
+	klog.Infof("Created route: %s.", name)
+	i.recorder.Eventf(i.managementIngress, "Normal", "CreateRoute", "Successfully created route %q", name)
+	return nil
+}
+
+func syncRoute(i *IngressRequest, r *route.Route) error {
+
+	name := r.ObjectMeta.Name
+	ns := r.ObjectMeta.Namespace
+	current := &route.Route{}
+
+	err := i.Get(name, ns, current)
+	if err != nil && !errors.IsNotFound(err) {
+		klog.Errorf("Error getting route: %v", err)
+		return fmt.Errorf("failure getting current route: %v", err)
+	}
+
+	// Create the route if it's not found.
+	if err != nil && errors.IsNotFound(err) {
+		err := handleCreate(i, r)
+		return err
+	}
+
+	// Try to update the route
+	err = handleUpdate(i, current, r)
+	return err
+}
+
+func getRouteCertificate(i *IngressRequest, ns string) ([]byte, []byte, []byte, []byte, error) {
+	var cert, key, caCert, destinationCAcert []byte
+
+	// Wait for route secret before creating route. Just avoid the case reconciling failed many times.
+	stop := WaitForTimeout(10 * time.Minute)
+	secret, err := waitForRouteSecret(i, RouteSecret, stop)
+	if err != nil {
+		return cert, key, caCert, destinationCAcert, err
+	}
+
+	cert = secret.Data[core.TLSCertKey]
+	key = secret.Data[core.TLSPrivateKeyKey]
+	caCert = secret.Data["ca.crt"]
 
 	// Get TLS secret of management ingress service, then get CA cert for OCP route
 	ingressSecret := &core.Secret{}
-	if err := ingressRequest.Get(TLSSecretName, ingressRequest.managementIngress.ObjectMeta.Namespace, ingressSecret); err != nil {
+	if err := i.Get(TLSSecretName, ns, ingressSecret); err != nil {
+		return cert, key, caCert, destinationCAcert, err
+	}
+	destinationCAcert = ingressSecret.Data["ca.crt"]
+
+	return cert, key, caCert, destinationCAcert, nil
+}
+
+func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
+	// Get app base domain of OCP route
+	baseDomain, err := ingressRequest.GetRouteAppDomain()
+	if err != nil {
+		return fmt.Errorf("failure getting route base domain: %v", err)
+	}
+
+	// Get route certificate
+	cert, key, caCert, destinationCAcert, err := getRouteCertificate(ingressRequest, ingressRequest.managementIngress.ObjectMeta.Namespace)
+	if err != nil {
 		return err
 	}
-	destinationCAcert := ingressSecret.Data["ca.crt"]
 
 	// Create or update secret ibmcloud-cluster-ca-cert
-	if err := ingressRequest.createClusterCACert(ClusterSecretName, os.Getenv(PODNAMESPACE), caCert); err != nil {
+	if err := createClusterCACert(ingressRequest, ClusterSecretName, os.Getenv(PODNAMESPACE), caCert); err != nil {
 		return fmt.Errorf("failure creating or updating secret: %v", err)
 	}
 
 	// Create cp-console route
 	consoleRoute := NewRoute(
-		RouteName,
+		ConsoleRouteName,
 		ingressRequest.managementIngress.ObjectMeta.Namespace,
 		ServiceName,
-		ingressRequest.managementIngress.Status.Host,
+		ConsoleRouteName+"."+baseDomain,
 		cert,
 		key,
 		caCert,
 		destinationCAcert,
 	)
 
-	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, consoleRoute, ingressRequest.scheme); err != nil {
-		klog.Errorf("Error setting owner reference on cp-console Route: %v", err)
+	if err := syncRoute(ingressRequest, consoleRoute); err != nil {
+		return err
 	}
 
-	if err := ingressRequest.Create(consoleRoute); err != nil {
-		if errors.IsAlreadyExists(err) {
-			// Update route if it exits.
-			// Handle the case that route-tls-secret was renewed or updated.
-			current := &route.Route{}
-			if err := ingressRequest.Get(RouteName, ingressRequest.managementIngress.ObjectMeta.Namespace, current); err != nil {
-				klog.Errorf("Error getting route cp-console: %v", err)
-				return fmt.Errorf("failure getting current cp-console route: %v", err)
-			}
-
-			if equal := reflect.DeepEqual(current.Spec, consoleRoute.Spec); equal {
-				klog.Infof("No change found from route: %s, skip updating current route.", RouteName)
-				return nil
-			}
-			klog.Infof("Found change for route: %s, trying to update it...", RouteName)
-			current.Spec = consoleRoute.Spec
-			if err := ingressRequest.Update(current); err != nil {
-				ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdateRoute", "Failed to update route %q", RouteName)
-				return fmt.Errorf("failure updating cp-console route: %v", err)
-			}
-			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "UpdateRoute", "Successfully updated route %q", RouteName)
-		} else {
-			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "CreateRoute", "Failed to create route %q", RouteName)
-			return fmt.Errorf("failure creating cp-console route: %v", err)
-		}
-	} else {
-		klog.Infof("Created or updated route: %s.", RouteName)
-		ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreateOrUpdateRoute", "Successfully created or updated route %q", RouteName)
-	}
-
-	// Create cp-proxy route
-	baseDomain, err := ingressRequest.GetRouteAppDomain()
-	if err != nil {
-		return fmt.Errorf("failure getting route base domain: %v", err)
-	}
-
+	// create cp-proxy route
 	proxyRoute := NewRoute(
 		ProxyRouteName,
 		ingressRequest.managementIngress.ObjectMeta.Namespace,
@@ -252,50 +315,10 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 		[]byte{},
 	)
 
-	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, proxyRoute, ingressRequest.scheme); err != nil {
-		klog.Errorf("Error setting controller reference on cp-proxy Route: %v", err)
+	if err := syncRoute(ingressRequest, proxyRoute); err != nil {
+		return err
 	}
 
-	err = ingressRequest.Create(proxyRoute)
-	if err != nil {
-		// Update the route with owner reference, then when management ingress CR was removed the route resource will be GCed by k8s.
-		if errors.IsAlreadyExists(err) {
-			current := &route.Route{}
-			if err := ingressRequest.Get(ProxyRouteName, ingressRequest.managementIngress.ObjectMeta.Namespace, current); err != nil {
-				klog.Errorf("Error getting route cp-proxy: %v", err)
-				return nil
-			}
-
-			existingRefs := current.GetOwnerReferences()
-			if len(existingRefs) == 0 {
-				klog.Infof("Route: %s exists. Trying to update it with owner reference", ProxyRouteName)
-				if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, current, ingressRequest.scheme); err != nil {
-					klog.Errorf("Error setting controller reference on cp-proxy Route: %v", err)
-				} else if err := ingressRequest.Update(current); err != nil {
-					ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdateRoute", "Failed to update route: %q owner reference", ProxyRouteName)
-					klog.Errorf("Error updating cp-proxy Route for owner reference: %v", err)
-				}
-			}
-
-			if equal := reflect.DeepEqual(current.Spec, proxyRoute.Spec); equal {
-				klog.Infof("No change found from route: %s, skip updating current route.", ProxyRouteName)
-				return nil
-			}
-			klog.Infof("Found change for route: %s, trying to update it...", ProxyRouteName)
-			current.Spec = proxyRoute.Spec
-			if err := ingressRequest.Update(current); err != nil {
-				ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "UpdateRoute", "Failed to update route %q", ProxyRouteName)
-				return fmt.Errorf("failure updating cp-proxy route: %v", err)
-			}
-			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "UpdateRoute", "Successfully updated route %q", ProxyRouteName)
-		} else {
-			ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Warning", "CreateRoute", "Failed to create route %q", ProxyRouteName)
-			return fmt.Errorf("failure creating cp-proxy route: %v", err)
-		}
-	}
-
-	klog.Infof("Created or updated route: %s.", ProxyRouteName)
-	ingressRequest.recorder.Eventf(ingressRequest.managementIngress, "Normal", "CreateOrUpdateRoute", "Successfully created or updated route %q", ProxyRouteName)
 	return nil
 }
 
