@@ -3,7 +3,7 @@ channels:
   name: dev
 - currentCSV: ibm-management-ingress-operator.v1.4.3
   name: beta
-- currentCSV: ibm-management-ingress-operator.v1.3.3
+- currentCSV: ibm-management-ingress-operator.v1.4.2
   name: stable-v1
 defaultChannel: stable-v1
 packageName: ibm-management-ingress-operator-app
