@@ -23,7 +23,7 @@ const (
 	ServiceAccountName string = "management-ingress"
 	CertName           string = "management-ingress-cert"
 	TLSSecretName      string = "icp-management-ingress-tls-secret"
-	RouteName          string = "cp-console"
+	ConsoleRouteName   string = "cp-console"
 	RouteCert          string = "route-cert"
 	RouteSecret        string = "route-tls-secret"
 	// csPriorityClassName       string = "cs-priority-class"

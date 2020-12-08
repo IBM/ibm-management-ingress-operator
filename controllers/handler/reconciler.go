@@ -54,16 +54,6 @@ func Reconcile(ingressRequest *IngressRequest) (err error) {
 		return fmt.Errorf("unable  to create or update certificates for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
-	// create serviceAccount
-	// if err = ingressRequest.CreateServiceAccount(); err != nil {
-	// 	return fmt.Errorf("unable  to create serviceAccount for %q: %v", ingressRequest.managementIngress.Name, err)
-	// }
-
-	// create scc
-	// if err = ingressRequest.CreateSecurityContextConstraint(); err != nil {
-	// 	return fmt.Errorf("unable  to create SecurityContextConstraint for %q: %v", ingressRequest.managementIngress.Name, err)
-	// }
-
 	// Reconcile service
 	if err = ingressRequest.CreateOrUpdateService(); err != nil {
 		return fmt.Errorf("unable  to create or update service for %q: %v", ingressRequest.managementIngress.Name, err)
@@ -99,25 +89,5 @@ func getRouteHost(ing *IngressRequest) (string, error) {
 		return "", err
 	}
 
-	return strings.Join([]string{RouteName, appDomain}, "."), nil
+	return strings.Join([]string{ConsoleRouteName, appDomain}, "."), nil
 }
-
-// func DeleteClusterResources(i *IngressRequest) error {
-
-// 	// Delete SCC
-// 	if err := i.RemoveSecurityContextConstraint(SCCName); err != nil {
-// 		return err
-// 	}
-
-// 	// Delete ClusterRole
-// 	if err := i.RemoveClusterRole(AppName); err != nil {
-// 		return err
-// 	}
-
-// 	// Delete ClusterRoleBinding
-// 	if err := i.RemoveClusterRoleBinding(AppName); err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
