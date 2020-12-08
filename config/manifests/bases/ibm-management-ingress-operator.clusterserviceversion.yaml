@@ -2,7 +2,7 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    olm.skipRange: '>=1.1.0 <1.4.2'
+    olm.skipRange: '>=1.1.0 <1.4.3'
     alm-examples: |-
       [
         {
@@ -82,7 +82,7 @@ metadata:
     capabilities: Basic Install
     categories: Developer Tools
     certified: "false"
-    containerImage: quay.io/opencloudio/ibm-management-ingress-operator:1.4.2
+    containerImage: quay.io/opencloudio/ibm-management-ingress-operator:1.4.3
     createdAt: "2020-01-14T10:16:16Z"
     description: Operator for managing deployment of management-ingress service.
     repository: https://github.com/IBM/ibm-management-ingress-operator.git
@@ -92,7 +92,7 @@ metadata:
     operatorframework.io/arch.ppc64le: supported
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: ibm-management-ingress-operator.v1.4.2
+  name: ibm-management-ingress-operator.v1.4.3
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -454,5 +454,5 @@ spec:
   maturity: stable
   provider:
     name: IBM
-  replaces: ibm-management-ingress-operator.v1.4.1
-  version: 1.4.2
+  replaces: ibm-management-ingress-operator.v1.4.2
+  version: 1.4.3
