@@ -1,5 +1,5 @@
 #
-# Copyright 2020 IBM Corporation
+# Copyright 2021 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.3-201
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.3-230
 ARG VCS_REF
 ARG VCS_URL
 
