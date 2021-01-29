@@ -76,7 +76,12 @@ func updateClusterInfo(ingr *IngressRequest, cm *core.ConfigMap) error {
 		}
 	} else {
 		klog.Infof("Trying to update configmap: %s as it already existed.", cfg.ObjectMeta.Name)
-		if err := ingr.Update(cm); err != nil {
+		if reflect.DeepEqual(cm.Data, cfg.Data) {
+			klog.Infof("No change found from the configmap: %s, skip updating current configmap.", cm.ObjectMeta.Name)
+			return nil
+		}
+		cfg.Data = cm.Data
+		if err := ingr.Update(cfg); err != nil {
 			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failed to update configmap: %s", cm.ObjectMeta.Name)
 			return fmt.Errorf("failure updating Configmap %s: %v", cfg.ObjectMeta.Name, err)
 		}
