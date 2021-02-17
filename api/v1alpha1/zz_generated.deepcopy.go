@@ -29,6 +29,7 @@ import (
 func (in *Cert) DeepCopyInto(out *Cert) {
 	*out = *in
 	out.Issuer = in.Issuer
+	out.NamespacedIssuer = in.NamespacedIssuer
 	if in.DNSNames != nil {
 		in, out := &in.DNSNames, &out.DNSNames
 		*out = make([]string, len(*in))
