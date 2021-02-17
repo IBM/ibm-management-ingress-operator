@@ -34,6 +34,7 @@ type ManagementIngressSpec struct {
 	RouteHost         string                       `json:"routeHost"`
 	Config            map[string]string            `json:"config,omitempty"`
 	FIPSEnabled       bool                         `json:"fipsEnabled,omitempty"`
+	IgnoreRouteCert   bool                         `json:"ignoreRouteCert,omitempty"`
 }
 
 type OperandImage struct {

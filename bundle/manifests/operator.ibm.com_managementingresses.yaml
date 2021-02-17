@@ -79,6 +79,8 @@ spec:
               type: object
             fipsEnabled:
               type: boolean
+            ignoreRouteCert:
+              type: boolean
             image:
               properties:
                 repository:

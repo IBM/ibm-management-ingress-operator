@@ -102,6 +102,12 @@ func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 		return err
 	}
 
+	// Determine if we should watch or ignore the route-cert certificate
+	if ingressRequest.managementIngress.Spec.IgnoreRouteCert {
+		klog.Infof("Not watching certificate: %s, IgnoreRouteCert is true.", RouteCert)
+		return nil
+	}
+
 	// Create TLS certificate for management ingress route
 	routeCert := NewCertificate(
 		RouteCert,
@@ -113,6 +119,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 	)
 
 	return ingressRequest.CreateOrUpdateCert(routeCert)
+
 }
 
 func (ingressRequest *IngressRequest) CreateOrUpdateCert(cert *certmanager.Certificate) error {
