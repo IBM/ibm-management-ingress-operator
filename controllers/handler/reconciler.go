@@ -20,8 +20,9 @@ import (
 	"strings"
 	"time"
 
-	operatorv1alpha1 "github.com/IBM/ibm-management-ingress-operator/api/v1alpha1"
 	"k8s.io/klog"
+
+	operatorv1alpha1 "github.com/IBM/ibm-management-ingress-operator/api/v1alpha1"
 )
 
 func Reconcile(ingressRequest *IngressRequest) (err error) {
