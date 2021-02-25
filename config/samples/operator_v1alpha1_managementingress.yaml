@@ -13,11 +13,11 @@ spec:
   routeHost: ""
   resources:
     requests:
-      cpu: 50m
-      memory: 300Mi
+      cpu: 70m
+      memory: 60Mi
     limits:
-      cpu: 200m
-      memory: 1024Mi
+      cpu: 1
+      memory: 170Mi
   allowedHostHeader: ""
   cert:
     issuer:
