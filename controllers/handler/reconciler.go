@@ -1,5 +1,5 @@
 //
-// Copyright 2020 IBM Corporation
+// Copyright 2021 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,26 +18,31 @@ package handler
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	operatorv1alpha1 "github.com/IBM/ibm-management-ingress-operator/api/v1alpha1"
+	"k8s.io/klog"
 )
 
 func Reconcile(ingressRequest *IngressRequest) (err error) {
 
 	// First time in reconcile set route host in status.
 	requestIngress := ingressRequest.managementIngress
-	if len(requestIngress.Status.Host) == 0 {
-		// Get route host
-		host, err := getRouteHost(ingressRequest)
-		if err != nil {
-			return err
-		}
+	// Get route host
+	host, err := getRouteHost(ingressRequest)
+	if err != nil {
+		return err
+	}
+
+	// see if Status.Host needs to be updated base on the routeHost value in the CR
+	if len(requestIngress.Status.Host) == 0 || requestIngress.Status.Host != host {
+		klog.Infof("Setting Status.Host to %s", host)
 		status := &operatorv1alpha1.ManagementIngressStatus{
 			Conditions: map[string]operatorv1alpha1.ConditionList{},
 			PodState:   operatorv1alpha1.PodStateMap{},
 			Host:       host,
 			State: operatorv1alpha1.OperandState{
-				Message: "Get router host for management ingress.",
+				Message: "Get router host for management ingress at " + time.Now().Format("2006-01-02 15:04:05"),
 				Status:  operatorv1alpha1.StatusDeploying,
 			},
 		}
@@ -77,6 +82,7 @@ func Reconcile(ingressRequest *IngressRequest) (err error) {
 	return nil
 }
 
+// Get the host for the cp-console route
 func getRouteHost(ing *IngressRequest) (string, error) {
 
 	if specifiedRouteHost := ing.managementIngress.Spec.RouteHost; len(specifiedRouteHost) > 0 {

@@ -1,5 +1,5 @@
 //
-// Copyright 2020 IBM Corporation
+// Copyright 2021 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 	"time"
 
 	operatorv1 "github.com/openshift/api/operator/v1"
@@ -270,13 +271,8 @@ func getRouteCertificate(i *IngressRequest, ns string) ([]byte, []byte, []byte, 
 }
 
 func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
-	// Get app base domain of OCP route
-	baseDomain, err := ingressRequest.GetRouteAppDomain()
-	if err != nil {
-		return fmt.Errorf("failure getting route base domain: %v", err)
-	}
 
-	// Get route certificate
+	// Get data from route certificate
 	cert, key, caCert, destinationCAcert, err := getRouteCertificate(ingressRequest, ingressRequest.managementIngress.ObjectMeta.Namespace)
 	if err != nil {
 		return err
@@ -292,7 +288,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 		ConsoleRouteName,
 		ingressRequest.managementIngress.ObjectMeta.Namespace,
 		ServiceName,
-		ConsoleRouteName+"."+baseDomain,
+		ingressRequest.managementIngress.Status.Host,
 		cert,
 		key,
 		caCert,
@@ -304,11 +300,15 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	}
 
 	// create cp-proxy route
+	proxyRouteHost, err := ingressRequest.GetProxyRouteHost()
+	if err != nil {
+		return fmt.Errorf("failure getting proxy route host: %v", err)
+	}
 	proxyRoute := NewRoute(
 		ProxyRouteName,
 		ingressRequest.managementIngress.ObjectMeta.Namespace,
 		ProxyServiceName,
-		ProxyRouteName+"."+baseDomain,
+		proxyRouteHost,
 		[]byte{},
 		[]byte{},
 		[]byte{},
@@ -355,4 +355,21 @@ func (ingressRequest *IngressRequest) GetRouteAppDomain() (string, error) {
 	}
 
 	return "", fmt.Errorf("the router Domain from config of Ingress Controller Operator is empty. See more info: %v", ing)
+}
+
+// Get the host for the cp-proxy route
+func (ingressRequest *IngressRequest) GetProxyRouteHost() (string, error) {
+
+	if specifiedProxyRouteHost := ingressRequest.managementIngress.Spec.ProxyRouteHost; len(specifiedProxyRouteHost) > 0 {
+		klog.Infof("Got proxyRouteHost %s from CR", specifiedProxyRouteHost)
+		return specifiedProxyRouteHost, nil
+	}
+
+	// User did not specify proxy route host. Get the default one.
+	appDomain, err := ingressRequest.GetRouteAppDomain()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Join([]string{ProxyRouteName, appDomain}, "."), nil
 }

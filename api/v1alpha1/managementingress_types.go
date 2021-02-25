@@ -1,5 +1,5 @@
 //
-// Copyright 2020 IBM Corporation
+// Copyright 2021 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ type ManagementIngressSpec struct {
 	Config            map[string]string            `json:"config,omitempty"`
 	FIPSEnabled       bool                         `json:"fipsEnabled,omitempty"`
 	IgnoreRouteCert   bool                         `json:"ignoreRouteCert,omitempty"`
+	ProxyRouteHost    string                       `json:"proxyRouteHost,omitempty"`
 }
 
 type OperandImage struct {
@@ -91,8 +92,9 @@ type ManagementState string
 
 const (
 	// Managed means that the operator is actively managing its resources and trying to keep the component active.
-	// It will only upgrade the component if it is safe to do so
-	ManagementStateManaged ManagementState = "Managed"
+	// It will only upgrade the component if it is safe to do so.
+	// "managed" (lowercase) is used in the CR.
+	ManagementStateManaged ManagementState = "managed"
 	// Unmanaged means that the operator will not take any action related to the component
 	ManagementStateUnmanaged ManagementState = "Unmanaged"
 )
