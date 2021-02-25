@@ -1,5 +1,5 @@
 //
-// Copyright 2020 IBM Corporation
+// Copyright 2021 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ const (
 	ClusterNameEnv   string = "CLUSTER_NAME"
 
 	CSVersion      string = "version"
-	CSVersionValue string = "3.6.0"
+	CSVersionValue string = "3.7.0"
 	CSVersionEnv   string = "VERSION"
 
 	PODNAMESPACE string = "POD_NAMESPACE"

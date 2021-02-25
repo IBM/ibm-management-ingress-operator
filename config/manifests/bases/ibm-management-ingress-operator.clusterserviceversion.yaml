@@ -31,12 +31,12 @@ metadata:
             "managementState": "managed",
             "resources": {
               "limits": {
-                "cpu": "200m",
-                "memory": "1024Mi"
+                "cpu": "1000m",
+                "memory": "170Mi"
               },
               "requests": {
-                "cpu": "50m",
-                "memory": "300Mi"
+                "cpu": "70m",
+                "memory": "60Mi"
               }
             },
             "routeHost": ""

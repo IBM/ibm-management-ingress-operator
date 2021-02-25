@@ -1,5 +1,5 @@
 //
-// Copyright 2020 IBM Corporation
+// Copyright 2021 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"reflect"
@@ -80,6 +79,8 @@ func updateClusterInfo(ingr *IngressRequest, cm *core.ConfigMap) error {
 			klog.Infof("No change found from the configmap: %s, skip updating current configmap.", cm.ObjectMeta.Name)
 			return nil
 		}
+
+		klog.Infof("Found change for configmap %s, trying to update it.", cfg.ObjectMeta.Name)
 		cfg.Data = cm.Data
 		if err := ingr.Update(cfg); err != nil {
 			ingr.recorder.Eventf(ingr.managementIngress, "Warning", "UpdatedConfigmap", "Failed to update configmap: %s", cm.ObjectMeta.Name)
@@ -103,10 +104,6 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 			return fmt.Errorf("failure creating configmap: %v", err)
 		}
 
-		if !ingressConfig {
-			return nil
-		}
-
 		klog.Infof("Trying to update configmap: %s as it already existed.", cm.ObjectMeta.Name)
 		current := &core.ConfigMap{}
 		// Update config
@@ -120,8 +117,8 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 			return nil
 		}
 
-		json, _ := json.Marshal(cm)
-		klog.Infof("Found change from Configmap %s, trying to update it.", json)
+		//json, _ := json.Marshal(cm)
+		klog.Infof("Found change for configmap %s, trying to update it.", cm.ObjectMeta.Name)
 		current.Data = cm.Data
 
 		// Apply the latest change to configmap
@@ -129,7 +126,7 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 			return fmt.Errorf("failure updating Configmap: %v: %v", cm.ObjectMeta.Name, err)
 		}
 
-		// Restart Deployment because config is updated.
+		// Restart Deployment because management-ingress-config is updated.
 		if ingressConfig {
 			ds := &apps.Deployment{}
 			if err = ingr.Get(AppName, ingr.managementIngress.ObjectMeta.Namespace, ds); err != nil {
@@ -255,6 +252,12 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 			break
 		}
 	}
+
+	proxyRouteHost, err := ingressRequest.GetProxyRouteHost()
+	if err != nil {
+		return fmt.Errorf("failure getting proxy route host: %v", err)
+	}
+
 	pos := strings.LastIndex(apiaddr, ":")
 
 	clustercfg := NewConfigMap(
@@ -271,7 +274,7 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 			CSVersion:            ver,
 			ClusterAPIServerHost: apiaddr[0:pos],
 			ClusterAPIServerPort: apiaddr[pos+1:],
-			ProxyAddress:         ProxyRouteName + "." + baseDomain,
+			ProxyAddress:         proxyRouteHost,
 			ProxyHTTPPort:        "80",
 			ProxyHTTPSPort:       "443",
 		},
