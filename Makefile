@@ -1,5 +1,5 @@
 #
-# Copyright 2020 IBM Corporation
+# Copyright 2021 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ VERSION ?= $(shell git describe --exact-match 2> /dev/null || \
 RELEASE_VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ print $$3}' | tr -d '"')
 
 # current CSV version
-CSV_VERSION ?= 1.5.0
+CSV_VERSION ?= 1.5.1
 
 # used for make bundle
 CHANNELS ?= dev,beta,stable-v1
