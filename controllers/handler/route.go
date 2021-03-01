@@ -183,6 +183,19 @@ func handleUpdate(i *IngressRequest, current *route.Route, src *route.Route) err
 		isChange = true
 	}
 
+	// in the Route, spec.Host is immutable. If we have a new host,
+	// delete the route and re-create it instead of doing an Update.
+	if current.Spec.Host != src.Spec.Host {
+		klog.Infof("Found new host for route: %s, trying to re-create it ...", name)
+		err := i.Delete(current)
+		if err != nil && !errors.IsNotFound(err) {
+			return fmt.Errorf("failure deleting %s route: %v", name, err)
+		}
+		err = handleCreate(i, src)
+		return err
+	}
+
+	// spec.Host didn't change. Look for other changes.
 	if equal := reflect.DeepEqual(current.Spec, src.Spec); !equal {
 		klog.Infof("Found change for route: %s, trying to update it ...", name)
 		current.Spec = src.Spec
