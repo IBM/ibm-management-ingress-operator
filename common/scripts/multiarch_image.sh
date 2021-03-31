@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2020 IBM Corporation
+# Copyright 2021 IBM Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,8 +23,10 @@ ALL_PLATFORMS="amd64 ppc64le s390x"
 
 IMAGE_REPO=${1}
 IMAGE_NAME=${2}
-VERSION=${3-"$(git describe --exact-match 2> /dev/null || git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)"}
+#VERSION=${3-"$(git describe --exact-match 2> /dev/null || git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)"}
+VERSION=${3:-1.4.3}
 RELEASE_VERSION=${4:-1.4.3}
+
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
 MAX_PULLING_RETRY=${MAX_PULLING_RETRY-20}
