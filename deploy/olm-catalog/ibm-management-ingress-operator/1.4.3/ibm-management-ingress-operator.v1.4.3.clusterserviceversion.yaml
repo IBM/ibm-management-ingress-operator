@@ -83,7 +83,7 @@ metadata:
     categories: Developer Tools
     certified: "false"
     containerImage: quay.io/opencloudio/ibm-management-ingress-operator:1.4.3
-    createdAt: "2020-01-14T10:16:16Z"
+    createdAt: "2020-12-08T10:16:16Z"
     description: Operator for managing deployment of management-ingress service.
     repository: https://github.com/IBM/ibm-management-ingress-operator.git
     support: IBM
@@ -223,7 +223,7 @@ spec:
                       name: namespace-scope
                       key: namespaces
                 - name: OPERAND_IMAGE_DIGEST
-                  value: quay.io/opencloudio/icp-management-ingress@sha256:fedfb66a2c552d6bf1a741dbe42b74aaf0775f8a0618b1f39815474ebc811b7b
+                  value: quay.io/opencloudio/icp-management-ingress@sha256:9f852cc33b5c605846f3f1cae0843a04b5e7bf35ca6b984927d1d1071631b136
                 - name: ROUTE_HTTPS_PORT
                   value: ""
                 - name: ROUTE_HTTP_PORT
