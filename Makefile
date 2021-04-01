@@ -26,7 +26,7 @@ RELEASE_VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ 
 VERSION ?= $(RELEASE_VERSION)
 
 # current CSV version
-CSV_VERSION ?= 1.4.3
+CSV_VERSION ?= 1.4.4
 
 # used for make bundle
 CHANNELS ?= dev,beta,stable-v1
