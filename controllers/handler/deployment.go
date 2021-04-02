@@ -238,8 +238,8 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 
 	spreadConstraints := []core.TopologySpreadConstraint{
 		{
-			MaxSkew: 1,
-			TopologyKey: "topology.kubernetes.io/zone",
+			MaxSkew:           1,
+			TopologyKey:       "topology.kubernetes.io/zone",
 			WhenUnsatisfiable: core.ScheduleAnyway,
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
@@ -248,8 +248,8 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 			},
 		},
 		{
-			MaxSkew: 1,
-			TopologyKey: "topology.kubernetes.io/region",
+			MaxSkew:           1,
+			TopologyKey:       "topology.kubernetes.io/region",
 			WhenUnsatisfiable: core.ScheduleAnyway,
 			LabelSelector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
