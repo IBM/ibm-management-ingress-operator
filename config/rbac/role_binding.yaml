@@ -33,7 +33,6 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: ibm-management-ingress-operator
-  namespace: ibm-common-services
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -69,5 +68,3 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: management-ingress
-  namespace: ibm-common-services
----
