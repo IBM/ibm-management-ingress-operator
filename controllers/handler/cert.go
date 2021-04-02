@@ -1,5 +1,5 @@
 //
-// Copyright 2020 IBM Corporation
+// Copyright 2021 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -102,6 +102,12 @@ func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 		return err
 	}
 
+	// Determine if we should watch or ignore the route-cert certificate
+	if ingressRequest.managementIngress.Spec.IgnoreRouteCert {
+		klog.Infof("Not watching certificate: %s, IgnoreRouteCert is true.", RouteCert)
+		return nil
+	}
+
 	// Create TLS certificate for management ingress route
 	routeCert := NewCertificate(
 		RouteCert,
@@ -113,6 +119,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 	)
 
 	return ingressRequest.CreateOrUpdateCert(routeCert)
+
 }
 
 func (ingressRequest *IngressRequest) CreateOrUpdateCert(cert *certmanager.Certificate) error {

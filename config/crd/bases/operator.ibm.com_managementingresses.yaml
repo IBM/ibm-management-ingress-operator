@@ -79,6 +79,8 @@ spec:
               type: object
             fipsEnabled:
               type: boolean
+            ignoreRouteCert:
+              type: boolean
             image:
               properties:
                 repository:
@@ -94,6 +96,8 @@ spec:
               additionalProperties:
                 type: string
               type: object
+            proxyRouteHost:
+              type: string
             replicas:
               format: int32
               type: integer
