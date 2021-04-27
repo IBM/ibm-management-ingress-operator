@@ -2,7 +2,7 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    olm.skipRange: '<1.5.1'
+    olm.skipRange: '<1.6.0'
     alm-examples: |-
       [
         {
@@ -82,8 +82,8 @@ metadata:
     capabilities: Basic Install
     categories: Developer Tools
     certified: "false"
-    containerImage: quay.io/opencloudio/ibm-management-ingress-operator:1.5.1
-    createdAt: "2021-02-25T18:57:00Z"
+    containerImage: quay.io/opencloudio/ibm-management-ingress-operator:1.6.0
+    createdAt: "2021-04-27T20:18:00Z"
     description: Operator for managing deployment of management-ingress service.
     repository: https://github.com/IBM/ibm-management-ingress-operator.git
     support: IBM
@@ -92,7 +92,7 @@ metadata:
     operatorframework.io/arch.ppc64le: supported
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: ibm-management-ingress-operator.v1.5.1
+  name: ibm-management-ingress-operator.v1.6.0
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -223,7 +223,7 @@ spec:
                       name: namespace-scope
                       key: namespaces
                 - name: OPERAND_IMAGE_DIGEST
-                  value: quay.io/opencloudio/icp-management-ingress@sha256:6641653b351901eb9352e06479d75a4babaf746bcd63381a09a58d9192b0953c
+                  value: quay.io/opencloudio/icp-management-ingress@sha256:7e12ad9de9a014fee986d5b69aa9fa4c33b7f80386c9d5caa75e3518ef3f9011
                 - name: ROUTE_HTTPS_PORT
                   value: ""
                 - name: ROUTE_HTTP_PORT
@@ -454,5 +454,5 @@ spec:
   maturity: stable
   provider:
     name: IBM
-  replaces: ibm-management-ingress-operator.v1.5.0
-  version: 1.5.1
+  replaces: ibm-management-ingress-operator.v1.5.1
+  version: 1.6.0
