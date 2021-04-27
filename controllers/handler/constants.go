@@ -66,7 +66,7 @@ const (
 	ClusterNameEnv   string = "CLUSTER_NAME"
 
 	CSVersion      string = "version"
-	CSVersionValue string = "3.7.0"
+	CSVersionValue string = "3.8.0"
 	CSVersionEnv   string = "VERSION"
 
 	PODNAMESPACE string = "POD_NAMESPACE"

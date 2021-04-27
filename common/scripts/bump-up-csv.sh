@@ -19,7 +19,8 @@
 # Run this script from the parent dir by typing "common/scripts/bump-up-csv.sh"
 #
 
-YQ=yq-v3
+# use version 3 of yq. see https://mikefarah.gitbook.io/yq/v/v4.x/upgrading-from-v3
+YQ=yq_v3
 SED="sed"
 unamestr=$(uname)
 if [[ "$unamestr" == "Darwin" ]] ; then
@@ -43,16 +44,17 @@ fi
 
 OPERATOR_NAME=ibm-management-ingress-operator
 NEW_CSV_VERSION=${1}
+BASE_CSV_NAME=$OPERATOR_NAME.clusterserviceversion.yaml
 
 CONFIG_DIR=config
-DEPLOY_DIR=${DEPLOY_DIR:-deploy}
-BUNDLE_DIR=${BUNDLE_DIR:-deploy/olm-catalog/${OPERATOR_NAME}}
+BUNDLE_DIR=bundle
+DEPLOY_DIR=${DEPLOY_DIR:-deploy/olm-catalog/${OPERATOR_NAME}}
 # get the version number for the current/last CSV
-LAST_CSV_DIR=$(find "${BUNDLE_DIR}" -maxdepth 1 -type d | sort | tail -1)
+LAST_CSV_DIR=$(find "${DEPLOY_DIR}" -maxdepth 1 -type d | sort | tail -1)
 LAST_CSV_VERSION=$(basename "${LAST_CSV_DIR}")
 NEW_CSV_DIR=${LAST_CSV_DIR//${LAST_CSV_VERSION}/${NEW_CSV_VERSION}}
 
-PREVIOUS_CSV_DIR=$(find "${BUNDLE_DIR}" -maxdepth 1 -type d | sort | tail -2 | head -1)
+PREVIOUS_CSV_DIR=$(find "${DEPLOY_DIR}" -maxdepth 1 -type d | sort | tail -2 | head -1)
 PREVIOUS_CSV_VERSION=$(basename "${PREVIOUS_CSV_DIR}")
 
 if [ "${LAST_CSV_VERSION}" == "${NEW_CSV_VERSION}" ]; then
@@ -104,10 +106,17 @@ $SED -e "s|version: ${LAST_CSV_VERSION}|version: ${NEW_CSV_VERSION}|" -i "${NEW_
 #                       +----------+ +--------+ +--------+ +--------+ +--------+ +--------+
 $SED -e "s|createdAt: \"\([0-9]\{4\}-[0-9]\{2\}-[0-9]\{2\}T[0-9]\{2\}:[0-9]\{2\}:[0-9]\{2\}Z\)\"|createdAt: \"${CURR_TIME}\"|" -i "${NEW_CSV_FILE}"
 
+#---------------------------------------------------------
+# copy the CSV file to the bundle and config dirs
+#---------------------------------------------------------
+echo -e "\n[INFO] Copying CSV file to ${BUNDLE_DIR} dir and ${CONFIG_DIR} dir"
+cp -p $NEW_CSV_FILE $BUNDLE_DIR/manifests/$BASE_CSV_NAME
+cp -p $NEW_CSV_FILE $CONFIG_DIR/manifests/bases/$BASE_CSV_NAME
+
 #----------------------------------------------------------------------------------------------------------
 # update package.yaml. uses version 3 of yq. see https://mikefarah.gitbook.io/yq/v/v4.x/upgrading-from-v3
 #----------------------------------------------------------------------------------------------------------
-PACKAGE_YAML=${BUNDLE_DIR}/${OPERATOR_NAME}.package.yaml
+PACKAGE_YAML=${DEPLOY_DIR}/${OPERATOR_NAME}.package.yaml
 if ! [ -f "${PACKAGE_YAML}" ]; then
     echo "[WARN] ${PACKAGE_YAML} does not exist."
     exit 1

@@ -27,7 +27,7 @@ spec:
       serviceAccountName: ibm-management-ingress-operator
       containers:
         - name: ibm-management-ingress-operator
-          image: quay.io/opencloudio/ibm-management-ingress-operator:1.5.1
+          image: quay.io/opencloudio/ibm-management-ingress-operator:1.6.0
           imagePullPolicy: Always
           command:
           - ibm-management-ingress-operator
@@ -46,7 +46,7 @@ spec:
             - name: WATCH_NAMESPACE
               value: ""
             - name: OPERAND_IMAGE_DIGEST
-              value: quay.io/opencloudio/icp-management-ingress@sha256:6641653b351901eb9352e06479d75a4babaf746bcd63381a09a58d9192b0953c
+              value: quay.io/opencloudio/icp-management-ingress@sha256:7e12ad9de9a014fee986d5b69aa9fa4c33b7f80386c9d5caa75e3518ef3f9011
             - name: ROUTE_HTTPS_PORT
               value: ""
             - name: ROUTE_HTTP_PORT
