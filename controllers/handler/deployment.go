@@ -236,12 +236,36 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 
 	affinity := &core.Affinity{PodAntiAffinity: podAntiAffinity}
 
+	spreadConstraints := []core.TopologySpreadConstraint{
+		{
+			MaxSkew: 1,
+			TopologyKey: "topology.kubernetes.io/zone",
+			WhenUnsatisfiable: core.ScheduleAnyway,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"app": AppName,
+				},
+			},
+		},
+		{
+			MaxSkew: 1,
+			TopologyKey: "topology.kubernetes.io/region",
+			WhenUnsatisfiable: core.ScheduleAnyway,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"app": AppName,
+				},
+			},
+		},
+	}
+
 	podSpec := core.PodSpec{
-		Containers:         []core.Container{container},
-		ServiceAccountName: ServiceAccountName,
-		NodeSelector:       nodeSelector,
-		Tolerations:        tolerations,
-		Affinity:           affinity,
+		Containers:                []core.Container{container},
+		ServiceAccountName:        ServiceAccountName,
+		NodeSelector:              nodeSelector,
+		Tolerations:               tolerations,
+		Affinity:                  affinity,
+		TopologySpreadConstraints: spreadConstraints,
 	}
 
 	defaultMode := int32(0644)
