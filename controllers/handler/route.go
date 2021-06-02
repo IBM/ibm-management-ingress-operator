@@ -384,5 +384,10 @@ func (ingressRequest *IngressRequest) GetProxyRouteHost() (string, error) {
 		return "", err
 	}
 
+	if ingressRequest.managementIngress.Spec.MultipleInstancesEnabled {
+		multipleInstanceRouteName := strings.Join([]string{ProxyRouteName, ingressRequest.managementIngress.Namespace}, "-")
+		return strings.Join([]string{multipleInstanceRouteName, appDomain}, "."), nil
+	}
+
 	return strings.Join([]string{ProxyRouteName, appDomain}, "."), nil
 }

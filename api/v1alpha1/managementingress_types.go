@@ -22,20 +22,21 @@ import (
 
 // ManagementIngressSpec defines the desired state of ManagementIngress
 type ManagementIngressSpec struct {
-	ManagementState   ManagementState              `json:"managementState"`
-	ImageRegistry     string                       `json:"imageRegistry"`
-	Image             OperandImage                 `json:"image,omitempty"`
-	Replicas          int32                        `json:"replicas,omitempty"`
-	Resources         *corev1.ResourceRequirements `json:"resources,omitempty"`
-	NodeSelector      map[string]string            `json:"nodeSelector,omitempty"`
-	Tolerations       []corev1.Toleration          `json:"tolerations,omitempty"`
-	AllowedHostHeader string                       `json:"allowedHostHeader,omitempty"`
-	Cert              *Cert                        `json:"cert"`
-	RouteHost         string                       `json:"routeHost"`
-	Config            map[string]string            `json:"config,omitempty"`
-	FIPSEnabled       bool                         `json:"fipsEnabled,omitempty"`
-	IgnoreRouteCert   bool                         `json:"ignoreRouteCert,omitempty"`
-	ProxyRouteHost    string                       `json:"proxyRouteHost,omitempty"`
+	ManagementState          ManagementState              `json:"managementState"`
+	ImageRegistry            string                       `json:"imageRegistry"`
+	Image                    OperandImage                 `json:"image,omitempty"`
+	Replicas                 int32                        `json:"replicas,omitempty"`
+	Resources                *corev1.ResourceRequirements `json:"resources,omitempty"`
+	NodeSelector             map[string]string            `json:"nodeSelector,omitempty"`
+	Tolerations              []corev1.Toleration          `json:"tolerations,omitempty"`
+	AllowedHostHeader        string                       `json:"allowedHostHeader,omitempty"`
+	Cert                     *Cert                        `json:"cert"`
+	RouteHost                string                       `json:"routeHost"`
+	Config                   map[string]string            `json:"config,omitempty"`
+	FIPSEnabled              bool                         `json:"fipsEnabled,omitempty"`
+	IgnoreRouteCert          bool                         `json:"ignoreRouteCert,omitempty"`
+	ProxyRouteHost           string                       `json:"proxyRouteHost,omitempty"`
+	MultipleInstancesEnabled bool                         `json:"multipleInstancesEnabled,omitempty"`
 }
 
 type OperandImage struct {
