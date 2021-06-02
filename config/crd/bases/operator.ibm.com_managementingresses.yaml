@@ -81,6 +81,8 @@ spec:
               type: boolean
             ignoreRouteCert:
               type: boolean
+            multipleInstancesEnabled:
+              type: boolean
             image:
               properties:
                 repository:

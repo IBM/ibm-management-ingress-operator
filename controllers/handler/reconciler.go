@@ -96,5 +96,10 @@ func getRouteHost(ing *IngressRequest) (string, error) {
 		return "", err
 	}
 
+	if ing.managementIngress.Spec.MultipleInstancesEnabled {
+		multipleInstanceRouteName := strings.Join([]string{ConsoleRouteName, ing.managementIngress.Namespace}, "-")
+		return strings.Join([]string{multipleInstanceRouteName, appDomain}, "."), nil
+	}
+
 	return strings.Join([]string{ConsoleRouteName, appDomain}, "."), nil
 }
