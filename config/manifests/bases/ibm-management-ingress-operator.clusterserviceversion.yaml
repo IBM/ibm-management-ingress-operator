@@ -223,7 +223,7 @@ spec:
                       name: namespace-scope
                       key: namespaces
                 - name: OPERAND_IMAGE_DIGEST
-                  value: quay.io/opencloudio/icp-management-ingress@sha256:2a98c84e2679f331b2f5f81d32a7b488f3b6c34048a4efccb98e3f2465d0c65f
+                  value: quay.io/opencloudio/icp-management-ingress@sha256:bd85f36a09ed279b3a7b7ef0f22e7e71287f3ab76a8541ac9ff8cd8901b88afb
                 - name: ROUTE_HTTPS_PORT
                   value: ""
                 - name: ROUTE_HTTP_PORT
