@@ -226,3 +226,4 @@ spec:
               - operandState
               - podstate
               type: object
+          type: object
