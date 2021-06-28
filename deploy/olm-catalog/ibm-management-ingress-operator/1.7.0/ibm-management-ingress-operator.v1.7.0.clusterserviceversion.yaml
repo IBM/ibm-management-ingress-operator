@@ -452,6 +452,7 @@ spec:
   - email: supports@ibm.com
     name: IBM Support
   maturity: stable
+  minKubeVersion: 1.19.0
   provider:
     name: IBM
   replaces: ibm-management-ingress-operator.v1.6.0
