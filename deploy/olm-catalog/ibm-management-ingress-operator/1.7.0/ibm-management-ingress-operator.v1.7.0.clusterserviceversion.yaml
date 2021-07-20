@@ -97,7 +97,7 @@ metadata:
 spec:
   relatedImages:
     - name: ICP_MANAGEMENT_INGRESS_IMAGE
-      image: quay.io/opencloudio/icp-management-ingress:2.5.12
+      image: quay.io/opencloudio/icp-management-ingress:2.5.14
     - name: ibm-management-ingress-operator
       image: quay.io/opencloudio/ibm-management-ingress-operator
   apiservicedefinitions: {}
@@ -231,7 +231,7 @@ spec:
                       name: namespace-scope
                       key: namespaces
                 - name: ICP_MANAGEMENT_INGRESS_IMAGE
-                  value: quay.io/opencloudio/icp-management-ingress:2.5.12
+                  value: quay.io/opencloudio/icp-management-ingress:2.5.14
                 - name: ROUTE_HTTPS_PORT
                   value: ""
                 - name: ROUTE_HTTP_PORT
