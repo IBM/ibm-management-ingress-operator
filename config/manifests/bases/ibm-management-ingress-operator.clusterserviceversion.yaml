@@ -2,7 +2,7 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    olm.skipRange: '<1.7.0'
+    olm.skipRange: '<1.7.1'
     alm-examples: |-
       [
         {
@@ -82,8 +82,8 @@ metadata:
     capabilities: Basic Install
     categories: Developer Tools
     certified: "false"
-    containerImage: quay.io/opencloudio/ibm-management-ingress-operator:1.7.0
-    createdAt: "2021-06-16T22:13:00Z"
+    containerImage: quay.io/opencloudio/ibm-management-ingress-operator:1.7.1
+    createdAt: "2021-07-20T17:39:00Z"
     description: Operator for managing deployment of management-ingress service.
     repository: https://github.com/IBM/ibm-management-ingress-operator.git
     support: IBM
@@ -92,13 +92,21 @@ metadata:
     operatorframework.io/arch.ppc64le: supported
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: ibm-management-ingress-operator.v1.7.0
+  name: ibm-management-ingress-operator.v1.7.1
   namespace: placeholder
 spec:
+  relatedImages:
+    - name: ICP_MANAGEMENT_INGRESS_IMAGE
+      image: quay.io/opencloudio/icp-management-ingress:2.5.14
+    - name: ibm-management-ingress-operator
+      image: quay.io/opencloudio/ibm-management-ingress-operator
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: ManagementIngress is the Schema for the managementingress API
+    - description: 'ManagementIngress is the Schema for the managementingress API. Documentation For additional 
+        details regarding install parameters check: https://ibm.biz/icpfs39install. 
+        License By installing this product you accept the license terms 
+        https://ibm.biz/icpfs39license.'
       group: operator.ibm.com
       kind: ManagementIngress
       name: managementingresses.operator.ibm.com
@@ -223,7 +231,7 @@ spec:
                       name: namespace-scope
                       key: namespaces
                 - name: ICP_MANAGEMENT_INGRESS_IMAGE
-                  value: quay.io/opencloudio/icp-management-ingress:2.5.12
+                  value: quay.io/opencloudio/icp-management-ingress:2.5.14
                 - name: ROUTE_HTTPS_PORT
                   value: ""
                 - name: ROUTE_HTTP_PORT
@@ -455,5 +463,5 @@ spec:
   minKubeVersion: 1.19.0
   provider:
     name: IBM
-  replaces: ibm-management-ingress-operator.v1.6.0
-  version: 1.7.0
+  replaces: ibm-management-ingress-operator.v1.7.0
+  version: 1.7.1
