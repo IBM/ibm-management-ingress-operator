@@ -115,7 +115,7 @@ manager: generate fmt vet
 
 build: generate fmt vet
 	@echo "Building ibm-management-ingress-operator binary for $(LOCAL_ARCH)..."
-	@GOARCH=$(LOCAL_ARCH) common/scripts/gobuild.sh build/_output/bin/$(IMG) ./
+	@GOARCH=$(LOCAL_ARCH) GOOS=linux common/scripts/gobuild.sh build/_output/bin/$(IMG) ./
 	@strip $(STRIP_FLAGS) build/_output/bin/$(IMG)
 
 # Run against the configured Kubernetes cluster in ~/.kube/config

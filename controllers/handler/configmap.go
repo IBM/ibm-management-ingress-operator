@@ -20,10 +20,11 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	"strings"
+
+	//"strings"
 	"time"
 
-	"gopkg.in/yaml.v2"
+	//"gopkg.in/yaml.v2"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -197,8 +198,9 @@ func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
 func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 	baseDomain, err := ingressRequest.GetRouteAppDomain()
 	if err != nil {
-		return fmt.Errorf("failure getting route base domain %q: %v", ingressRequest.managementIngress.Name, err)
+		//return fmt.Errorf("failure getting route base domain %q: %v", ingressRequest.managementIngress.Name, err)
 	}
+	baseDomain = "scammony4.fyre.ibm.com"
 
 	ver := os.Getenv(CSVersionEnv)
 	if ver == "" {
@@ -206,17 +208,23 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 	}
 	cname := os.Getenv(ClusterNameEnv)
 	if cname == "" {
+		fmt.Println("==Yanni populateCloudClusterInfo, cname is empty")
 		cname = ClusterNameValue
+		fmt.Println("===Yanni cname is ", cname)
 	}
 
 	rhttpPort := os.Getenv(RouteHTTPPortEnv)
 	if rhttpPort == "" {
+		fmt.Println("==Yanni populateCloudClusterInfo, rhttpPort is empty")
 		rhttpPort = RouteHTTPPortValue
+		fmt.Println("===Yanni rhttpPort is ", rhttpPort)
 	}
 
 	rhttpsPort := os.Getenv(RouteHTTPSPortEnv)
 	if rhttpsPort == "" {
+		fmt.Println("==Yanni populateCloudClusterInfo, rhttpsPort is empty")
 		rhttpsPort = RouteHTTPSPortValue
+		fmt.Println("===Yanni rhttpsPort is ", rhttpsPort)
 	}
 
 	ns := os.Getenv(PODNAMESPACE)
@@ -230,16 +238,16 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 	}
 	err = clusterClient.Get(context.TODO(), types.NamespacedName{Name: ConsoleCfg, Namespace: ConsoleNS}, console)
 	if err != nil {
-		return err
+		//return err
 	}
 
-	var result map[interface{}]interface{}
-	var apiaddr string
-	if err = yaml.Unmarshal([]byte(console.Data[ConsoleCfgYaml]), &result); err != nil {
-		return err
-	}
+	//	var result map[interface{}]interface{}
+	//	var apiaddr string
+	//if err = yaml.Unmarshal([]byte(console.Data[ConsoleCfgYaml]), &result); err != nil {
+	//return err
+	//	}
 
-	for k, v := range result {
+	/*	for k, v := range result {
 		if k.(string) == ConsoleClusterInfo {
 			cinfo := v.(map[interface{}]interface{})
 			for k1, v1 := range cinfo {
@@ -251,32 +259,37 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 			}
 			break
 		}
-	}
+	} */
 
-	proxyRouteHost, err := ingressRequest.GetProxyRouteHost()
-	if err != nil {
-		return fmt.Errorf("failure getting proxy route host: %v", err)
-	}
-
-	pos := strings.LastIndex(apiaddr, ":")
+	/*	proxyRouteHost, err := ingressRequest.GetProxyRouteHost()
+		if err != nil {
+			return fmt.Errorf("failure getting proxy route host: %v", err)
+		}
+	*/
+	//	pos := strings.LastIndex(apiaddr, ":")
 
 	clustercfg := NewConfigMap(
 		ClusterConfigName,
 		ingressRequest.managementIngress.Namespace,
 		map[string]string{
-			ClusterAddr:          ingressRequest.managementIngress.Status.Host,
-			ClusterCADomain:      ingressRequest.managementIngress.Status.Host,
-			ClusterEP:            ep,
-			ClusterName:          cname,
-			RouteHTTPPort:        rhttpPort,
-			RouteHTTPSPort:       rhttpsPort,
-			RouteBaseDomain:      baseDomain,
-			CSVersion:            ver,
-			ClusterAPIServerHost: apiaddr[0:pos],
-			ClusterAPIServerPort: apiaddr[pos+1:],
-			ProxyAddress:         proxyRouteHost,
-			ProxyHTTPPort:        "80",
-			ProxyHTTPSPort:       "443",
+			//	ClusterAddr:          ingressRequest.managementIngress.Status.Host,
+			ClusterAddr: "vcsk1.fyre.ibm.com",
+			//	ClusterCADomain:      ingressRequest.managementIngress.Status.Host,
+			ClusterCADomain: "vcsk1.fyre.ibm.com",
+			ClusterEP:       ep,
+			ClusterName:     cname,
+			RouteHTTPPort:   rhttpPort,
+			RouteHTTPSPort:  rhttpsPort,
+			RouteBaseDomain: baseDomain,
+			CSVersion:       ver,
+			//	ClusterAPIServerHost: apiaddr[0:pos],
+			ClusterAPIServerHost: "vcsk1.fyre.ibm.com",
+			//	ClusterAPIServerPort: apiaddr[pos+1:],
+			ClusterAPIServerPort: "30303",
+			//	ProxyAddress:         proxyRouteHost,
+			ProxyAddress:   "vcsk1.fyre.ibm.com",
+			ProxyHTTPPort:  "80",
+			ProxyHTTPSPort: "443",
 		},
 	)
 

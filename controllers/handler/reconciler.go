@@ -32,9 +32,11 @@ func Reconcile(ingressRequest *IngressRequest) (err error) {
 	// Get route host
 	host, err := getRouteHost(ingressRequest)
 	if err != nil {
-		return err
+		//return err
 	}
-
+	host = "vcsk1.fyre.ibm.com"
+	fmt.Println("===Yanni reconcile.go after getRouteHost")
+	fmt.Println(host)
 	// see if Status.Host needs to be updated base on the routeHost value in the CR
 	if len(requestIngress.Status.Host) == 0 || requestIngress.Status.Host != host {
 		klog.Infof("Setting Status.Host to %s", host)
@@ -71,9 +73,9 @@ func Reconcile(ingressRequest *IngressRequest) (err error) {
 	}
 
 	// Reconcile route
-	if err = ingressRequest.CreateOrUpdateRoute(); err != nil {
-		return fmt.Errorf("unable  to create or update route for %q: %v", ingressRequest.managementIngress.Name, err)
-	}
+	//if err = ingressRequest.CreateOrUpdateRoute(); err != nil {
+	//	return fmt.Errorf("unable  to create or update route for %q: %v", ingressRequest.managementIngress.Name, err)
+	//}
 
 	// Reconcile deployment
 	if err = ingressRequest.CreateOrUpdateDeployment(); err != nil {
@@ -94,11 +96,6 @@ func getRouteHost(ing *IngressRequest) (string, error) {
 	appDomain, err := ing.GetRouteAppDomain()
 	if err != nil {
 		return "", err
-	}
-
-	if ing.managementIngress.Spec.MultipleInstancesEnabled {
-		multipleInstanceRouteName := strings.Join([]string{ConsoleRouteName, ing.managementIngress.Namespace}, "-")
-		return strings.Join([]string{multipleInstanceRouteName, appDomain}, "."), nil
 	}
 
 	return strings.Join([]string{ConsoleRouteName, appDomain}, "."), nil

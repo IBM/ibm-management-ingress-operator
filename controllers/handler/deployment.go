@@ -148,18 +148,19 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		{Name: "ENABLE_IMPERSONATION", Value: "false"},
 		{Name: "APISERVER_SECURE_PORT", Value: "6443"},
 		{Name: "CLUSTER_DOMAIN", Value: clusterDomain},
-		{Name: "HOST_HEADERS_CHECK_ENABLED", Value: strconv.FormatBool(len(allowedHostHeader) > 0)},
+		{Name: "HOST_HEADERS_CHECK_ENABLED", Value: "false"},
+		//{Name: "HOST_HEADERS_CHECK_ENABLED", Value: strconv.FormatBool(len(allowedHostHeader) > 0)},
 		{Name: "ALLOWED_HOST_HEADERS", Value: allowedHostHeader},
-		{Name: "OIDC_ISSUER_URL", ValueFrom: &core.EnvVarSource{
-			ConfigMapKeyRef: &core.ConfigMapKeySelector{
-				Key: "OIDC_ISSUER_URL",
-				LocalObjectReference: core.LocalObjectReference{
-					Name: PlatformAuthConfigmap}}}},
-		{Name: "WLP_CLIENT_ID", ValueFrom: &core.EnvVarSource{
-			SecretKeyRef: &core.SecretKeySelector{
-				Key: "WLP_CLIENT_ID",
-				LocalObjectReference: core.LocalObjectReference{
-					Name: PlatformAuthSecret}}}},
+		//	{Name: "OIDC_ISSUER_URL", ValueFrom: &core.EnvVarSource{
+		//		ConfigMapKeyRef: &core.ConfigMapKeySelector{
+		//			Key: "OIDC_ISSUER_URL",
+		//			LocalObjectReference: core.LocalObjectReference{
+		//				Name: PlatformAuthConfigmap}}}},
+		//	{Name: "WLP_CLIENT_ID", ValueFrom: &core.EnvVarSource{
+		//		SecretKeyRef: &core.SecretKeySelector{
+		//			Key: "WLP_CLIENT_ID",
+		//			LocalObjectReference: core.LocalObjectReference{
+		//				Name: PlatformAuthSecret}}}},
 		{Name: "POD_NAME", ValueFrom: &core.EnvVarSource{FieldRef: &core.ObjectFieldSelector{APIVersion: "v1", FieldPath: "metadata.name"}}},
 		{Name: "POD_NAMESPACE", ValueFrom: &core.EnvVarSource{FieldRef: &core.ObjectFieldSelector{APIVersion: "v1", FieldPath: "metadata.namespace"}}},
 		{Name: "FIPS_ENABLED", Value: strconv.FormatBool(fipsEnabled)},
@@ -322,7 +323,8 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 
 	clusterDomain, err := getClusterDomain()
 	if err != nil {
-		return fmt.Errorf("failure getting cluster domain: %v", err)
+		//return fmt.Errorf("failure getting cluster domain: %v", err)
+		clusterDomain = "cluster.local"
 	}
 
 	podSpec := newPodSpec(
