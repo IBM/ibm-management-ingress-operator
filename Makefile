@@ -167,7 +167,7 @@ endif
 
 build-push-image: build-image push-image
 
-build-image: build
+build-image: $(CONFIG_DOCKER_TARGET) build
 	@echo "Building the $(IMG) docker image for $(LOCAL_ARCH)..."
 	@docker build -t $(REGISTRY)/$(IMG)-$(LOCAL_ARCH):$(VERSION) --build-arg VCS_REF=$(VCS_REF) --build-arg VCS_URL=$(VCS_URL) -f build/Dockerfile .
 
