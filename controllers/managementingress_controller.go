@@ -19,7 +19,7 @@ import (
 	"context"
 
 	certmanagerv1alpha1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
-	routev1 "github.com/openshift/api/route/v1"
+	// routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -98,6 +98,6 @@ func (r *ManagementIngressReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.ServiceAccount{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&certmanagerv1alpha1.Certificate{}).
-		Owns(&routev1.Route{}).
+		// Owns(&routev1.Route{}).
 		Complete(r)
 }
