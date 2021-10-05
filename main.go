@@ -132,6 +132,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	var clusterType string
 	projectkConfig := &corev1.ConfigMap{}
 	if err := mgr.GetClient().Get(context.TODO(), types.NamespacedName{Name: "ibm-project-k", Namespace: operatorNs}, projectkConfig); errors.IsNotFound(err) {
 		utilruntime.Must(routev1.AddToScheme(scheme))
@@ -143,6 +144,8 @@ func main() {
 		}
 	} else if err != nil {
 		os.Exit(1)
+	} else {
+		clusterType = "cncf"
 	}
 
 	if err = (&controllers.ManagementIngressReconciler{
@@ -150,6 +153,7 @@ func main() {
 		Reader:   mgr.GetAPIReader(),
 		Scheme:   mgr.GetScheme(),
 		Recorder: mgr.GetEventRecorderFor(controllers.ControllerName),
+		ClusterType: clusterType,
 	}).SetupWithManager(mgr); err != nil {
 		klog.Errorf("unable to create controller: %v", err)
 		os.Exit(1)

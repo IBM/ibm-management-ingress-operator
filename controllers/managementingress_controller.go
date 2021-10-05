@@ -19,7 +19,7 @@ import (
 	"context"
 
 	certmanagerv1alpha1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
-	// routev1 "github.com/openshift/api/route/v1"
+	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -43,6 +43,7 @@ type ManagementIngressReconciler struct {
 	Reader   client.Reader
 	Scheme   *runtime.Scheme
 	Recorder record.EventRecorder
+	ClusterType string
 }
 
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
@@ -90,6 +91,17 @@ func (r *ManagementIngressReconciler) Reconcile(request ctrl.Request) (ctrl.Resu
 
 // SetupWithManager set up a new controller that will be started by the provided manager.
 func (r *ManagementIngressReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	if r.ClusterType == "cncf" {
+		return ctrl.NewControllerManagedBy(mgr).
+		For(&operatorv1alpha1.ManagementIngress{}).
+		Owns(&corev1.Service{}).
+		Owns(&corev1.Secret{}).
+		Owns(&corev1.ConfigMap{}).
+		Owns(&corev1.ServiceAccount{}).
+		Owns(&appsv1.Deployment{}).
+		Owns(&certmanagerv1alpha1.Certificate{}).
+		Complete(r)
+	}
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&operatorv1alpha1.ManagementIngress{}).
 		Owns(&corev1.Service{}).
@@ -98,6 +110,6 @@ func (r *ManagementIngressReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&corev1.ServiceAccount{}).
 		Owns(&appsv1.Deployment{}).
 		Owns(&certmanagerv1alpha1.Certificate{}).
-		// Owns(&routev1.Route{}).
+		Owns(&routev1.Route{}).
 		Complete(r)
 }
