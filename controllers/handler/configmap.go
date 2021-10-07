@@ -159,7 +159,7 @@ func syncConfigmap(ingr *IngressRequest, cm *core.ConfigMap, ingressConfig bool)
 	return nil
 }
 
-func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
+func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap(clusterType string, domainName string) error {
 
 	// Create management ingress config
 	config := NewConfigMap(
@@ -187,19 +187,15 @@ func (ingressRequest *IngressRequest) CreateOrUpdateConfigMap() error {
 	}
 
 	// Create ibmcloud-cluster-info
-	if err := populateCloudClusterInfo(ingressRequest); err != nil {
+	if err := populateCloudClusterInfo(ingressRequest, clusterType, domainName); err != nil {
 		return fmt.Errorf("failure populate cloud cluster info for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
+
 	return nil
 }
 
 // create configmap ibmcloud-cluster-info
-func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
-	baseDomain, err := ingressRequest.GetRouteAppDomain()
-	if err != nil {
-		return fmt.Errorf("failure getting route base domain %q: %v", ingressRequest.managementIngress.Name, err)
-	}
-
+func populateCloudClusterInfo(ingressRequest *IngressRequest, clusterType string, domainName string) error {
 	ver := os.Getenv(CSVersionEnv)
 	if ver == "" {
 		ver = CSVersionValue
@@ -221,6 +217,32 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest) error {
 
 	ns := os.Getenv(PODNAMESPACE)
 	ep := "https://" + ServiceName + "." + ns + ".svc:443"
+	if clusterType == "cncf" {
+		clustercfg := NewConfigMap(
+			ClusterConfigName,
+			ingressRequest.managementIngress.Namespace,
+			map[string]string{
+				ClusterAddr:     domainName,
+				ClusterCADomain: domainName,
+				ClusterEP:       ep,
+				ClusterName:     cname,
+				RouteHTTPPort:   rhttpPort,
+				RouteHTTPSPort:  rhttpsPort,
+				CSVersion:       ver,
+				ProxyAddress:    domainName,
+				ProxyHTTPPort:   "80",
+				ProxyHTTPSPort:  "443",
+			},
+		)
+		if err := updateClusterInfo(ingressRequest, clustercfg); err != nil {
+			return fmt.Errorf("failure creating cluster info for %q: %v", ingressRequest.managementIngress.Name, err)
+		}
+		return nil
+	}
+	baseDomain, err := ingressRequest.GetRouteAppDomain()
+	if err != nil {
+		return fmt.Errorf("failure getting route base domain %q: %v", ingressRequest.managementIngress.Name, err)
+	}
 
 	// get api server address and port from configmap console-config in namespace openshift-console
 	console := &core.ConfigMap{}

@@ -77,6 +77,7 @@ func getDefaultDNSNames(service, namespace string) []string {
 
 func (ingressRequest *IngressRequest) CreateOrUpdateCertificates() error {
 	// Create certificate for management ingress
+
 	defaultDNS := getDefaultDNSNames(ServiceName, ingressRequest.managementIngress.ObjectMeta.Namespace)
 	DNS := ingressRequest.managementIngress.Spec.Cert.DNSNames
 
