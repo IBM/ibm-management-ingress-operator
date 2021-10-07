@@ -16,6 +16,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -26,9 +27,11 @@ import (
 	routev1 "github.com/openshift/api/route/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	labels "k8s.io/apimachinery/pkg/labels"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	schema "k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
@@ -45,15 +48,8 @@ import (
 var (
 	operatorSDKVersion = "v1.1.0"
 	operatorName       = "ibm-management-ingress-operator"
-	scheme             = k8sruntime.NewScheme()
+	// scheme             = k8sruntime.NewScheme()
 )
-
-func init() {
-	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(operatorv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(certmanagerv1alpha1.AddToScheme(scheme))
-	utilruntime.Must(routev1.AddToScheme(scheme))
-}
 
 func printVersion() {
 	klog.Infof(fmt.Sprintf("Operator Version: %s", version.Version))
@@ -79,6 +75,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	operatorNs, found := os.LookupEnv("POD_NAMESPACE")
+	if !found {
+		klog.Error("failure getting operator namespace")
+		os.Exit(1)
+	}
+
 	commonLabels := handler.GetCommonLabels()
 	labelSelector := labels.SelectorFromSet(commonLabels).String()
 
@@ -96,6 +98,11 @@ func main() {
 			LabelSelector: labelSelector,
 		},
 	}
+
+	scheme := k8sruntime.NewScheme()
+	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(operatorv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(certmanagerv1alpha1.AddToScheme(scheme))
 
 	var ctrlOpt ctrl.Options
 	if strings.Contains(watchNS, ",") {
@@ -127,17 +134,39 @@ func main() {
 		os.Exit(1)
 	}
 
+	var clusterType string
+	var domainName string
+	// var nodePort string
+	projectkConfig := &corev1.ConfigMap{}
+	if err := mgr.GetClient().Get(context.TODO(), types.NamespacedName{Name: "ibm-project-k", Namespace: operatorNs}, projectkConfig); !errors.IsNotFound(err) {
+		utilruntime.Must(routev1.AddToScheme(scheme))
+		ctrlOpt.Scheme = scheme
+		mgr, err = ctrl.NewManager(ctrl.GetConfigOrDie(), ctrlOpt)
+		if err != nil {
+			klog.Errorf("unable to start manager: %v", err)
+			os.Exit(1)
+		} else {
+			clusterType = "cncf"
+			domainName = projectkConfig.Data["domain_name"]
+			// dns = projectkConfig.Data["dns"]
+		}
+	} else if err != nil {
+		os.Exit(1)
+	}
+
 	if err = (&controllers.ManagementIngressReconciler{
-		Client:   mgr.GetClient(),
-		Reader:   mgr.GetAPIReader(),
-		Scheme:   mgr.GetScheme(),
-		Recorder: mgr.GetEventRecorderFor(controllers.ControllerName),
+		Client:      mgr.GetClient(),
+		Reader:      mgr.GetAPIReader(),
+		Scheme:      mgr.GetScheme(),
+		Recorder:    mgr.GetEventRecorderFor(controllers.ControllerName),
+		ClusterType: clusterType,
+		DomainName:  domainName,
 	}).SetupWithManager(mgr); err != nil {
 		klog.Errorf("unable to create controller: %v", err)
 		os.Exit(1)
 	}
 
-	klog.Info("starting manager")
+	klog.Info("Hang's new image")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		klog.Errorf("problem running manager: %v", err)
 		os.Exit(1)
