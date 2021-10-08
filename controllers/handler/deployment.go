@@ -148,8 +148,8 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		{Name: "ENABLE_IMPERSONATION", Value: "false"},
 		{Name: "APISERVER_SECURE_PORT", Value: "6443"},
 		{Name: "CLUSTER_DOMAIN", Value: clusterDomain},
-		{Name: "HOST_HEADERS_CHECK_ENABLED", Value: strconv.FormatBool(len(allowedHostHeader) > 0)},
-		{Name: "ALLOWED_HOST_HEADERS", Value: allowedHostHeader},
+		{Name: "HOST_HEADERS_CHECK_ENABLED", Value: "false"},
+		//{Name: "ALLOWED_HOST_HEADERS", Value: allowedHostHeader},
 		{Name: "OIDC_ISSUER_URL", ValueFrom: &core.EnvVarSource{
 			ConfigMapKeyRef: &core.ConfigMapKeySelector{
 				Key: "OIDC_ISSUER_URL",
@@ -287,7 +287,12 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 	return podSpec
 }
 
-func getClusterDomain() (string, error) {
+func getClusterDomain(clusterType string) (string, error) {
+	if clusterType == "cncf" {
+		var err error
+		return "cluster.local", err
+	}
+
 	dns := &operatorv1.DNS{}
 	clusterClient, err := createOrGetClusterClient()
 	if err != nil {
@@ -307,7 +312,7 @@ func getClusterDomain() (string, error) {
 	return "", fmt.Errorf("the Cluster Domain from DNS operator config is empty. Check DNS: %v", dns)
 }
 
-func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
+func (ingressRequest *IngressRequest) CreateOrUpdateDeployment(clusterType string) error {
 	image := os.Getenv("ICP_MANAGEMENT_INGRESS_IMAGE")
 	hostHeader := strings.Join([]string{
 		ingressRequest.managementIngress.Spec.AllowedHostHeader,
@@ -320,7 +325,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
 		strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace, "svc"}, "."),
 	}, " ")
 
-	clusterDomain, err := getClusterDomain()
+	clusterDomain, err := getClusterDomain(clusterType)
 	if err != nil {
 		return fmt.Errorf("failure getting cluster domain: %v", err)
 	}
