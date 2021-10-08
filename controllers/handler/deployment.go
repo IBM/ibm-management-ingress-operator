@@ -289,7 +289,7 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 
 func getClusterDomain(clusterType string) (string, error) {
 	if clusterType == "cncf" {
-		return "cluster.local", err
+		return "cluster.local", nil
 	}
 
 	dns := &operatorv1.DNS{}
