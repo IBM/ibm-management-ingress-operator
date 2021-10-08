@@ -25,14 +25,20 @@ import (
 	operatorv1alpha1 "github.com/IBM/ibm-management-ingress-operator/api/v1alpha1"
 )
 
-func Reconcile(ingressRequest *IngressRequest) (err error) {
+func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName string) (err error) {
 
 	// First time in reconcile set route host in status.
 	requestIngress := ingressRequest.managementIngress
-	// Get route host
-	host, err := getRouteHost(ingressRequest)
-	if err != nil {
-		return err
+
+	var host string
+	if clusterType == "cncf" {
+		host = domainName
+	} else {
+		// Get route host
+		host, err = getRouteHost(ingressRequest)
+		if err != nil {
+			return err
+		}
 	}
 
 	// see if Status.Host needs to be updated base on the routeHost value in the CR
@@ -54,29 +60,41 @@ func Reconcile(ingressRequest *IngressRequest) (err error) {
 			return err
 		}
 	}
-
+	fmt.Println("Reconciling cert")
 	// Reconcile cert
 	if err = ingressRequest.CreateOrUpdateCertificates(); err != nil {
 		return fmt.Errorf("unable  to create or update certificates for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
+	fmt.Println("Reconciling service")
 	// Reconcile service
 	if err = ingressRequest.CreateOrUpdateService(); err != nil {
 		return fmt.Errorf("unable  to create or update service for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
+	fmt.Println("Reconciling configmap")
 	// Reconcile configmap
-	if err = ingressRequest.CreateOrUpdateConfigMap(); err != nil {
-		return fmt.Errorf("unable  to create or update configmap for %q: %v", ingressRequest.managementIngress.Name, err)
+	if clusterType == "cncf" {
+		if err = ingressRequest.CreateOrUpdateConfigMap(clusterType, domainName); err != nil {
+			return fmt.Errorf("unable  to create or update configmap for %q: %v", ingressRequest.managementIngress.Name, err)
+		}
+	} else {
+		if err = ingressRequest.CreateOrUpdateConfigMap("", ""); err != nil {
+			return fmt.Errorf("unable  to create or update configmap for %q: %v", ingressRequest.managementIngress.Name, err)
+		}
 	}
 
+	fmt.Println("Reconciling route")
 	// Reconcile route
-	if err = ingressRequest.CreateOrUpdateRoute(); err != nil {
-		return fmt.Errorf("unable  to create or update route for %q: %v", ingressRequest.managementIngress.Name, err)
+	if clusterType != "cncf" {
+		if err = ingressRequest.CreateOrUpdateRoute(); err != nil {
+			return fmt.Errorf("unable  to create or update route for %q: %v", ingressRequest.managementIngress.Name, err)
+		}
 	}
 
+	fmt.Println("Reconciling deployment")
 	// Reconcile deployment
-	if err = ingressRequest.CreateOrUpdateDeployment(); err != nil {
+	if err = ingressRequest.CreateOrUpdateDeployment(clusterType); err != nil {
 		return fmt.Errorf("unable  to create or update deployment for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
