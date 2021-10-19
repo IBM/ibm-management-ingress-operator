@@ -38,7 +38,7 @@ VCS_REF ?= $(shell git rev-parse HEAD)
 MARKDOWN_LINT_WHITELIST=https://quay.io/cnr
 
 # operator image repo and name
-REGISTRY ?= hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
+REGISTRY ?= quay.io/hang/ibm-management-ingress-operator 
 IMG ?= ibm-management-ingress-operator
 
 TESTARGS_DEFAULT := "-v"
