@@ -137,8 +137,8 @@ func main() {
 	var clusterType string
 	var domainName string
 	// var nodePort string
-	projectkConfig := &corev1.ConfigMap{}
-	if err := mgr.GetClient().Get(context.TODO(), types.NamespacedName{Name: "ibm-project-k", Namespace: operatorNs}, projectkConfig); !errors.IsNotFound(err) {
+	ibmCppConfig := &corev1.ConfigMap{}
+	if err := mgr.GetClient().Get(context.TODO(), types.NamespacedName{Name: "ibm-cpp-config", Namespace: operatorNs}, ibmCppConfig); !errors.IsNotFound(err) {
 		utilruntime.Must(routev1.AddToScheme(scheme))
 		ctrlOpt.Scheme = scheme
 		mgr, err = ctrl.NewManager(ctrl.GetConfigOrDie(), ctrlOpt)
@@ -146,8 +146,8 @@ func main() {
 			klog.Errorf("unable to start manager: %v", err)
 			os.Exit(1)
 		} else {
-			clusterType = "cncf"
-			domainName = projectkConfig.Data["domain_name"]
+			clusterType = ibmCppConfig.Data["kubernetes_cluster_type"]
+			domainName = ibmCppConfig.Data["domain_name"]
 			// dns = projectkConfig.Data["dns"]
 		}
 	} else if err != nil {

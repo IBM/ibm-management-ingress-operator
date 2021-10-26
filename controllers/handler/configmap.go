@@ -218,18 +218,20 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest, clusterType string
 	ns := os.Getenv(PODNAMESPACE)
 	ep := "https://" + ServiceName + "." + ns + ".svc:443"
 	if clusterType == "cncf" {
+		cncfDomainName := strings.Join([]string{ConsoleRouteName, domainName}, ".")
+
 		clustercfg := NewConfigMap(
 			ClusterConfigName,
 			ingressRequest.managementIngress.Namespace,
 			map[string]string{
-				ClusterAddr:     domainName,
-				ClusterCADomain: domainName,
+				ClusterAddr:     cncfDomainName,
+				ClusterCADomain: cncfDomainName,
 				ClusterEP:       ep,
 				ClusterName:     cname,
 				RouteHTTPPort:   rhttpPort,
 				RouteHTTPSPort:  rhttpsPort,
 				CSVersion:       ver,
-				ProxyAddress:    domainName,
+				ProxyAddress:    cncfDomainName,
 				ProxyHTTPPort:   "80",
 				ProxyHTTPSPort:  "443",
 			},
