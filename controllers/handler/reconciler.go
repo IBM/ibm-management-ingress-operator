@@ -32,13 +32,13 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 
 	var host string
 	if clusterType == CNCF {
-		host, err = getHostOnCNCF(domainName)
+		host = getHostOnCNCF(domainName)
 	} else {
 		// Get route host
 		host, err = getRouteHost(ingressRequest)
-	}
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	// see if Status.Host needs to be updated base on the routeHost value in the CR
@@ -123,6 +123,6 @@ func getRouteHost(ing *IngressRequest) (string, error) {
 }
 
 // Get the host for cncf env
-func getHostOnCNCF(domainName string) (string, error) {
-	return strings.Join([]string{ConsoleRouteName, domainName}, "."), nil
+func getHostOnCNCF(domainName string) string {
+	return strings.Join([]string{ConsoleRouteName, domainName}, ".")
 }
