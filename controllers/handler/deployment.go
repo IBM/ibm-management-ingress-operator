@@ -149,7 +149,7 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		{Name: "APISERVER_SECURE_PORT", Value: "6443"},
 		{Name: "CLUSTER_DOMAIN", Value: clusterDomain},
 		{Name: "HOST_HEADERS_CHECK_ENABLED", Value: "false"},
-		//{Name: "ALLOWED_HOST_HEADERS", Value: allowedHostHeader},
+		{Name: "ALLOWED_HOST_HEADERS", Value: allowedHostHeader},
 		{Name: "OIDC_ISSUER_URL", ValueFrom: &core.EnvVarSource{
 			ConfigMapKeyRef: &core.ConfigMapKeySelector{
 				Key: "OIDC_ISSUER_URL",
@@ -288,7 +288,7 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 }
 
 func getClusterDomain(clusterType string) (string, error) {
-	if clusterType == "cncf" {
+	if clusterType == CNCF {
 		return "cluster.local", nil
 	}
 
