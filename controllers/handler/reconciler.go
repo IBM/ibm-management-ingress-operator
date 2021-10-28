@@ -17,6 +17,7 @@ package handler
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -84,11 +85,22 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 		}
 	}
 
-	fmt.Println("Reconciling route")
-	// Reconcile route
 	if clusterType != CNCF {
+		fmt.Println("Reconciling route")
+		// Reconcile route on ocp clusters
 		if err = ingressRequest.CreateOrUpdateRoute(); err != nil {
 			return fmt.Errorf("unable  to create or update route for %q: %v", ingressRequest.managementIngress.Name, err)
+		}
+	} else {
+		// only create ibmcloud-cluster-ca-cert on cncf clusters
+		// Get data from route certificate
+		_, _, caCert, _, err := getRouteCertificate(ingressRequest, ingressRequest.managementIngress.ObjectMeta.Namespace)
+		if err != nil {
+			return err
+		}
+		// Create or update secret ibmcloud-cluster-ca-cert
+		if err := createClusterCACert(ingressRequest, ClusterSecretName, os.Getenv(PODNAMESPACE), caCert); err != nil {
+			return fmt.Errorf("failure creating or updating secret: %v", err)
 		}
 	}
 
