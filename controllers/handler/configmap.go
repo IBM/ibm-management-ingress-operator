@@ -221,7 +221,7 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest, clusterType string
 		pos := strings.LastIndex(domainName, ":")
 		// dn is domain name without nodeport
 		dn := domainName[0:pos]
-		node_port := domainName[pos+1:]
+		nodePort := domainName[pos+1:]
 		cncfDomainName := strings.Join([]string{ConsoleRouteName, dn}, ".")
 		clustercfg := NewConfigMap(
 			ClusterConfigName,
@@ -235,7 +235,7 @@ func populateCloudClusterInfo(ingressRequest *IngressRequest, clusterType string
 				RouteHTTPSPort:  rhttpsPort,
 				CSVersion:       ver,
 				ProxyAddress:    cncfDomainName,
-				NodePort:        node_port,
+				NodePort:        nodePort,
 				ProxyHTTPPort:   "80",
 				ProxyHTTPSPort:  "443",
 			},
