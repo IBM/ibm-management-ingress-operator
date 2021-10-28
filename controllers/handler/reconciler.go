@@ -94,7 +94,7 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 
 	fmt.Println("Reconciling deployment")
 	// Reconcile deployment
-	if err = ingressRequest.CreateOrUpdateDeployment(clusterType, domainName); err != nil {
+	if err = ingressRequest.CreateOrUpdateDeployment(clusterType); err != nil {
 		return fmt.Errorf("unable  to create or update deployment for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
