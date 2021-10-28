@@ -311,11 +311,13 @@ func getClusterDomain(clusterType string) (string, error) {
 	return "", fmt.Errorf("the Cluster Domain from DNS operator config is empty. Check DNS: %v", dns)
 }
 
-func (ingressRequest *IngressRequest) CreateOrUpdateDeployment(clusterType string) error {
+func (ingressRequest *IngressRequest) CreateOrUpdateDeployment(clusterType string, domainName string) error {
 	image := os.Getenv("ICP_MANAGEMENT_INGRESS_IMAGE")
+	pos := strings.LastIndex(domainName, ":")
+	dn := domainName[0:pos]
 	hostHeader := strings.Join([]string{
 		ingressRequest.managementIngress.Spec.AllowedHostHeader,
-		ingressRequest.managementIngress.Status.Host,
+		dn,
 		ServiceName,
 		IAMTokenService,
 		strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace}, "."),
