@@ -149,7 +149,7 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		{Name: "APISERVER_SECURE_PORT", Value: "6443"},
 		{Name: "CLUSTER_DOMAIN", Value: clusterDomain},
 		{Name: "HOST_HEADERS_CHECK_ENABLED", Value: "false"},
-		//{Name: "ALLOWED_HOST_HEADERS", Value: allowedHostHeader},
+		{Name: "ALLOWED_HOST_HEADERS", Value: allowedHostHeader},
 		{Name: "OIDC_ISSUER_URL", ValueFrom: &core.EnvVarSource{
 			ConfigMapKeyRef: &core.ConfigMapKeySelector{
 				Key: "OIDC_ISSUER_URL",
@@ -288,7 +288,7 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 }
 
 func getClusterDomain(clusterType string) (string, error) {
-	if clusterType == "cncf" {
+	if clusterType == CNCF {
 		return "cluster.local", nil
 	}
 
@@ -313,9 +313,12 @@ func getClusterDomain(clusterType string) (string, error) {
 
 func (ingressRequest *IngressRequest) CreateOrUpdateDeployment(clusterType string) error {
 	image := os.Getenv("ICP_MANAGEMENT_INGRESS_IMAGE")
+
+	pos := strings.LastIndex(ingressRequest.managementIngress.Status.Host, ":")
+	dn := ingressRequest.managementIngress.Status.Host[0:pos]
 	hostHeader := strings.Join([]string{
 		ingressRequest.managementIngress.Spec.AllowedHostHeader,
-		ingressRequest.managementIngress.Status.Host,
+		dn,
 		ServiceName,
 		IAMTokenService,
 		strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace}, "."),

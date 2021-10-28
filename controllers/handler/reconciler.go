@@ -31,8 +31,8 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 	requestIngress := ingressRequest.managementIngress
 
 	var host string
-	if clusterType == "cncf" {
-		host = domainName
+	if clusterType == CNCF {
+		host = getHostOnCNCF(domainName)
 	} else {
 		// Get route host
 		host, err = getRouteHost(ingressRequest)
@@ -74,7 +74,7 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 
 	fmt.Println("Reconciling configmap")
 	// Reconcile configmap
-	if clusterType == "cncf" {
+	if clusterType == CNCF {
 		if err = ingressRequest.CreateOrUpdateConfigMap(clusterType, domainName); err != nil {
 			return fmt.Errorf("unable  to create or update configmap for %q: %v", ingressRequest.managementIngress.Name, err)
 		}
@@ -86,7 +86,7 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 
 	fmt.Println("Reconciling route")
 	// Reconcile route
-	if clusterType != "cncf" {
+	if clusterType != CNCF {
 		if err = ingressRequest.CreateOrUpdateRoute(); err != nil {
 			return fmt.Errorf("unable  to create or update route for %q: %v", ingressRequest.managementIngress.Name, err)
 		}
@@ -120,4 +120,9 @@ func getRouteHost(ing *IngressRequest) (string, error) {
 	}
 
 	return strings.Join([]string{ConsoleRouteName, appDomain}, "."), nil
+}
+
+// Get the host for cncf env
+func getHostOnCNCF(domainName string) string {
+	return strings.Join([]string{ConsoleRouteName, domainName}, ".")
 }

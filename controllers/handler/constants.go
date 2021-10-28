@@ -85,4 +85,11 @@ const (
 	ProxyHTTPSPort       string = "proxy_ingress_https_port"
 	ProxyRouteName       string = "cp-proxy"
 	ProxyServiceName     string = "nginx-ingress-controller"
+
+	// ibm-cpp-config config map
+	CppConfigName         string = "ibm-cpp-config"
+	KubernetesClusterType string = "kubernetes_cluster_type"
+	CppConfigDomainName   string = "domain_name"
+	CNCF                  string = "cncf"
+	NodePort              string = "node_port"
 )
