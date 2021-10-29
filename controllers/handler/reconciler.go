@@ -92,12 +92,15 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 			return fmt.Errorf("unable  to create or update route for %q: %v", ingressRequest.managementIngress.Name, err)
 		}
 	} else {
-		// only create ibmcloud-cluster-ca-cert on cncf clusters
-		// Get data from route certificate
-		_, _, caCert, _, err := getRouteCertificate(ingressRequest, ingressRequest.managementIngress.ObjectMeta.Namespace)
+		// K cluster uses the same ca cert from the "route-tls-secret" secret as the ocp cluster
+		// only create ibmcloud-cluster-ca-cert on cncf cluster, no route needed to be created
+		stop := WaitForTimeout(10 * time.Minute)
+		secret, err := waitForSecret(ingressRequest, RouteSecret, stop)
 		if err != nil {
-			return err
+			return nil
 		}
+
+		var caCert []byte = secret.Data["ca.crt"]
 		// Create or update secret ibmcloud-cluster-ca-cert
 		if err := createClusterCACert(ingressRequest, ClusterSecretName, os.Getenv(PODNAMESPACE), caCert); err != nil {
 			return fmt.Errorf("failure creating or updating secret: %v", err)
