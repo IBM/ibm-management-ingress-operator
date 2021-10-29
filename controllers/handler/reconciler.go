@@ -97,7 +97,7 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 		stop := WaitForTimeout(10 * time.Minute)
 		secret, err := waitForSecret(ingressRequest, RouteSecret, stop)
 		if err != nil {
-			return nil
+			return err
 		}
 
 		var caCert []byte = secret.Data["ca.crt"]
