@@ -166,7 +166,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	klog.Info("Hang's new image")
 	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
 		klog.Errorf("problem running manager: %v", err)
 		os.Exit(1)
