@@ -34,7 +34,7 @@ spec:
       serviceAccountName: ibm-management-ingress-operator
       containers:
         - name: ibm-management-ingress-operator
-          image: quay.io/opencloudio/ibm-management-ingress-operator:1.4.4
+          image: quay.io/opencloudio/ibm-management-ingress-operator:1.4.5
           imagePullPolicy: Always
           command:
           - ibm-management-ingress-operator

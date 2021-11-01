@@ -24,7 +24,7 @@ VERSION ?= $(shell date +v%Y%m%d)-$(shell git describe --match=$(git rev-parse -
 RELEASE_VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ print $$3}' | tr -d '"')
 
 # current CSV version
-CSV_VERSION ?= 1.4.4
+CSV_VERSION ?= $(RELEASE_VERSION)
 
 # used for make bundle
 CHANNELS ?= dev,beta,stable-v1
