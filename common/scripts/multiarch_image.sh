@@ -25,7 +25,7 @@ IMAGE_REPO=${1}
 IMAGE_NAME=${2}
 #VERSION=${3-"$(git describe --exact-match 2> /dev/null || git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)"}
 VERSION=${3:-1.4.4}
-RELEASE_VERSION=${4:-1.4.4}
+RELEASE_VERSION=${4:-1.4.5}
 
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
