@@ -308,7 +308,7 @@ func getClusterDomain() (string, error) {
 }
 
 func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
-	image := os.Getenv("OPERAND_IMAGE_DIGEST")
+	image := os.Getenv("ICP_MANAGEMENT_INGRESS_IMAGE")
 	hostHeader := strings.Join([]string{
 		ingressRequest.managementIngress.Spec.AllowedHostHeader,
 		ingressRequest.managementIngress.Status.Host,
