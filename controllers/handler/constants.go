@@ -91,5 +91,4 @@ const (
 	KubernetesClusterType string = "kubernetes_cluster_type"
 	CppConfigDomainName   string = "domain_name"
 	CNCF                  string = "cncf"
-	NodePort              string = "node_port"
 )
