@@ -95,6 +95,11 @@ metadata:
   name: ibm-management-ingress-operator.v1.4.5
   namespace: placeholder
 spec:
+  relatedImages:
+    - name: ICP_MANAGEMENT_INGRESS_IMAGE
+      image: quay.io/opencloudio/icp-management-ingress:2.5.14
+    - name: IBM_MANAGEMENT_INGRESS_OPERATOR_IMAGE
+      image: quay.io/opencloudio/ibm-management-ingress-operator:1.4.5
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
