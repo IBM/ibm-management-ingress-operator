@@ -98,8 +98,8 @@ spec:
   relatedImages:
     - name: ICP_MANAGEMENT_INGRESS_IMAGE
       image: quay.io/opencloudio/icp-management-ingress:2.5.14
-    - name: ibm-management-ingress-operator
-      image: quay.io/opencloudio/ibm-management-ingress-operator
+    - name: IBM_MANAGEMENT_INGRESS_OPERATOR_IMAGE
+      image: quay.io/opencloudio/ibm-management-ingress-operator:1.11.0
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
