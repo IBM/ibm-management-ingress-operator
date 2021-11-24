@@ -311,21 +311,34 @@ func getClusterDomain(clusterType string) (string, error) {
 	return "", fmt.Errorf("the Cluster Domain from DNS operator config is empty. Check DNS: %v", dns)
 }
 
-func (ingressRequest *IngressRequest) CreateOrUpdateDeployment(clusterType string) error {
+func (ingressRequest *IngressRequest) CreateOrUpdateDeployment(clusterType string, domainName string) error {
 	image := os.Getenv("ICP_MANAGEMENT_INGRESS_IMAGE")
-
-	pos := strings.LastIndex(ingressRequest.managementIngress.Status.Host, ":")
-	dn := ingressRequest.managementIngress.Status.Host[0:pos]
-	hostHeader := strings.Join([]string{
-		ingressRequest.managementIngress.Spec.AllowedHostHeader,
-		dn,
-		ServiceName,
-		IAMTokenService,
-		strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace}, "."),
-		strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace, "svc"}, "."),
-		strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace}, "."),
-		strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace, "svc"}, "."),
-	}, " ")
+	var hostHeader string
+	if clusterType == CNCF {
+		pos := strings.LastIndex(ingressRequest.managementIngress.Status.Host, ":")
+		dn := ingressRequest.managementIngress.Status.Host[0:pos]
+		hostHeader = strings.Join([]string{
+			ingressRequest.managementIngress.Spec.AllowedHostHeader,
+			dn,
+			ServiceName,
+			IAMTokenService,
+			strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace}, "."),
+			strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace, "svc"}, "."),
+			strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace}, "."),
+			strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace, "svc"}, "."),
+		}, " ")
+	} else {
+		hostHeader = strings.Join([]string{
+			ingressRequest.managementIngress.Spec.AllowedHostHeader,
+			ingressRequest.managementIngress.Status.Host,
+			ServiceName,
+			IAMTokenService,
+			strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace}, "."),
+			strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace, "svc"}, "."),
+			strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace}, "."),
+			strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace, "svc"}, "."),
+		}, " ")
+	}
 
 	clusterDomain, err := getClusterDomain(clusterType)
 	if err != nil {
