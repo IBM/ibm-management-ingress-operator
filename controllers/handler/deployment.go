@@ -311,7 +311,7 @@ func getClusterDomain(clusterType string) (string, error) {
 	return "", fmt.Errorf("the Cluster Domain from DNS operator config is empty. Check DNS: %v", dns)
 }
 
-func (ingressRequest *IngressRequest) CreateOrUpdateDeployment(clusterType string, domainName string) error {
+func (ingressRequest *IngressRequest) CreateOrUpdateDeployment(clusterType string) error {
 	image := os.Getenv("ICP_MANAGEMENT_INGRESS_IMAGE")
 	var hostHeader string
 	if clusterType == CNCF {
