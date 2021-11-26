@@ -16,10 +16,13 @@
 package handler
 
 import (
+        "time"
 	operatorv1 "github.com/openshift/api/operator/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/klog"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
@@ -52,4 +55,18 @@ func createOrGetClusterClient() (client.Client, error) {
 	}
 
 	return clusterClient, nil
+}
+
+func waitForSecret(r *IngressRequest, name string, stopCh <-chan struct{}) (*core.Secret, error) {
+	klog.Infof("Waiting for secret: %s ...", name)
+	s := &core.Secret{}
+
+	err := wait.PollImmediateUntil(2*time.Second, func() (done bool, err error) {
+		if err := r.Get(name, r.managementIngress.ObjectMeta.Namespace, s); err != nil {
+			return false, nil
+		}
+		return true, nil
+	}, stopCh)
+
+	return s, err
 }

@@ -148,7 +148,7 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		{Name: "ENABLE_IMPERSONATION", Value: "false"},
 		{Name: "APISERVER_SECURE_PORT", Value: "6443"},
 		{Name: "CLUSTER_DOMAIN", Value: clusterDomain},
-		{Name: "HOST_HEADERS_CHECK_ENABLED", Value: strconv.FormatBool(len(allowedHostHeader) > 0)},
+		{Name: "HOST_HEADERS_CHECK_ENABLED", Value: "false"},
 		{Name: "ALLOWED_HOST_HEADERS", Value: allowedHostHeader},
 		{Name: "OIDC_ISSUER_URL", ValueFrom: &core.EnvVarSource{
 			ConfigMapKeyRef: &core.ConfigMapKeySelector{
@@ -287,7 +287,11 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 	return podSpec
 }
 
-func getClusterDomain() (string, error) {
+func getClusterDomain(clusterType string) (string, error) {
+	if clusterType == CNCF {
+		return "cluster.local", nil
+	}
+
 	dns := &operatorv1.DNS{}
 	clusterClient, err := createOrGetClusterClient()
 	if err != nil {
@@ -307,20 +311,38 @@ func getClusterDomain() (string, error) {
 	return "", fmt.Errorf("the Cluster Domain from DNS operator config is empty. Check DNS: %v", dns)
 }
 
-func (ingressRequest *IngressRequest) CreateOrUpdateDeployment() error {
+func (ingressRequest *IngressRequest) CreateOrUpdateDeployment(clusterType string) error {
 	image := os.Getenv("ICP_MANAGEMENT_INGRESS_IMAGE")
-	hostHeader := strings.Join([]string{
-		ingressRequest.managementIngress.Spec.AllowedHostHeader,
-		ingressRequest.managementIngress.Status.Host,
-		ServiceName,
-		IAMTokenService,
-		strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace}, "."),
-		strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace, "svc"}, "."),
-		strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace}, "."),
-		strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace, "svc"}, "."),
-	}, " ")
 
-	clusterDomain, err := getClusterDomain()
+        var hostHeader string
+	if clusterType == CNCF {
+		pos := strings.LastIndex(ingressRequest.managementIngress.Status.Host, ":")
+		dn := ingressRequest.managementIngress.Status.Host[0:pos]
+		hostHeader = strings.Join([]string{
+			ingressRequest.managementIngress.Spec.AllowedHostHeader,
+			dn,
+			ServiceName,
+			IAMTokenService,
+			strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace}, "."),
+			strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace, "svc"}, "."),
+			strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace}, "."),
+			strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace, "svc"}, "."),
+		}, " ")
+	} else {
+		hostHeader = strings.Join([]string{
+			ingressRequest.managementIngress.Spec.AllowedHostHeader,
+			ingressRequest.managementIngress.Status.Host,
+			ServiceName,
+			IAMTokenService,
+			strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace}, "."),
+			strings.Join([]string{ServiceName, ingressRequest.managementIngress.Namespace, "svc"}, "."),
+			strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace}, "."),
+			strings.Join([]string{IAMTokenService, ingressRequest.managementIngress.Namespace, "svc"}, "."),
+		}, " ")
+	}
+
+	clusterDomain, err := getClusterDomain(clusterType)
+
 	if err != nil {
 		return fmt.Errorf("failure getting cluster domain: %v", err)
 	}
