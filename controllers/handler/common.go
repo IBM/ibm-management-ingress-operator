@@ -16,7 +16,6 @@
 package handler
 
 import (
-        "time"
 	operatorv1 "github.com/openshift/api/operator/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -25,6 +24,7 @@ import (
 	"k8s.io/klog"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	"time"
 )
 
 var (

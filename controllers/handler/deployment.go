@@ -314,7 +314,7 @@ func getClusterDomain(clusterType string) (string, error) {
 func (ingressRequest *IngressRequest) CreateOrUpdateDeployment(clusterType string) error {
 	image := os.Getenv("ICP_MANAGEMENT_INGRESS_IMAGE")
 
-        var hostHeader string
+	var hostHeader string
 	if clusterType == CNCF {
 		pos := strings.LastIndex(ingressRequest.managementIngress.Status.Host, ":")
 		dn := ingressRequest.managementIngress.Status.Host[0:pos]

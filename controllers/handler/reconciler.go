@@ -17,7 +17,7 @@ package handler
 
 import (
 	"fmt"
-        "os"
+	"os"
 	"strings"
 	"time"
 
@@ -73,7 +73,7 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 	}
 	fmt.Println("Reconciling configmap")
 	// Reconcile configmap
-        if clusterType == CNCF {
+	if clusterType == CNCF {
 		if err = ingressRequest.CreateOrUpdateConfigMap(clusterType, domainName); err != nil {
 			return fmt.Errorf("unable  to create or update configmap for %q: %v", ingressRequest.managementIngress.Name, err)
 		}
@@ -107,7 +107,7 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 	}
 
 	// Reconcile deployment
-        if err = ingressRequest.CreateOrUpdateDeployment(clusterType); err != nil {
+	if err = ingressRequest.CreateOrUpdateDeployment(clusterType); err != nil {
 		return fmt.Errorf("unable  to create or update deployment for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
