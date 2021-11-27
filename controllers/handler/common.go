@@ -16,9 +16,9 @@
 package handler
 
 import (
-        "time"
-      
-        operatorv1 "github.com/openshift/api/operator/v1"
+	"time"
+
+	operatorv1 "github.com/openshift/api/operator/v1"
 	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
