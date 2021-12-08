@@ -107,7 +107,7 @@ test:
 	@go test $(TESTARGS) ./...
 
 coverage: ## Run code coverage test
-	@common/scripts/codecov.sh $(BUILD_LOCALLY)
+	@common/scripts/codecov.sh
 
 # Build manager binary
 manager: generate fmt vet
