@@ -3,9 +3,9 @@ module github.com/IBM/ibm-management-ingress-operator
 go 1.13
 
 require (
+	github.com/IBM/controller-filtered-cache v0.2.0
 	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6 // indirect
 	github.com/jetstack/cert-manager v0.10.0
-	github.com/IBM/controller-filtered-cache v0.2.0
 	github.com/onsi/ginkgo v1.12.1
 	github.com/onsi/gomega v1.10.1
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
@@ -28,4 +28,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.6.2
 )
 
-replace k8s.io/client-go => k8s.io/client-go v0.18.8
+replace (
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 => golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f
+	k8s.io/client-go => k8s.io/client-go v0.18.8
+)
