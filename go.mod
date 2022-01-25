@@ -28,6 +28,8 @@ require (
 	sigs.k8s.io/controller-runtime v0.6.2
 )
 
+require golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f // indirect
+
 replace (
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 => golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f
 	k8s.io/client-go => k8s.io/client-go v0.18.8
