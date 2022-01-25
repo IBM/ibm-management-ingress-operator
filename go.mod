@@ -6,8 +6,6 @@ require (
 	github.com/IBM/controller-filtered-cache v0.2.0
 	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6 // indirect
 	github.com/jetstack/cert-manager v0.10.0
-	github.com/onsi/ginkgo v1.12.1
-	github.com/onsi/gomega v1.10.1
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.5.1 // indirect
@@ -29,6 +27,6 @@ require (
 )
 
 replace (
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 => golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f
+	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f
 	k8s.io/client-go => k8s.io/client-go v0.18.8
 )
