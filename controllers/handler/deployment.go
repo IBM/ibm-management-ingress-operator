@@ -165,9 +165,11 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		{Name: "FIPS_ENABLED", Value: strconv.FormatBool(fipsEnabled)},
 	}
 
+	userID := int64(111190)
 	container.SecurityContext = &core.SecurityContext{
 		Privileged:               utils.GetBool(false),
 		AllowPrivilegeEscalation: utils.GetBool(false),
+		RunAsUser:                &userID,
 	}
 
 	container.LivenessProbe = &core.Probe{
