@@ -24,7 +24,7 @@ ALL_PLATFORMS="amd64 ppc64le s390x"
 IMAGE_REPO=${1}
 IMAGE_NAME=${2}
 VERSION=${3-"$(git describe --exact-match 2> /dev/null || git describe --match=$(git rev-parse --short=8 HEAD) --always --dirty --abbrev=8)"}
-RELEASE_VERSION=${4:-1.12.0}
+RELEASE_VERSION=${4:-1.13.0}
 CONTAINER_CLI=${CONTAINER_CLI:-docker}
 
 MAX_PULLING_RETRY=${MAX_PULLING_RETRY-20}
