@@ -18,6 +18,7 @@ package handler
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -289,7 +290,17 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 
 func getClusterDomain(clusterType string) (string, error) {
 	if clusterType == CNCF {
-		return "cluster.local", nil
+		apiSvc := "kubernetes.default.svc"
+		cname, err := net.LookupCNAME(apiSvc)
+
+		if err != nil {
+			defaultClusterDomain := "cluster.local"
+			return defaultClusterDomain, nil
+		}
+
+		clusterDomain := strings.TrimPrefix(cname, apiSvc)
+		clusterDomain = strings.TrimSuffix(clusterDomain, ".")
+		return clusterDomain, nil
 	}
 
 	dns := &operatorv1.DNS{}
