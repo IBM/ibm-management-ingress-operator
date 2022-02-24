@@ -4,7 +4,7 @@
 
 You can use the ibm-management-ingress-operator to install the IBM System Management Ingress service, which includes a Nginx-based ingress controller. You can use the IBM System Management Ingress service to expose your services when you install and use an IBM Cloud Pak or IBM Cloud Platform Common Services.
 
-For more information about the available IBM Cloud Platform Common Services, see the [IBM Knowledge Center](http://ibm.biz/cpcsdocs).
+For more information about the available IBM Cloud Platform Common Services, see the [IBM Knowledge Center](http://ibm.biz/cpcsdocs). 
 
 ## Supported platforms
 
