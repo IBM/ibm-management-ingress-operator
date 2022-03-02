@@ -294,12 +294,20 @@ func getClusterDomain(clusterType string) (string, error) {
 		cname, err := net.LookupCNAME(apiSvc)
 
 		if err != nil {
+			klog.Info("Inside default cluster domain")
 			defaultClusterDomain := "cluster.local"
 			return defaultClusterDomain, nil
 		}
 
-		clusterDomain := strings.TrimPrefix(cname, apiSvc)
+		klog.Infof("cname is : %s", cname)
+
+		prefixTrim := "kubernetes.default.svc."
+		clusterDomain := strings.TrimPrefix(cname, prefixTrim)
+		klog.Infof("Cluster domain after trimming prefix from cname is : %s", clusterDomain)
+
 		clusterDomain = strings.TrimSuffix(clusterDomain, ".")
+		klog.Infof("Cluster domain after trimming suffix : %s", clusterDomain)
+
 		return clusterDomain, nil
 	}
 
