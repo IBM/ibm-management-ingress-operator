@@ -99,13 +99,13 @@ spec:
     - name: ICP_MANAGEMENT_INGRESS_IMAGE
       image: quay.io/opencloudio/icp-management-ingress:2.5.14
     - name: ibm-management-ingress-operator
-      image: quay.io/opencloudio/ibm-management-ingress-operator
+      image: quay.io/opencloudio/ibm-management-ingress-operator:1.14.0
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: 'ManagementIngress is the Schema for the managementingress API. Documentation For additional 
-        details regarding install parameters check: https://ibm.biz/icpfs39install. 
-        License By installing this product you accept the license terms 
+    - description: 'ManagementIngress is the Schema for the managementingress API. Documentation For additional
+        details regarding install parameters check: https://ibm.biz/icpfs39install.
+        License By installing this product you accept the license terms
         https://ibm.biz/icpfs39license.'
       group: operator.ibm.com
       kind: ManagementIngress
