@@ -79,7 +79,7 @@ metadata:
           }
         }
       ]
-    capabilities: Basic Install
+    capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "false"
     containerImage: quay.io/opencloudio/ibm-management-ingress-operator:1.15.0
@@ -103,9 +103,9 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: 'ManagementIngress is the Schema for the managementingress API. Documentation For additional 
-        details regarding install parameters check: https://ibm.biz/icpfs39install. 
-        License By installing this product you accept the license terms 
+    - description: 'ManagementIngress is the Schema for the managementingress API. Documentation For additional
+        details regarding install parameters check: https://ibm.biz/icpfs39install.
+        License By installing this product you accept the license terms
         https://ibm.biz/icpfs39license.'
       group: operator.ibm.com
       kind: ManagementIngress
@@ -209,7 +209,7 @@ spec:
             spec:
               containers:
               - name: ibm-management-ingress-operator
-                image: quay.io/opencloudio/ibm-management-ingress-operator:latest
+                image: quay.io/opencloudio/ibm-management-ingress-operator:1.15.0
                 imagePullPolicy: Always
                 command:
                 - ibm-management-ingress-operator
@@ -220,6 +220,14 @@ spec:
                   requests:
                     cpu: 100m
                     memory: 320Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
+                  privileged: false
+                  readOnlyRootFilesystem: true
+                  runAsNonRoot: true
                 env:
                 - name: POD_NAMESPACE
                   valueFrom:
@@ -241,6 +249,17 @@ spec:
                 - name: VERSION
                   value: ""
               serviceAccountName: ibm-management-ingress-operator
+              affinity:
+                nodeAffinity:
+                  requiredDuringSchedulingIgnoredDuringExecution:
+                    nodeSelectorTerms:
+                    - matchExpressions:
+                      - key: kubernetes.io/arch
+                        operator: In
+                        values:
+                        - amd64
+                        - ppc64le
+                        - s390x
       clusterPermissions:
       - rules:
         # management-ingress operator needs to read dnses&ingresscontrollers from namespace openshift-ingress-operator to get router app domain
