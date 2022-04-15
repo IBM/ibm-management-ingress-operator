@@ -99,7 +99,7 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 			return err
 		}
 
-		var caCert []byte = secret.Data["ca.crt"]
+		var caCert = secret.Data["ca.crt"]
 		// Create or update secret ibmcloud-cluster-ca-cert
 		if err := createClusterCACert(ingressRequest, ClusterSecretName, os.Getenv(PODNAMESPACE), caCert); err != nil {
 			return fmt.Errorf("failure creating or updating secret: %v", err)

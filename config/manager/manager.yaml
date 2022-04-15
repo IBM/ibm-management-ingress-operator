@@ -25,6 +25,17 @@ spec:
         productMetric: "FREE"
     spec:
       serviceAccountName: ibm-management-ingress-operator
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - ppc64le
+                - s390x
       containers:
         - name: ibm-management-ingress-operator
           image: quay.io/opencloudio/ibm-management-ingress-operator:1.15.0
@@ -55,4 +66,11 @@ spec:
               value: ""
             - name: VERSION
               value: ""
-
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
