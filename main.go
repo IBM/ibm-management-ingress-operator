@@ -43,6 +43,7 @@ import (
 	"github.com/IBM/ibm-management-ingress-operator/controllers"
 	"github.com/IBM/ibm-management-ingress-operator/controllers/handler"
 	"github.com/IBM/ibm-management-ingress-operator/version"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 )
 
 var (
@@ -61,10 +62,12 @@ func printVersion() {
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
+	var probeAddr string
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8383", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.Parse()
 
 	printVersion()
@@ -109,21 +112,23 @@ func main() {
 		namespaces := strings.Split(watchNS, ",")
 		// Create MultiNamespacedCache with watched namespaces if the watch namespace string contains comma
 		ctrlOpt = ctrl.Options{
-			Scheme:             scheme,
-			MetricsBindAddress: metricsAddr,
-			LeaderElection:     enableLeaderElection,
-			LeaderElectionID:   operatorName,
-			NewCache:           filteredcache.MultiNamespacedFilteredCacheBuilder(gvkLabelMap, namespaces),
+			Scheme:                 scheme,
+			MetricsBindAddress:     metricsAddr,
+			LeaderElection:         enableLeaderElection,
+			LeaderElectionID:       operatorName,
+			NewCache:               filteredcache.MultiNamespacedFilteredCacheBuilder(gvkLabelMap, namespaces),
+			HealthProbeBindAddress: probeAddr,
 		}
 	} else {
 		// Create manager option for watching all namespaces.
 		ctrlOpt = ctrl.Options{
-			Scheme:             scheme,
-			Namespace:          watchNS,
-			MetricsBindAddress: metricsAddr,
-			LeaderElection:     enableLeaderElection,
-			LeaderElectionID:   operatorName,
-			NewCache:           filteredcache.NewFilteredCacheBuilder(gvkLabelMap),
+			Scheme:                 scheme,
+			Namespace:              watchNS,
+			MetricsBindAddress:     metricsAddr,
+			LeaderElection:         enableLeaderElection,
+			LeaderElectionID:       operatorName,
+			NewCache:               filteredcache.NewFilteredCacheBuilder(gvkLabelMap),
+			HealthProbeBindAddress: probeAddr,
 		}
 	}
 
@@ -163,6 +168,16 @@ func main() {
 		DomainName:  domainName,
 	}).SetupWithManager(mgr); err != nil {
 		klog.Errorf("unable to create controller: %v", err)
+		os.Exit(1)
+	}
+
+	klog.Info("Setting up liveness and readiness probes")
+	if err := mgr.AddHealthzCheck("health", healthz.Ping); err != nil {
+		klog.Errorf("unable to set up health check: %v", err)
+		os.Exit(1)
+	}
+	if err := mgr.AddReadyzCheck("check", healthz.Ping); err != nil {
+		klog.Errorf("unable to set up ready check: %v", err)
 		os.Exit(1)
 	}
 
