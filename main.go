@@ -37,13 +37,13 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/klog"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	"github.com/IBM/controller-filtered-cache/filteredcache"
 	operatorv1alpha1 "github.com/IBM/ibm-management-ingress-operator/api/v1alpha1"
 	"github.com/IBM/ibm-management-ingress-operator/controllers"
 	"github.com/IBM/ibm-management-ingress-operator/controllers/handler"
 	"github.com/IBM/ibm-management-ingress-operator/version"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
 )
 
 var (
