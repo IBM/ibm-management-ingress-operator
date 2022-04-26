@@ -237,7 +237,27 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		PreferredDuringSchedulingIgnoredDuringExecution: []core.WeightedPodAffinityTerm{weightedPodAffinityTerm},
 	}
 
-	affinity := &core.Affinity{PodAntiAffinity: podAntiAffinity}
+	podAffinity := &core.NodeAffinity{
+		RequiredDuringSchedulingIgnoredDuringExecution: &core.NodeSelector{
+			NodeSelectorTerms: []core.NodeSelectorTerm{
+				{
+					MatchExpressions: []core.NodeSelectorRequirement{
+						{
+							Key:      "kubernetes.io/arch",
+							Operator: core.NodeSelectorOpIn,
+							Values: []string{
+								"amd64",
+								"ppc64le",
+								"s390x",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	affinity := &core.Affinity{NodeAffinity: podAffinity, PodAntiAffinity: podAntiAffinity}
 
 	spreadConstraints := []core.TopologySpreadConstraint{
 		{
