@@ -169,6 +169,8 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 	container.SecurityContext = &core.SecurityContext{
 		Privileged:               utils.GetBool(false),
 		AllowPrivilegeEscalation: utils.GetBool(false),
+		ReadOnlyRootFilesystem:   utils.GetBool(false),
+		RunAsNonRoot:             utils.GetBool(true),
 	}
 
 	container.LivenessProbe = &core.Probe{
