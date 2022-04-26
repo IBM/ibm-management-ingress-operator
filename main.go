@@ -156,6 +156,7 @@ func main() {
 			// dns = projectkConfig.Data["dns"]
 		}
 	} else if err != nil {
+		klog.Errorf("unable to start manager because %s configmap not found in ns %s: %v", handler.CppConfigName, operatorNs, err)
 		os.Exit(1)
 	}
 
