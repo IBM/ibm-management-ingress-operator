@@ -169,6 +169,8 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 	container.SecurityContext = &core.SecurityContext{
 		Privileged:               utils.GetBool(false),
 		AllowPrivilegeEscalation: utils.GetBool(false),
+		ReadOnlyRootFilesystem:   utils.GetBool(false),
+		RunAsNonRoot:             utils.GetBool(true),
 	}
 
 	container.LivenessProbe = &core.Probe{
@@ -235,7 +237,27 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		PreferredDuringSchedulingIgnoredDuringExecution: []core.WeightedPodAffinityTerm{weightedPodAffinityTerm},
 	}
 
-	affinity := &core.Affinity{PodAntiAffinity: podAntiAffinity}
+	podAffinity := &core.NodeAffinity{
+		RequiredDuringSchedulingIgnoredDuringExecution: &core.NodeSelector{
+			NodeSelectorTerms: []core.NodeSelectorTerm{
+				{
+					MatchExpressions: []core.NodeSelectorRequirement{
+						{
+							Key:      "kubernetes.io/arch",
+							Operator: core.NodeSelectorOpIn,
+							Values: []string{
+								"amd64",
+								"ppc64le",
+								"s390x",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	affinity := &core.Affinity{NodeAffinity: podAffinity, PodAntiAffinity: podAntiAffinity}
 
 	spreadConstraints := []core.TopologySpreadConstraint{
 		{
