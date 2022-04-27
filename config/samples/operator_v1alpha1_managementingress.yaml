@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/managed-by: ibm-management-ingress-operator
 spec:
   managementState: "managed"
-  imageRegistry: quay.io/opencloudio
+  imageRegistry: icr.io/cpopen/cpfs
   replicas: 1
   routeHost: ""
   resources:
