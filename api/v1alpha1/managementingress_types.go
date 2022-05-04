@@ -37,6 +37,7 @@ type ManagementIngressSpec struct {
 	IgnoreRouteCert          bool                         `json:"ignoreRouteCert,omitempty"`
 	ProxyRouteHost           string                       `json:"proxyRouteHost,omitempty"`
 	MultipleInstancesEnabled bool                         `json:"multipleInstancesEnabled,omitempty"`
+	Version                  string                       `json:"version,omitempty"`
 }
 
 type OperandImage struct {
