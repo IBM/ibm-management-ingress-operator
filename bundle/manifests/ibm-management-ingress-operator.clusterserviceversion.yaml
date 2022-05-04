@@ -39,7 +39,8 @@ metadata:
                 "memory": "60Mi"
               }
             },
-            "routeHost": ""
+            "routeHost": "",
+            "version": "1.15.0"
           }
         },
         {

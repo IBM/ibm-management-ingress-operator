@@ -25,4 +25,5 @@ spec:
       kind: "Issuer"
   config:
     disable-access-log: "true"
+  version: 1.15.0
 
