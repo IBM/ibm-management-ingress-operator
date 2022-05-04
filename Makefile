@@ -27,8 +27,8 @@ RELEASE_VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ 
 CSV_VERSION ?= $(RELEASE_VERSION)
 
 # used for make bundle
-CHANNELS ?= dev,beta,stable-v1
-DEFAULT_CHANNEL ?= stable-v1
+CHANNELS ?= dev,beta,stable-v1,v3
+DEFAULT_CHANNEL ?= v3
 
 # unsed for build image
 VCS_URL ?= https://github.com/IBM/ibm-management-ingress-operator
