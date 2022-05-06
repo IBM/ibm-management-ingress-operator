@@ -499,4 +499,5 @@ spec:
   minKubeVersion: 1.19.0
   provider:
     name: IBM
+  replaces: ibm-management-ingress-operator.v1.14.0
   version: 1.15.0
