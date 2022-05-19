@@ -27,8 +27,8 @@ RELEASE_VERSION ?= $(shell cat ./version/version.go | grep "Version =" | awk '{ 
 CSV_VERSION ?= $(RELEASE_VERSION)
 
 # used for make bundle
-CHANNELS ?= dev,beta,stable-v1
-DEFAULT_CHANNEL ?= stable-v1
+CHANNELS ?= dev,beta,stable-v1,v3
+DEFAULT_CHANNEL ?= v3
 
 # unsed for build image
 VCS_URL ?= https://github.com/IBM/ibm-management-ingress-operator
@@ -135,13 +135,11 @@ deploy: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(REGISTRY)/$(IMG):$(VERSION)
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
-CONTROLLER_GEN=usr/local/bin
-KUSTOMIZE=usr/local/bin
 # Generate manifests e.g. CRD, RBAC etc.
-manifests:
-	$(CONTROLLER_GEN) crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+manifests: controller-gen
+	# $(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	# @morvencao to add custimize labels for CRD
-	cd config/crd && $(KUSTOMIZE) edit add label -f app.kubernetes.io/name:ibm-management-ingress-operator,app.kubernetes.io/instance:ibm-management-ingress-operator,app.kubernetes.io/managed-by:ibm-management-ingress-operator && cd ../..
+	# cd config/crd && $(KUSTOMIZE) edit add label -f app.kubernetes.io/name:ibm-management-ingress-operator,app.kubernetes.io/instance:ibm-management-ingress-operator,app.kubernetes.io/managed-by:ibm-management-ingress-operator && cd ../..
 
 # Run go fmt against code
 fmt:
@@ -151,10 +149,9 @@ fmt:
 vet:
 	# go vet ./...
 
-CONTROLLER_GEN=usr/local/bin
 # Generate code
-generate:
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+generate: controller-gen
+	# $(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 # Build the docker image
 docker-build: test
