@@ -135,11 +135,13 @@ deploy: manifests kustomize
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(REGISTRY)/$(IMG):$(VERSION)
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
+CONTROLLER_GEN=usr/local/bin
+KUSTOMIZE=usr/local/bin
 # Generate manifests e.g. CRD, RBAC etc.
-manifests: controller-gen
-	# $(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+manifests:
+	$(CONTROLLER_GEN) crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	# @morvencao to add custimize labels for CRD
-	# cd config/crd && $(KUSTOMIZE) edit add label -f app.kubernetes.io/name:ibm-management-ingress-operator,app.kubernetes.io/instance:ibm-management-ingress-operator,app.kubernetes.io/managed-by:ibm-management-ingress-operator && cd ../..
+	cd config/crd && $(KUSTOMIZE) edit add label -f app.kubernetes.io/name:ibm-management-ingress-operator,app.kubernetes.io/instance:ibm-management-ingress-operator,app.kubernetes.io/managed-by:ibm-management-ingress-operator && cd ../..
 
 # Run go fmt against code
 fmt:
@@ -149,9 +151,10 @@ fmt:
 vet:
 	# go vet ./...
 
+CONTROLLER_GEN=usr/local/bin
 # Generate code
-generate: controller-gen
-	# $(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+generate:
+	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 # Build the docker image
 docker-build: test

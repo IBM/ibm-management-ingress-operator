@@ -2,7 +2,7 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    olm.skipRange: '<1.15.0'
+    olm.skipRange: '<1.16.0'
     alm-examples: |-
       [
         {
@@ -82,7 +82,7 @@ metadata:
     capabilities: Seamless Upgrades
     categories: Developer Tools
     certified: "false"
-    containerImage: icr.io/cpopen/ibm-management-ingress-operator:1.15.0
+    containerImage: icr.io/cpopen/ibm-management-ingress-operator:1.16.0
     createdAt: "2021-12-09T18:18:00Z"
     description: Operator for managing deployment of management-ingress service.
     repository: https://github.com/IBM/ibm-management-ingress-operator.git
@@ -92,14 +92,14 @@ metadata:
     operatorframework.io/arch.ppc64le: supported
     operatorframework.io/arch.s390x: supported
     operatorframework.io/os.linux: supported
-  name: ibm-management-ingress-operator.v1.15.0
+  name: ibm-management-ingress-operator.v1.16.0
   namespace: placeholder
 spec:
   relatedImages:
     - name: ICP_MANAGEMENT_INGRESS_IMAGE
       image: icr.io/cpopen/cpfs/icp-management-ingress:2.5.14
     - name: ibm-management-ingress-operator
-      image: icr.io/cpopen/ibm-management-ingress-operator:1.15.0
+      image: icr.io/cpopen/ibm-management-ingress-operator:1.16.0
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
@@ -255,7 +255,7 @@ spec:
                       name: namespace-scope
                       key: namespaces
                 - name: ICP_MANAGEMENT_INGRESS_IMAGE
-                  value: icr.io/cpopen/cpfs/icp-management-ingress:2.5.23
+                  value: icr.io/cpopen/cpfs/icp-management-ingress:2.5.24
                 - name: ROUTE_HTTPS_PORT
                   value: ""
                 - name: ROUTE_HTTP_PORT
@@ -498,4 +498,4 @@ spec:
   minKubeVersion: 1.19.0
   provider:
     name: IBM
-  version: 1.15.0
+  version: 1.16.0
