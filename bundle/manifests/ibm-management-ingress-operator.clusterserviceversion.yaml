@@ -256,7 +256,7 @@ spec:
                       name: namespace-scope
                       key: namespaces
                 - name: ICP_MANAGEMENT_INGRESS_IMAGE
-                  value: icr.io/cpopen/cpfs/icp-management-ingress:2.5.24
+                  value: icr.io/cpopen/cpfs/icp-management-ingress:2.5.25
                 - name: ROUTE_HTTPS_PORT
                   value: ""
                 - name: ROUTE_HTTP_PORT
