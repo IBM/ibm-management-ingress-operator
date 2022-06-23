@@ -1,10 +1,10 @@
-# ibm-management-ingress-operator 
+# ibm-management-ingress-operator
 
 > **Important:** Do not install this operator directly. Only install this operator using the IBM Common Services Operator. For more information about installing this operator and other Common Services operators, see [Installer documentation](http://ibm.biz/cpcs_opinstall). If you are using this operator as part of an IBM Cloud Pak, see the documentation for that IBM Cloud Pak to learn more about how to install and use the operator service. For more information about IBM Cloud Paks, see [IBM Cloud Paks that use Common Services](http://ibm.biz/cpcs_cloudpaks).
 
 You can use the ibm-management-ingress-operator to install the IBM System Management Ingress service, which includes a Nginx-based ingress controller. You can use the IBM System Management Ingress service to expose your services when you install and use an IBM Cloud Pak or IBM Cloud Platform Common Services.
 
-For more information about the available IBM Cloud Platform Common Services, see the [IBM Knowledge Center](http://ibm.biz/cpcsdocs). 
+For more information about the available IBM Cloud Platform Common Services, see the [IBM Knowledge Center](http://ibm.biz/cpcsdocs).
 
 ## Supported platforms
 
@@ -33,6 +33,7 @@ Red Hat OpenShift Container Platform 4.3 or newer installed on one of the follow
 - 1.13.0
 - 1.14.0
 - 1.16.0
+- 1.16.1
 
 ## Prerequisites
 
