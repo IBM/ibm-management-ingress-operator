@@ -10,6 +10,7 @@ metadata:
     app.kubernetes.io/managed-by: ibm-management-ingress-operator
     app.kubernetes.io/name: ibm-management-ingress-operator
 spec:
+  x-kubernetes-preserve-unknown-fields: true
   group: operator.ibm.com
   names:
     kind: ManagementIngress
