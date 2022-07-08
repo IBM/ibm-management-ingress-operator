@@ -37,7 +37,7 @@ import (
 )
 
 //NewRoute stubs an instance of a Route
-func NewRoute(name, namespace, serviceName, routeHost string, cert, key, caCert, destinationCAcert []byte) *route.Route {
+func NewRoute(name, namespace, serviceName, routeHost string, cert, key, caCert, destinationCAcert []byte, annotations map[string]string) *route.Route {
 
 	labels := GetCommonLabels()
 	weight := int32(100)
@@ -48,9 +48,10 @@ func NewRoute(name, namespace, serviceName, routeHost string, cert, key, caCert,
 			APIVersion: route.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-			Labels:    labels,
+			Name:        name,
+			Namespace:   namespace,
+			Labels:      labels,
+			Annotations: annotations,
 		},
 		Spec: route.RouteSpec{
 			Host: routeHost,
@@ -283,6 +284,10 @@ func getRouteCertificate(i *IngressRequest, ns string) ([]byte, []byte, []byte, 
 	return cert, key, caCert, destinationCAcert, nil
 }
 
+func getRouteAnnotations() map[string]string {
+	return map[string]string{"haproxy.router.openshift.io/timeout": "90s"}
+}
+
 func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 
 	// Get data from route certificate
@@ -306,6 +311,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 		key,
 		caCert,
 		destinationCAcert,
+		getRouteAnnotations(),
 	)
 
 	if err := syncRoute(ingressRequest, consoleRoute); err != nil {
@@ -326,6 +332,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 		[]byte{},
 		[]byte{},
 		[]byte{},
+		map[string]string{},
 	)
 
 	if err := syncRoute(ingressRequest, proxyRoute); err != nil {
