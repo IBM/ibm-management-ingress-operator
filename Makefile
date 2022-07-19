@@ -16,6 +16,7 @@
 # Specify whether this repo is build locally or not, default values is '1';
 # If set to 1, then you need to also set 'DOCKER_USERNAME' and 'DOCKER_PASSWORD'
 # environment variables before build the repo.
+
 BUILD_LOCALLY ?= 1
 
 # image version for each single arch
