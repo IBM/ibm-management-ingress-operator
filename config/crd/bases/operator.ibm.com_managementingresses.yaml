@@ -10,7 +10,6 @@ metadata:
     app.kubernetes.io/managed-by: ibm-management-ingress-operator
     app.kubernetes.io/name: ibm-management-ingress-operator
 spec:
-  x-kubernetes-preserve-unknown-fields: true
   group: operator.ibm.com
   names:
     kind: ManagementIngress
@@ -41,6 +40,7 @@ spec:
             metadata:
               type: object
             spec:
+              x-kubernetes-preserve-unknown-fields: true
               description: ManagementIngressSpec defines the desired state of ManagementIngress
               properties:
                 allowedHostHeader:
