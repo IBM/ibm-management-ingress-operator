@@ -153,6 +153,12 @@ func main() {
 		} else {
 			clusterType = ibmCppConfig.Data[handler.KubernetesClusterType]
 			domainName = ibmCppConfig.Data[handler.CppConfigDomainName]
+
+			if clusterType == "cncf" {
+				if !strings.Contains(domainName, ":") {
+					domainName = domainName + ":443"
+				}
+			}
 			// dns = projectkConfig.Data["dns"]
 		}
 	} else if err != nil {
