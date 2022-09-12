@@ -98,7 +98,7 @@ metadata:
 spec:
   relatedImages:
     - name: ICP_MANAGEMENT_INGRESS_IMAGE
-      image: icr.io/cpopen/cpfs/icp-management-ingress:2.6.1
+      image: icr.io/cpopen/cpfs/icp-management-ingress:2.6.3
     - name: ibm-management-ingress-operator
       image: icr.io/cpopen/ibm-management-ingress-operator:1.16.5
   apiservicedefinitions: {}
@@ -256,7 +256,7 @@ spec:
                       name: namespace-scope
                       key: namespaces
                 - name: ICP_MANAGEMENT_INGRESS_IMAGE
-                  value: icr.io/cpopen/cpfs/icp-management-ingress:2.6.1
+                  value: icr.io/cpopen/cpfs/icp-management-ingress:2.6.3
                 - name: ROUTE_HTTPS_PORT
                   value: ""
                 - name: ROUTE_HTTP_PORT
