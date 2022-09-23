@@ -356,8 +356,11 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment(clusterType strin
 	image := os.Getenv("ICP_MANAGEMENT_INGRESS_IMAGE")
 	var hostHeader string
 	if clusterType == CNCF {
+		dn := ingressRequest.managementIngress.Status.Host
 		pos := strings.LastIndex(ingressRequest.managementIngress.Status.Host, ":")
-		dn := ingressRequest.managementIngress.Status.Host[0:pos]
+		if pos >= 0 {
+			dn = ingressRequest.managementIngress.Status.Host[0:pos]
+		}
 		hostHeader = strings.Join([]string{
 			ingressRequest.managementIngress.Spec.AllowedHostHeader,
 			dn,
