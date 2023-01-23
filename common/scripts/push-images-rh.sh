@@ -66,9 +66,9 @@ echo "IMAGE_SUFFIX=$IMAGE_SUFFIX"
 
 #OLD: QUAY=quay.io/opencloudio/$IMAGE:$TAG
 
-LOCAL_IMAGE=hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom/$IMAGE_NAME-$ARCH$IMAGE_SUFFIX
-#OLD LOCAL_IMAGE=hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom/$IMAGE_NAME-$ARCH@$SHA
-#OLD LOCAL_IMAGE=hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom/$IMAGE_NAME-$ARCH:$TAG
+LOCAL_IMAGE=docker-na-public.artifactory.swg-devops.com/hyc-cloud-private-integration-docker-local/ibmcom/$IMAGE_NAME-$ARCH$IMAGE_SUFFIX
+#OLD LOCAL_IMAGE=docker-na-public.artifactory.swg-devops.com/hyc-cloud-private-integration-docker-local/ibmcom/$IMAGE_NAME-$ARCH@$SHA
+#OLD LOCAL_IMAGE=docker-na-public.artifactory.swg-devops.com/hyc-cloud-private-integration-docker-local/ibmcom/$IMAGE_NAME-$ARCH:$TAG
 SCAN_IMAGE=scan.connect.redhat.com/$RH_PID/$IMAGE_NAME:$TAG-$ARCH$TEST
 
 echo "### This is going to pull your image from the repo"
