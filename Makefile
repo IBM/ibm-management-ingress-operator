@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Specify whether this repo is build locally or not, default values is '1'; 
+# Specify whether this repo is build locally or not, default values is '1';
 # If set to 1, then you need to also set 'DOCKER_USERNAME' and 'DOCKER_PASSWORD'
-# environment variables before build the repo. 
+# environment variables before build the repo.
 BUILD_LOCALLY ?= 1
 
 
@@ -39,7 +39,7 @@ VCS_REF ?= $(shell git rev-parse HEAD)
 MARKDOWN_LINT_WHITELIST=https://quay.io/cnr
 
 # operator image repo and name
-REGISTRY ?= hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom
+REGISTRY ?= docker-na-public.artifactory.swg-devops.com/hyc-cloud-private-integration-docker-local/ibmcom
 IMG ?= ibm-management-ingress-operator
 
 TESTARGS_DEFAULT := "-v"

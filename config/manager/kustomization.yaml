@@ -2,5 +2,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: controller
-  newName: hyc-cloud-private-integration-docker-local.artifactory.swg-devops.com/ibmcom/ibm-management-ingress-operator
+  newName: docker-na-public.artifactory.swg-devops.com/hyc-cloud-private-integration-docker-local/ibmcom/ibm-management-ingress-operator
   newTag: latest
