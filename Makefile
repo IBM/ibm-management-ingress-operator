@@ -39,8 +39,13 @@ VCS_REF ?= $(shell git rev-parse HEAD)
 MARKDOWN_LINT_WHITELIST=https://quay.io/cnr
 
 # operator image repo and name
-REGISTRY ?= docker-na-public.artifactory.swg-devops.com/hyc-cloud-private-integration-docker-local/ibmcom
 IMG ?= ibm-management-ingress-operator
+
+ifeq ($(BUILD_LOCALLY),0)
+	REGISTRY ?= docker-na-public.artifactory.swg-devops.com/hyc-cloud-private-integration-docker-local/ibmcom
+else
+	REGISTRY ?= "docker-na-public.artifactory.swg-devops.com/hyc-cloud-private-scratch-docker-local/ibmcom"
+endif
 
 TESTARGS_DEFAULT := "-v"
 export TESTARGS ?= $(TESTARGS_DEFAULT)
