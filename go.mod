@@ -19,7 +19,7 @@ require (
 
 require (
 	github.com/gogo/protobuf v1.3.2 // indirect
-	golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f // indirect
+	golang.org/x/crypto v0.7.0 // indirect
 )
 
 replace (
