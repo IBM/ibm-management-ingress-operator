@@ -18,7 +18,6 @@
 # environment variables before build the repo.
 BUILD_LOCALLY ?= 1
 
-
 # image version for each single arch
 VERSION ?= $(shell date +v%Y%m%d)-$(shell git describe --match=$(git rev-parse --short=8 HEAD) --tags --always --dirty)
 # image version for the multiarch
