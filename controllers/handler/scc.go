@@ -1,4 +1,3 @@
-//
 // Copyright 2020 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 package handler
 
 import (
@@ -26,7 +24,7 @@ import (
 	"k8s.io/klog"
 )
 
-//NewSecurityContextConstraint stubs an instance of a SecurityContextConstraint
+// NewSecurityContextConstraint stubs an instance of a SecurityContextConstraint
 func NewSecurityContextConstraint(serviceaccount, name, namespace string) *scc.SecurityContextConstraints {
 	user := strings.Join([]string{"system:serviceaccount", name, namespace}, ":")
 	privilegeEscalation := false
@@ -86,7 +84,7 @@ func (ingressRequest *IngressRequest) CreateSecurityContextConstraint() error {
 	return nil
 }
 
-//RemoveSecurityContextConstraint with given name
+// RemoveSecurityContextConstraint with given name
 func (ingressRequest *IngressRequest) RemoveSecurityContextConstraint(name string) error {
 
 	scc := &scc.SecurityContextConstraints{

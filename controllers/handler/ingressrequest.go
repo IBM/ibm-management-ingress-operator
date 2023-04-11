@@ -1,4 +1,3 @@
-//
 // Copyright 2020 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 package handler
 
 import (
@@ -58,19 +56,19 @@ func (ingressRequest *IngressRequest) Create(object runtime.Object) (err error) 
 	return ingressRequest.client.Create(context.TODO(), object)
 }
 
-//Update the runtime Object or return error
+// Update the runtime Object or return error
 func (ingressRequest *IngressRequest) Update(object runtime.Object) (err error) {
 	klog.V(4).Infof("Updating object: %v", object)
 	return ingressRequest.client.Update(context.TODO(), object)
 }
 
-//Update the runtime Object status or return error
+// Update the runtime Object status or return error
 func (ingressRequest *IngressRequest) UpdateStatus(object runtime.Object) (err error) {
 	klog.V(4).Infof("Updating object status: %v", object)
 	return ingressRequest.client.Status().Update(context.TODO(), object)
 }
 
-//Patch the runtime Object or return error
+// Patch the runtime Object or return error
 func (ingressRequest *IngressRequest) Patch(object runtime.Object, mergePatch []byte) (err error) {
 	klog.V(4).Infof("Patching object: %v", object)
 	return ingressRequest.client.Patch(context.TODO(), object, client.RawPatch(types.StrategicMergePatchType, mergePatch))
