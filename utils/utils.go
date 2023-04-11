@@ -1,4 +1,3 @@
-//
 // Copyright 2020 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 package utils
 
 import (
@@ -189,12 +187,14 @@ func PodVolumeEquivalent(lhs, rhs []core.Volume) bool {
 	return true
 }
 
-/**
+/*
+*
 EnvValueEqual - check if 2 EnvValues are equal or not
 Notes:
 - reflect.DeepEqual does not return expected results if the to-be-compared value is a pointer.
 - needs to adjust with k8s.io/api/core/v#/types.go when the types are updated.
-**/
+*
+*/
 func EnvValueEqual(env1, env2 []core.EnvVar) bool {
 	var found bool
 	if len(env1) != len(env2) {

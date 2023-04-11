@@ -1,4 +1,3 @@
-//
 // Copyright 2020 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 package handler
 
 import (
@@ -41,7 +39,7 @@ const (
 	httpPort  = int32(8080)
 )
 
-//NewDeployment stubs an instance of a deployment
+// NewDeployment stubs an instance of a deployment
 func NewDeployment(name string, namespace string, replicas int32, podSpec core.PodSpec) *apps.Deployment {
 
 	labels := GetCommonLabels()
@@ -342,11 +340,9 @@ func getClusterDomain(clusterType string) (string, error) {
 		return "", err
 	}
 
-	if dns != nil {
-		clusterDomain := dns.Status.ClusterDomain
-		if len(clusterDomain) > 0 {
-			return clusterDomain, nil
-		}
+	clusterDomain := dns.Status.ClusterDomain
+	if len(clusterDomain) > 0 {
+		return clusterDomain, nil
 	}
 
 	return "", fmt.Errorf("the Cluster Domain from DNS operator config is empty. Check DNS: %v", dns)
@@ -450,7 +446,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateDeployment(clusterType strin
 	return nil
 }
 
-//GetDeploymentList lists DS in namespace with given selector
+// GetDeploymentList lists DS in namespace with given selector
 func (ingressRequest *IngressRequest) GetDeploymentList(selector map[string]string) (*apps.DeploymentList, error) {
 	list := &apps.DeploymentList{
 		TypeMeta: metav1.TypeMeta{

@@ -1,4 +1,3 @@
-//
 // Copyright 2021 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 package handler
 
 import (
@@ -36,7 +34,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
-//NewRoute stubs an instance of a Route
+// NewRoute stubs an instance of a Route
 func NewRoute(name, namespace, serviceName, routeHost string, cert, key, caCert, destinationCAcert []byte, annotations map[string]string) *route.Route {
 
 	labels := GetCommonLabels()
@@ -342,7 +340,7 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	return nil
 }
 
-//GetRouteURL retrieves the route URL from a given route and namespace
+// GetRouteURL retrieves the route URL from a given route and namespace
 func (ingressRequest *IngressRequest) GetRouteURL(name string) (string, error) {
 
 	foundRoute := &route.Route{}
@@ -367,11 +365,9 @@ func (ingressRequest *IngressRequest) GetRouteAppDomain() (string, error) {
 		return "", err
 	}
 
-	if ing != nil {
-		appDomain := ing.Status.Domain
-		if len(appDomain) > 0 {
-			return appDomain, nil
-		}
+	appDomain := ing.Status.Domain
+	if len(appDomain) > 0 {
+		return appDomain, nil
 	}
 
 	return "", fmt.Errorf("the router Domain from config of Ingress Controller Operator is empty. See more info: %v", ing)

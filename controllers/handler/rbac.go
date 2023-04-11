@@ -1,4 +1,3 @@
-//
 // Copyright 2020 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 package handler
 
 import (
@@ -24,7 +22,7 @@ import (
 	"k8s.io/klog"
 )
 
-//NewPolicyRule stubs policy rule
+// NewPolicyRule stubs policy rule
 func NewPolicyRule(apiGroups, resources, resourceNames, verbs []string) rbac.PolicyRule {
 	return rbac.PolicyRule{
 		APIGroups:     apiGroups,
@@ -34,12 +32,12 @@ func NewPolicyRule(apiGroups, resources, resourceNames, verbs []string) rbac.Pol
 	}
 }
 
-//NewPolicyRules stubs policy rules
+// NewPolicyRules stubs policy rules
 func NewPolicyRules(rules ...rbac.PolicyRule) []rbac.PolicyRule {
 	return rules
 }
 
-//NewRole stubs a role
+// NewRole stubs a role
 func NewRole(roleName, namespace string, rules []rbac.PolicyRule) *rbac.Role {
 	return &rbac.Role{
 		TypeMeta: metav1.TypeMeta{
@@ -54,7 +52,7 @@ func NewRole(roleName, namespace string, rules []rbac.PolicyRule) *rbac.Role {
 	}
 }
 
-//NewSubject stubs a new subect
+// NewSubject stubs a new subect
 func NewSubject(kind, name string) rbac.Subject {
 	return rbac.Subject{
 		Kind:     kind,
@@ -63,12 +61,12 @@ func NewSubject(kind, name string) rbac.Subject {
 	}
 }
 
-//NewSubjects stubs subjects
+// NewSubjects stubs subjects
 func NewSubjects(subjects ...rbac.Subject) []rbac.Subject {
 	return subjects
 }
 
-//NewRoleBinding stubs a role binding
+// NewRoleBinding stubs a role binding
 func NewRoleBinding(bindingName, namespace, roleName string, subjects []rbac.Subject) *rbac.RoleBinding {
 	return &rbac.RoleBinding{
 		TypeMeta: metav1.TypeMeta{
@@ -88,7 +86,7 @@ func NewRoleBinding(bindingName, namespace, roleName string, subjects []rbac.Sub
 	}
 }
 
-//NewClusterRoleBinding stubs a cluster role binding
+// NewClusterRoleBinding stubs a cluster role binding
 func NewClusterRoleBinding(bindingName, roleName string, subjects []rbac.Subject) *rbac.ClusterRoleBinding {
 	return &rbac.ClusterRoleBinding{
 		TypeMeta: metav1.TypeMeta{
@@ -136,7 +134,7 @@ func (ingressRequest *IngressRequest) CreateClusterRoleBinding(binding *rbac.Clu
 	return nil
 }
 
-//RemoveClusterRole removes a cluster role binding
+// RemoveClusterRole removes a cluster role binding
 func (ingressRequest *IngressRequest) RemoveClusterRole(name string) error {
 
 	r := &rbac.ClusterRole{
@@ -159,7 +157,7 @@ func (ingressRequest *IngressRequest) RemoveClusterRole(name string) error {
 	return nil
 }
 
-//RemoveClusterRoleBinding removes a cluster role binding
+// RemoveClusterRoleBinding removes a cluster role binding
 func (ingressRequest *IngressRequest) RemoveClusterRoleBinding(name string) error {
 
 	b := &rbac.ClusterRoleBinding{

@@ -1,4 +1,3 @@
-//
 // Copyright 2021 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 package handler
 
 import (
@@ -35,7 +33,7 @@ import (
 	"github.com/IBM/ibm-management-ingress-operator/utils"
 )
 
-//NewConfigMap stubs an instance of Configmap
+// NewConfigMap stubs an instance of Configmap
 func NewConfigMap(name string, namespace string, data map[string]string) *core.ConfigMap {
 
 	labels := GetCommonLabels()

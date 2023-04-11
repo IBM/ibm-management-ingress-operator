@@ -1,4 +1,3 @@
-//
 // Copyright 2020 IBM Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 package handler
 
 import (
@@ -31,7 +29,7 @@ import (
 	operatorv1alpha1 "github.com/IBM/ibm-management-ingress-operator/api/v1alpha1"
 )
 
-//NewCertificate stubs an instance of Certificate
+// NewCertificate stubs an instance of Certificate
 func NewCertificate(name, namespace, secret string, hosts, ips []string, issuer *operatorv1alpha1.CertIssuer) *certmanager.Certificate {
 
 	labels := GetCommonLabels()
