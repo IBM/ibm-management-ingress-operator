@@ -126,7 +126,7 @@ func GetCommonLabels() map[string]string {
 		"app.kubernetes.io/component":  AppName,
 		"app.kubernetes.io/name":       AppName,
 		"app.kubernetes.io/instance":   ServiceName,
-		"app.kubernetes.io/managed-by": "",
+		"app.kubernetes.io/managed-by": ServiceName,
 	}
 }
 
