@@ -139,6 +139,7 @@ func main() {
 
 	var clusterType string
 	var domainName string
+	var loadBalanced string
 	// var nodePort string
 	ibmCppConfig := &corev1.ConfigMap{}
 	if err := mgr.GetClient().Get(context.TODO(), types.NamespacedName{Name: handler.CppConfigName, Namespace: operatorNs}, ibmCppConfig); !errors.IsNotFound(err) {
@@ -151,6 +152,7 @@ func main() {
 		} else {
 			clusterType = ibmCppConfig.Data[handler.KubernetesClusterType]
 			domainName = ibmCppConfig.Data[handler.CppConfigDomainName]
+			loadBalanced = ibmCppConfig.Data[handler.LoadBalancedClusterType]
 			// dns = projectkConfig.Data["dns"]
 		}
 	} else if err != nil {
@@ -159,12 +161,13 @@ func main() {
 	}
 
 	if err = (&controllers.ManagementIngressReconciler{
-		Client:      mgr.GetClient(),
-		Reader:      mgr.GetAPIReader(),
-		Scheme:      mgr.GetScheme(),
-		Recorder:    mgr.GetEventRecorderFor(controllers.ControllerName),
-		ClusterType: clusterType,
-		DomainName:  domainName,
+		Client:       mgr.GetClient(),
+		Reader:       mgr.GetAPIReader(),
+		Scheme:       mgr.GetScheme(),
+		Recorder:     mgr.GetEventRecorderFor(controllers.ControllerName),
+		ClusterType:  clusterType,
+		DomainName:   domainName,
+		LoadBalanced: loadBalanced,
 	}).SetupWithManager(mgr); err != nil {
 		klog.Errorf("unable to create controller: %v", err)
 		os.Exit(1)

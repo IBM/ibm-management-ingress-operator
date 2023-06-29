@@ -484,6 +484,10 @@ func IsServiceDifferent(current *core.Service, desired *core.Service) (*core.Ser
 		current.Spec.Ports = desired.Spec.Ports
 		different = true
 	}
+	if current.Spec.Type != desired.Spec.Type {
+		current.Spec.Type = desired.Spec.Type
+		different = true
+	}
 
 	return current, different
 }

@@ -286,7 +286,7 @@ func getRouteAnnotations() map[string]string {
 	return map[string]string{"haproxy.router.openshift.io/timeout": "90s"}
 }
 
-func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
+func (ingressRequest *IngressRequest) CreateOrUpdateRoute(loadBalanced string) error {
 
 	// Get data from route certificate
 	cert, key, caCert, destinationCAcert, err := getRouteCertificate(ingressRequest, ingressRequest.managementIngress.ObjectMeta.Namespace)
@@ -297,6 +297,11 @@ func (ingressRequest *IngressRequest) CreateOrUpdateRoute() error {
 	// Create or update secret ibmcloud-cluster-ca-cert
 	if err := createClusterCACert(ingressRequest, ClusterSecretName, os.Getenv(PODNAMESPACE), caCert); err != nil {
 		return fmt.Errorf("failure creating or updating secret: %v", err)
+	}
+
+	if loadBalanced == "true" {
+		klog.Info("Loadbalanced cluster so route is NOT reconciled")
+		return nil
 	}
 
 	// Create cp-console route

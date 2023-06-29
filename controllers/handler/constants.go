@@ -85,8 +85,9 @@ const (
 	ProxyServiceName     string = "nginx-ingress-controller"
 
 	// ibm-cpp-config config map
-	CppConfigName         string = "ibm-cpp-config"
-	KubernetesClusterType string = "kubernetes_cluster_type"
-	CppConfigDomainName   string = "domain_name"
-	CNCF                  string = "cncf"
+	CppConfigName           string = "ibm-cpp-config"
+	KubernetesClusterType   string = "kubernetes_cluster_type"
+	CppConfigDomainName     string = "domain_name"
+	CNCF                    string = "cncf"
+	LoadBalancedClusterType string = "load_balanced"
 )

@@ -50,7 +50,7 @@ func NewService(name string, namespace string, servicePorts []core.ServicePort) 
 	}
 }
 
-func (ingressRequest *IngressRequest) CreateOrUpdateService() error {
+func (ingressRequest *IngressRequest) CreateOrUpdateService(loadBalanced string) error {
 	service := NewService(
 		ServiceName,
 		ingressRequest.managementIngress.Namespace,
@@ -65,6 +65,9 @@ func (ingressRequest *IngressRequest) CreateOrUpdateService() error {
 				},
 			},
 		})
+	if loadBalanced == "true" {
+		service.Spec.Type = core.ServiceTypeLoadBalancer
+	}
 
 	if err := controllerutil.SetControllerReference(ingressRequest.managementIngress, service, ingressRequest.scheme); err != nil {
 		klog.Errorf("Error setting controller reference on Service: %v", err)
