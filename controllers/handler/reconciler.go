@@ -24,7 +24,7 @@ import (
 	operatorv1alpha1 "github.com/IBM/ibm-management-ingress-operator/api/v1alpha1"
 )
 
-func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName string) (err error) {
+func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName string, loadBalanced string) (err error) {
 
 	// First time in reconcile set route host in status.
 	requestIngress := ingressRequest.managementIngress
@@ -66,7 +66,7 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 	}
 	fmt.Println("Reconciling service")
 	// Reconcile service
-	if err = ingressRequest.CreateOrUpdateService(); err != nil {
+	if err = ingressRequest.CreateOrUpdateService(loadBalanced); err != nil {
 		return fmt.Errorf("unable  to create or update service for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 	fmt.Println("Reconciling configmap")
@@ -85,7 +85,7 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 	if clusterType != CNCF {
 		fmt.Println("Reconciling route")
 		// Reconcile route on ocp clusters
-		if err = ingressRequest.CreateOrUpdateRoute(); err != nil {
+		if err = ingressRequest.CreateOrUpdateRoute(loadBalanced); err != nil {
 			return fmt.Errorf("unable  to create or update route for %q: %v", ingressRequest.managementIngress.Name, err)
 		}
 	} else {

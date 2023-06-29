@@ -38,11 +38,12 @@ const (
 // ManagementIngressReconciler reconciles a ManagementIngress object
 type ManagementIngressReconciler struct {
 	client.Client
-	Reader      client.Reader
-	Scheme      *runtime.Scheme
-	Recorder    record.EventRecorder
-	ClusterType string
-	DomainName  string
+	Reader       client.Reader
+	Scheme       *runtime.Scheme
+	Recorder     record.EventRecorder
+	ClusterType  string
+	DomainName   string
+	LoadBalanced string
 }
 
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
@@ -79,7 +80,7 @@ func (r *ManagementIngressReconciler) Reconcile(request ctrl.Request) (ctrl.Resu
 	klog.Infof("reconciling managementingress: %s/%s", request.NamespacedName.Namespace, request.NamespacedName.Name)
 	ingresshandler := k8shandler.NewIngressHandler(managementingress, r.Client, r.Recorder, r.Scheme)
 
-	err = k8shandler.Reconcile(ingresshandler, r.ClusterType, r.DomainName)
+	err = k8shandler.Reconcile(ingresshandler, r.ClusterType, r.DomainName, r.LoadBalanced)
 	if err != nil {
 		klog.Errorf("failed to reconcile managementingress: %s/%s with error: %v", request.NamespacedName.Namespace, request.NamespacedName.Name, err)
 		return ctrl.Result{}, err
