@@ -79,7 +79,11 @@ func (r *ManagementIngressReconciler) Reconcile(request ctrl.Request) (ctrl.Resu
 	klog.Infof("reconciling managementingress: %s/%s", request.NamespacedName.Namespace, request.NamespacedName.Name)
 	ingresshandler := k8shandler.NewIngressHandler(managementingress, r.Client, r.Recorder, r.Scheme)
 
-	err = k8shandler.Reconcile(ingresshandler, r.ClusterType, r.DomainName)
+	requeue, err := k8shandler.Reconcile(ingresshandler, r.ClusterType, r.DomainName)
+	if err == nil && requeue {
+		klog.Infof("Requeueing for upgrade deployment delete")
+		return ctrl.Result{Requeue: true}, nil
+	}
 	if err != nil {
 		klog.Errorf("failed to reconcile managementingress: %s/%s with error: %v", request.NamespacedName.Namespace, request.NamespacedName.Name, err)
 		return ctrl.Result{}, err
