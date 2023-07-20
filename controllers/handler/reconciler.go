@@ -19,12 +19,33 @@ import (
 	"strings"
 	"time"
 
+	apps "k8s.io/api/apps/v1"
 	"k8s.io/klog"
 
 	operatorv1alpha1 "github.com/IBM/ibm-management-ingress-operator/api/v1alpha1"
 )
 
-func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName string) (err error) {
+func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName string) (requeue bool, err error) {
+
+	//An upgrade issue was introduced in 3.19.3 where the pod template match labels and labels were
+	//updated to include a managed-by label.  This caused the updated pods on upgrade to not match via
+	//the labels and the update fails.  To work around this, we will detect this condition here and when
+	//an empty label is found, we will delete the deployment and requeue so the deployment is created
+	//from scratch
+	deployment := &apps.Deployment{}
+	if err = ingressRequest.Get(AppName, ingressRequest.managementIngress.Namespace, deployment); err == nil {
+		//deployment has been found - delete
+		if deployment.Spec.Selector.MatchLabels["app.kubernetes.io/managed-by"] == "" {
+			klog.Infof("Deployment does not have the \"app.kubernetes.io/managed-by\" label set - the deployment must be deleted before it can upgraded")
+			err = ingressRequest.Delete(deployment)
+			if err != nil {
+				klog.Error("Error deleting deployment before upgrade", err)
+				return false, err
+			}
+			klog.Info("Deployment deleted successfully and will be recreated on the next reconcile")
+			return true, nil
+		}
+	}
 
 	// First time in reconcile set route host in status.
 	requestIngress := ingressRequest.managementIngress
@@ -36,7 +57,7 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 		// Get route host
 		host, err = getRouteHost(ingressRequest)
 		if err != nil {
-			return err
+			return false, err
 		}
 	}
 
@@ -56,28 +77,28 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 		// Update CR status
 		requestIngress.Status = *status
 		if err := ingressRequest.UpdateStatus(requestIngress); err != nil {
-			return err
+			return false, err
 		}
 	}
 	fmt.Println("Reconciling cert")
 	// Reconcile cert
 	if err = ingressRequest.CreateOrUpdateCertificates(); err != nil {
-		return fmt.Errorf("unable  to create or update certificates for %q: %v", ingressRequest.managementIngress.Name, err)
+		return false, fmt.Errorf("unable  to create or update certificates for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 	fmt.Println("Reconciling service")
 	// Reconcile service
 	if err = ingressRequest.CreateOrUpdateService(); err != nil {
-		return fmt.Errorf("unable  to create or update service for %q: %v", ingressRequest.managementIngress.Name, err)
+		return false, fmt.Errorf("unable  to create or update service for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 	fmt.Println("Reconciling configmap")
 	// Reconcile configmap
 	if clusterType == CNCF {
 		if err = ingressRequest.CreateOrUpdateConfigMap(clusterType, domainName); err != nil {
-			return fmt.Errorf("unable  to create or update configmap for %q: %v", ingressRequest.managementIngress.Name, err)
+			return false, fmt.Errorf("unable  to create or update configmap for %q: %v", ingressRequest.managementIngress.Name, err)
 		}
 	} else {
 		if err = ingressRequest.CreateOrUpdateConfigMap("", ""); err != nil {
-			return fmt.Errorf("unable  to create or update configmap for %q: %v", ingressRequest.managementIngress.Name, err)
+			return false, fmt.Errorf("unable  to create or update configmap for %q: %v", ingressRequest.managementIngress.Name, err)
 		}
 	}
 
@@ -86,7 +107,7 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 		fmt.Println("Reconciling route")
 		// Reconcile route on ocp clusters
 		if err = ingressRequest.CreateOrUpdateRoute(); err != nil {
-			return fmt.Errorf("unable  to create or update route for %q: %v", ingressRequest.managementIngress.Name, err)
+			return false, fmt.Errorf("unable  to create or update route for %q: %v", ingressRequest.managementIngress.Name, err)
 		}
 	} else {
 		// K cluster uses the same ca cert from the "route-tls-secret" secret as the ocp cluster
@@ -94,22 +115,22 @@ func Reconcile(ingressRequest *IngressRequest, clusterType string, domainName st
 		stop := WaitForTimeout(10 * time.Minute)
 		secret, err := waitForSecret(ingressRequest, RouteSecret, stop)
 		if err != nil {
-			return err
+			return false, err
 		}
 
 		var caCert = secret.Data["ca.crt"]
 		// Create or update secret ibmcloud-cluster-ca-cert
 		if err := createClusterCACert(ingressRequest, ClusterSecretName, os.Getenv(PODNAMESPACE), caCert); err != nil {
-			return fmt.Errorf("failure creating or updating secret: %v", err)
+			return false, fmt.Errorf("failure creating or updating secret: %v", err)
 		}
 	}
 
 	// Reconcile deployment
 	if err = ingressRequest.CreateOrUpdateDeployment(clusterType); err != nil {
-		return fmt.Errorf("unable  to create or update deployment for %q: %v", ingressRequest.managementIngress.Name, err)
+		return false, fmt.Errorf("unable  to create or update deployment for %q: %v", ingressRequest.managementIngress.Name, err)
 	}
 
-	return nil
+	return false, nil
 }
 
 // Get the host for the cp-console route
