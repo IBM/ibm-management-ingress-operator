@@ -176,7 +176,7 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		InitialDelaySeconds: 10,
 		PeriodSeconds:       10,
 		FailureThreshold:    10,
-		Handler: core.Handler{
+		ProbeHandler: core.ProbeHandler{
 			HTTPGet: &core.HTTPGetAction{
 				Path:   "/healthz",
 				Port:   intstr.IntOrString{Type: intstr.Int, IntVal: 8080},
@@ -189,7 +189,7 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		TimeoutSeconds:      1,
 		InitialDelaySeconds: 10,
 		PeriodSeconds:       10,
-		Handler: core.Handler{
+		ProbeHandler: core.ProbeHandler{
 			HTTPGet: &core.HTTPGetAction{
 				Path:   "/healthz",
 				Port:   intstr.IntOrString{Type: intstr.Int, IntVal: 8080},
