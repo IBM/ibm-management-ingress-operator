@@ -51,37 +51,37 @@ func NewIngressHandler(instance *operatorv1alpha1.ManagementIngress, c client.Cl
 // 	return ingressRequest.managementIngress.Spec.ManagementState == operatorv1alpha1.ManagementStateManaged
 // }
 
-func (ingressRequest *IngressRequest) Create(object runtime.Object) (err error) {
+func (ingressRequest *IngressRequest) Create(object client.Object) (err error) {
 	klog.V(4).Infof("Creating object: %v", object)
 	return ingressRequest.client.Create(context.TODO(), object)
 }
 
 // Update the runtime Object or return error
-func (ingressRequest *IngressRequest) Update(object runtime.Object) (err error) {
+func (ingressRequest *IngressRequest) Update(object client.Object) (err error) {
 	klog.V(4).Infof("Updating object: %v", object)
 	return ingressRequest.client.Update(context.TODO(), object)
 }
 
 // Update the runtime Object status or return error
-func (ingressRequest *IngressRequest) UpdateStatus(object runtime.Object) (err error) {
+func (ingressRequest *IngressRequest) UpdateStatus(object client.Object) (err error) {
 	klog.V(4).Infof("Updating object status: %v", object)
 	return ingressRequest.client.Status().Update(context.TODO(), object)
 }
 
 // Patch the runtime Object or return error
-func (ingressRequest *IngressRequest) Patch(object runtime.Object, mergePatch []byte) (err error) {
+func (ingressRequest *IngressRequest) Patch(object client.Object, mergePatch []byte) (err error) {
 	klog.V(4).Infof("Patching object: %v", object)
 	return ingressRequest.client.Patch(context.TODO(), object, client.RawPatch(types.StrategicMergePatchType, mergePatch))
 }
 
-func (ingressRequest *IngressRequest) Get(objectName, objectNamespace string, object runtime.Object) error {
+func (ingressRequest *IngressRequest) Get(objectName, objectNamespace string, object client.Object) error {
 	namespace := types.NamespacedName{Name: objectName, Namespace: objectNamespace}
 	klog.V(4).Infof("Getting namespace: %v, object: %v", namespace, object)
 
 	return ingressRequest.client.Get(context.TODO(), namespace, object)
 }
 
-func (ingressRequest *IngressRequest) List(selector map[string]string, object runtime.Object) error {
+func (ingressRequest *IngressRequest) List(selector map[string]string, object client.ObjectList) error {
 	klog.V(4).Infof("Listing selector: %v, object: %v", selector, object)
 	labelSelector := labels.SelectorFromSet(selector)
 
@@ -111,7 +111,7 @@ func (ingressRequest *IngressRequest) GetConfigmap(name, namespace string) (*cor
 	return cfg, nil
 }
 
-func (ingressRequest *IngressRequest) Delete(object runtime.Object) (err error) {
+func (ingressRequest *IngressRequest) Delete(object client.Object) (err error) {
 	if err = ingressRequest.client.Delete(context.TODO(), object); err != nil {
 		klog.V(4).Infof("Error updating status: %v", err)
 	}

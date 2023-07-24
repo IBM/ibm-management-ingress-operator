@@ -47,8 +47,7 @@ type ManagementIngressReconciler struct {
 
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ManagementIngressReconciler) Reconcile(request ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *ManagementIngressReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 
 	// Fetch the ManagementIngress instance
 	managementingress := &operatorv1alpha1.ManagementIngress{}
