@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	certmanager "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
+	certmanager "github.com/ibm/ibm-cert-manager-operator/apis/certmanager/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"

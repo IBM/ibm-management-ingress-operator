@@ -4,7 +4,6 @@ go 1.13
 
 require (
 	github.com/IBM/controller-filtered-cache v0.3.4
-	github.com/jetstack/cert-manager v0.10.0
 	github.com/openshift/api v3.9.1-0.20190924102528-32369d4db2ad+incompatible
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0
@@ -15,7 +14,10 @@ require (
 	sigs.k8s.io/controller-runtime v0.11.1
 )
 
-require golang.org/x/net v0.8.0 // indirect
+require (
+	github.com/ibm/ibm-cert-manager-operator v0.0.0-20220602233809-3a62073266c7
+	golang.org/x/net v0.8.0 // indirect
+)
 
 replace (
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 => golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f
