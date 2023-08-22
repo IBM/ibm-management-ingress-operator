@@ -320,17 +320,6 @@ spec:
       permissions:
       - rules:
         - apiGroups:
-          - coordination.k8s.io
-          resources:
-          - leases
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - update
-          - watch
-        - apiGroups:
           - certmanager.k8s.io
           resources:
           - issuers
@@ -442,6 +431,17 @@ spec:
           - update
         serviceAccountName: ibm-management-ingress-operator
       - rules:
+        - apiGroups:
+          - coordination.k8s.io
+          resources:
+          - leases
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - update
+          - watch
         - apiGroups:
           - ""
           resources:
