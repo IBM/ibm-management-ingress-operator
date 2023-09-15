@@ -17,6 +17,7 @@ require (
 require (
 	github.com/ibm/ibm-cert-manager-operator v0.0.0-20220602233809-3a62073266c7
 	golang.org/x/net v0.8.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20220521103104-8f96da9f5d5e // indirect
 )
 
 replace (
