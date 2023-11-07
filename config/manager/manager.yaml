@@ -38,7 +38,7 @@ spec:
                 - s390x
       containers:
         - name: ibm-management-ingress-operator
-          image: icr.io/cpopen/ibm-management-ingress-operator:1.20.9
+          image: icr.io/cpopen/ibm-management-ingress-operator:1.20.10
           imagePullPolicy: Always
           command:
           - ibm-management-ingress-operator
@@ -75,7 +75,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: ICP_MANAGEMENT_INGRESS_IMAGE
-              value: icr.io/cpopen/cpfs/icp-management-ingress:2.6.17
+              value: icr.io/cpopen/cpfs/icp-management-ingress:2.6.18
             - name: ROUTE_HTTPS_PORT
               value: ""
             - name: ROUTE_HTTP_PORT
