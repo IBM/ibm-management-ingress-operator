@@ -179,8 +179,8 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		ProbeHandler: core.ProbeHandler{
 			HTTPGet: &core.HTTPGetAction{
 				Path:   "/healthz",
-				Port:   intstr.IntOrString{Type: intstr.Int, IntVal: 8080},
-				Scheme: core.URISchemeHTTP,
+				Port:   intstr.IntOrString{Type: intstr.Int, IntVal: 8443},
+				Scheme: core.URISchemeHTTPS,
 			},
 		},
 	}
@@ -192,8 +192,8 @@ func newPodSpec(img, clusterDomain string, resources *core.ResourceRequirements,
 		ProbeHandler: core.ProbeHandler{
 			HTTPGet: &core.HTTPGetAction{
 				Path:   "/healthz",
-				Port:   intstr.IntOrString{Type: intstr.Int, IntVal: 8080},
-				Scheme: core.URISchemeHTTP,
+				Port:   intstr.IntOrString{Type: intstr.Int, IntVal: 8443},
+				Scheme: core.URISchemeHTTPS,
 			},
 		},
 	}
