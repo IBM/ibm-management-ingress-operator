@@ -19,7 +19,6 @@ require (
 	golang.org/x/net v0.23.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20220521103104-8f96da9f5d5e // indirect
 )
 
 replace (
@@ -30,8 +29,6 @@ replace (
 replace k8s.io/api => k8s.io/api v0.23.5
 
 replace k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.23.5
-
-replace k8s.io/apimachinery => k8s.io/apimachinery v0.23.11-rc.0
 
 replace k8s.io/apiserver => k8s.io/apiserver v0.23.5
 
